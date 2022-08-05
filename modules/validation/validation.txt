@@ -1,0 +1,19 @@
+ddjjjjjjjjjjjjjjj{
+"ShortCode": "600000",
+"ResponseType": "[Completed/Cancelled]",
+"ConfirmationURL": "http://myservice:8080/confirmation",
+"ValidationURL": "http://myservice:8080/validation"
+}
+jjj{
+"ShortCode": "600000",
+"ResponseType": "[Completed/Cancelled]",
+"ConfirmationURL": "http://myservice:8080/confirmation",
+"ValidationURL": "http://myservice:8080/validation"
+}
+jjjjjj{
+"ShortCode": "600000",
+"ResponseType": "[Completed/Cancelled]",
+"ConfirmationURL": "http://myservice:8080/confirmation",
+"ValidationURL": "http://myservice:8080/validation"
+}
+jjjjjj

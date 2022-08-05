@@ -1,0 +1,49 @@
+[25-Feb-2022 11:31:53 Africa/Nairobi] PHP Fatal error:  Uncaught exception 'Swift_RfcComplianceException' with message 'Address in mailbox given [na] does not comply with RFC 2822, 3.6.2.' in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php:352
+Stack trace:
+#0 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(264): Swift_Mime_Headers_MailboxHeader->_assertValidAddress('na')
+#1 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(108): Swift_Mime_Headers_MailboxHeader->normalizeMailboxes(Array)
+#2 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(65): Swift_Mime_Headers_MailboxHeader->setNameAddresses(Array)
+#3 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderFactory.php(60): Swift_Mime_Headers_MailboxHeader->setFieldBodyModel(Array)
+#4 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderSet.php(70): Swift_Mime_SimpleH in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php on line 352
+[17-Mar-2022 12:53:38 Africa/Nairobi] PHP Fatal error:  Uncaught exception 'Swift_RfcComplianceException' with message 'Address in mailbox given [na] does not comply with RFC 2822, 3.6.2.' in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php:352
+Stack trace:
+#0 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(264): Swift_Mime_Headers_MailboxHeader->_assertValidAddress('na')
+#1 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(108): Swift_Mime_Headers_MailboxHeader->normalizeMailboxes(Array)
+#2 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(65): Swift_Mime_Headers_MailboxHeader->setNameAddresses(Array)
+#3 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderFactory.php(60): Swift_Mime_Headers_MailboxHeader->setFieldBodyModel(Array)
+#4 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderSet.php(70): Swift_Mime_SimpleH in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php on line 352
+[17-Mar-2022 12:54:39 Africa/Nairobi] PHP Fatal error:  Uncaught exception 'Swift_RfcComplianceException' with message 'Address in mailbox given [na] does not comply with RFC 2822, 3.6.2.' in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php:352
+Stack trace:
+#0 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(264): Swift_Mime_Headers_MailboxHeader->_assertValidAddress('na')
+#1 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(108): Swift_Mime_Headers_MailboxHeader->normalizeMailboxes(Array)
+#2 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(65): Swift_Mime_Headers_MailboxHeader->setNameAddresses(Array)
+#3 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderFactory.php(60): Swift_Mime_Headers_MailboxHeader->setFieldBodyModel(Array)
+#4 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderSet.php(70): Swift_Mime_SimpleH in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php on line 352
+[28-Mar-2022 14:55:17 Africa/Nairobi] PHP Fatal error:  Uncaught exception 'Swift_RfcComplianceException' with message 'Address in mailbox given [na] does not comply with RFC 2822, 3.6.2.' in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php:352
+Stack trace:
+#0 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(264): Swift_Mime_Headers_MailboxHeader->_assertValidAddress('na')
+#1 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(108): Swift_Mime_Headers_MailboxHeader->normalizeMailboxes(Array)
+#2 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(65): Swift_Mime_Headers_MailboxHeader->setNameAddresses(Array)
+#3 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderFactory.php(60): Swift_Mime_Headers_MailboxHeader->setFieldBodyModel(Array)
+#4 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderSet.php(70): Swift_Mime_SimpleH in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php on line 352
+[28-Mar-2022 14:55:27 Africa/Nairobi] PHP Fatal error:  Uncaught exception 'Swift_RfcComplianceException' with message 'Address in mailbox given [na] does not comply with RFC 2822, 3.6.2.' in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php:352
+Stack trace:
+#0 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(264): Swift_Mime_Headers_MailboxHeader->_assertValidAddress('na')
+#1 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(108): Swift_Mime_Headers_MailboxHeader->normalizeMailboxes(Array)
+#2 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(65): Swift_Mime_Headers_MailboxHeader->setNameAddresses(Array)
+#3 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderFactory.php(60): Swift_Mime_Headers_MailboxHeader->setFieldBodyModel(Array)
+#4 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderSet.php(70): Swift_Mime_SimpleH in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php on line 352
+[28-Mar-2022 15:17:09 Africa/Nairobi] PHP Fatal error:  Uncaught exception 'Swift_RfcComplianceException' with message 'Address in mailbox given [na] does not comply with RFC 2822, 3.6.2.' in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php:352
+Stack trace:
+#0 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(264): Swift_Mime_Headers_MailboxHeader->_assertValidAddress('na')
+#1 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(108): Swift_Mime_Headers_MailboxHeader->normalizeMailboxes(Array)
+#2 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php(65): Swift_Mime_Headers_MailboxHeader->setNameAddresses(Array)
+#3 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderFactory.php(60): Swift_Mime_Headers_MailboxHeader->setFieldBodyModel(Array)
+#4 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/SimpleHeaderSet.php(70): Swift_Mime_SimpleH in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Mime/Headers/MailboxHeader.php on line 352
+[22-Apr-2022 09:47:04 Africa/Nairobi] PHP Fatal error:  Uncaught exception 'Swift_TransportException' with message 'Connection to ssl://smtp.gmail.com:465 Timed Out' in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Transport/AbstractSmtpTransport.php:405
+Stack trace:
+#0 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Transport/AbstractSmtpTransport.php(277): Swift_Transport_AbstractSmtpTransport->_getFullResponse(22)
+#1 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Transport/EsmtpTransport.php(245): Swift_Transport_AbstractSmtpTransport->executeCommand('\r\n.\r\n', Array, Array)
+#2 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Transport/AbstractSmtpTransport.php(335): Swift_Transport_EsmtpTransport->executeCommand('\r\n.\r\n', Array)
+#3 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Transport/AbstractSmtpTransport.php(433): Swift_Transport_AbstractSmtpTransport->_streamMessage(Object(Swift_Message))
+#4 /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/T in /home/techsava/public_html/property/Swift-5.1.0/lib/classes/Swift/Transport/AbstractSmtpTransport.php on line 405

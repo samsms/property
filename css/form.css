@@ -1,0 +1,62 @@
+/* photos */
+
+
+.kenita
+{
+width: 500px;
+text-align: left;
+padding:5px;
+border:1px solid #fff;
+-moz-border-radius: 5px;
+-webkit-border-radius: 10px;
+-khtml-border-radius: 10px;
+border-radius: 3px;
+background:#F1F2F3;
+box-shadow:0 0 6px #00D6FF, inset 0 1px 2px rgba(0,0,0,0.08);
+-webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
+ -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4); 
+ box-shadow: 0 1px 3px rgba(0,0,0, .4);   
+}
+.fieldset
+{
+                       
+			border:1px solid #c6d2db;
+			border-top:1px solid #b4c1cb;			
+			border-radius: 5px;
+			padding:5px 5px 5px 5px; 
+			background:#F1F2F3;
+box-shadow:0 0 6px #00D6FF, inset 0 1px 2px rgba(0,0,0,0.08);
+-webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
+ -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4); 
+ box-shadow: 0 1px 3px rgba(0,0,0, .4);
+}
+::-webkit-scrollbar {
+width: 0px;
+height: 10px;
+}
+
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment  {
+height: 30px;
+display: block;
+background-color: transparent;
+}
+
+::-webkit-scrollbar-track-piece  {
+background-color: #3b3b3b;
+-webkit-border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:vertical {
+height: 50px;
+background-color: #666;
+border: 1px solid #eee;
+-webkit-border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:horizontal {
+height: 50px;
+width:500px;
+background-color: #666;
+border: 1px solid #eee;
+-webkit-border-radius: 6px;
+}

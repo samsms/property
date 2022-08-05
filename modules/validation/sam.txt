@@ -1,0 +1,34 @@
+{
+    "InitiatorName": "testapiuser",
+    "SecurityCredential": "***********",
+    "Occassion": "StallOwner",
+    "CommandID": "BusinessPayment",
+    "PartyA": "600000",
+    "PartyB": "254711959143",
+    "Remarks": "Test B2C",
+    "Amount": 100,
+    "QueueTimeOutURL": "https://160f-102-167-73-200.eu.ngrok.io/property-rivercourt/modules/validation/",
+    "ResultURL": "https://160f-102-167-73-200.eu.ngrok.io/property-rivercourt/modules/validation/"
+}{
+    "InitiatorName": "testapiuser",
+    "SecurityCredential": "***********",
+    "Occassion": "StallOwner",
+    "CommandID": "BusinessPayment",
+    "PartyA": "600000",
+    "PartyB": "254711959143",
+    "Remarks": "Test B2C",
+    "Amount": 100,
+    "QueueTimeOutURL": "https://160f-102-167-73-200.eu.ngrok.io/property-rivercourt/modules/validation/",
+    "ResultURL": "https://160f-102-167-73-200.eu.ngrok.io/property-rivercourt/modules/validation/"
+}{
+    "Initiator": "",
+    "SecurityCredential": "",
+    "CommandID": "TransactionStatusQuery",
+    "TransactionID": "",
+    "PartyA": "",
+    "IdentifierType": "",
+    "ResultURL": "",
+    "QueueTimeOutURL": "",
+    "Remarks": "",
+    "Occasion": ""
+}
