@@ -89,7 +89,7 @@
                                 </div>
                             </div>
                             <div class="card-footer d-flex align-items-center justify-content-between">
-                                <a class="small text-white stretched-link" href="index.php?page=loans">View Loan List</a>
+                                <a class="small text-white stretched-link" href="index.php?page=loans_active">View Loan List</a>
                                 <div class="small text-white">
                                 	<i class="fas fa-angle-right"></i>
                                 </div>

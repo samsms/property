@@ -5,8 +5,8 @@
 		<div class="card">
 			<div class="card-header">
 				<large class="card-title">
-					<b>New Loans </b>
-					<button class="btn btn-primary btn-sm btn-block col-md-2 float-right" type="button" id="new_application"><i class="fa fa-plus"></i> Create New Application</button>
+					<b>Loan List</b>
+					<!-- <button class="btn btn-primary btn-sm btn-block col-md-2 float-right" type="button" id="new_application"><i class="fa fa-plus"></i> Create New Application</button> -->
 				</large>
 				
 			</div>
@@ -42,7 +42,7 @@
 							while($row=$plan->fetch_assoc()){
 								$plan_arr[$row['id']] = $row;
 							}
-							$qry = $conn->query("SELECT l.*,owner as name, owner as contact_no, owner as address from loan_list l inner join properties b on b.propertyid = l.borrower_id where l.status !=2 and l.status!=5 and l.status !=4 order by id asc");
+							$qry = $conn->query("SELECT l.*,owner as name, owner as contact_no, owner as address from loan_list l inner join properties b on b.propertyid = l.borrower_id  where l.status='4' order by id asc");
 							while($row = $qry->fetch_assoc()):
 								$monthly = ($row['amount'] + ($row['amount'] * ($plan_arr[$row['plan_id']]['interest_percentage']/100))) / $plan_arr[$row['plan_id']]['months'];
 								$penalty = $monthly * ($plan_arr[$row['plan_id']]['penalty_rate']/100);
@@ -109,8 +109,8 @@
 
 						 	</td>
 						 	<td class="text-center">
-						 			<button class="btn btn-outline-primary btn-sm edit_loan" type="button" data-id="<?php echo $row['id'] ?>"><i class="fa fa-edit"></i></button>
-						 			<button class="btn btn-outline-danger btn-sm delete_loan" type="button" data-id="<?php echo $row['id'] ?>"><i class="fa fa-trash"></i></button>
+						 			
+						 		
 						 	</td>
 
 						 </tr>

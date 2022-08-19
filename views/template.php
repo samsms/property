@@ -21,7 +21,6 @@ echo '<link rel="stylesheet" href="../css/overall.css" type="text/css" />';?>
 
 <link rel="stylesheet" type="text/css" media="screen" href="../css/overall2.css" />
 
-
 <?php
 
 //later set variable to session

@@ -1,12 +1,13 @@
 <?php
-
 session_start();
+die(print_r($_SESSION));
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 include 'display.php';
 include '../modules/functions.php';
-// die(is_cashier());
+///die(getPeriodByDate(date('d/m/Y')));
+ //die("dd");
 checkIfLoggedInProperty();
 $property=  getSettings();
 echo  $htmlheaders;
@@ -14,7 +15,6 @@ echo '<head><title>'.$property['company_name'].'| Jamar Properties</title>';
 echo $meta;
 echo '<link rel="stylesheet" type="text/css" media="screen" href="'.$baseurl.'css/overall2.css" />';
 echo '<link rel="stylesheet" href="../css/jquery-ui.css">';
-
 echo $jquery;
 //later set variable to session
 $admin=''.$_SESSION['username'].'';
@@ -2057,8 +2057,10 @@ function submitReason(){
 <fieldset id="addreasons">
 <form id="paymentReason" onsubmit="return submitReason()" method="post" enctype="multipart/form-data">
 <center><table>  
+
 <tr><td><label>Reason &nbsp;</label></td>
 <td>
+
     <input id="reason" type="text" name='reason'   style="width:250px; " required>
 </td>
 <tr>
@@ -2145,6 +2147,7 @@ function submitReason(){
     <td><input id="batchinvoicedate" name='invoicedate' value="<?php echo date('d/m/Y') ?>"  readonly="readonly" style="width:245px; ">
 </td></tr> 
 <tr><td><label for="usergroup">Financial Period &nbsp;</label></td>
+
         <td id="getbatchperioddiv">
         <select id='fperiodrecp'  name='fperiodbatch'  style="width:100%;">
         <?php $period=getPeriodByDate(date('d/m/Y')); 
@@ -2955,13 +2958,38 @@ $propid=$_SESSION['propertyid'];
     <?php $allproperties=  getProperties();
     ?>
 <td><select id="propertytopay">
-                <option selected="selected">Select Landlord</option>
-                <?php   foreach ($allproperties as $property) { ?>
-                     <option value="<?php echo $property['property_id'] ?>"><?php echo $property['property_name'] ?></option>   
-                   <?php } ?>
+                <!-- <option selected="selected">Select Landlord</option> -->
+                <option value="<?php echo $_SESSION['propertyid'] ?>" selected="selected"><?php echo propertyname( $_SESSION['propertyid']) ?></option>    
+                <?php  
+                // foreach ($allproperties as $property) { ?>
+                     <!-- <option value="<?php // echo $property['property_id'] ?>"><?php //echo $property['property_name'] ?></option>    -->
+                   <?php //} 
+                   ?>
                 
     </select></td></tr>
 <tr><td>Amount</td><td><input id="amountpaylandlord"  name="amount"  placeholder="amount"  style="height:20px; border:1px solid green "/></td></tr>  
+
+<?php //echo print_r($_SESSION);?>
+<?php
+require '../loan/admin_class.php';
+$crud = new Action();
+$loan=json_decode($crud->loan_next($_SESSION['propertyid']));
+?>
+<?php
+if($loan->success){
+    echo '<tr><td>Total Loan :</td><td>'.$loan->total_loan.'</td></tr>';
+    echo '<tr><td>Total Amount Remaining:</td><td>'.$loan->balance.'</td></tr>';
+    if(!$loan->ispaid){
+        echo '<tr><td>Loan Monthly Deduction:</td><td>'.$loan->amount.'</td></tr>';
+    }else{
+        echo '<tr><td>Loan Monthly Deduction:</td><td>Cleared</td></tr>';
+    }
+    
+}else{
+    echo '<tr><td>Loan:</td><td>'.$loan->message.'</td></tr>';
+}
+?>
+
 <tr><td><label id="chequedetailslabel">Payment Reason &nbsp;</label></td>
 <td>
 <select style='width:250px;' id="pay-reason">

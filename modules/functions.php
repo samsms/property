@@ -690,6 +690,44 @@ function saveClosePeriod($cp, $mode) {
         }
     }
 }
+function getPeriodByDate1($date) {
+    
+   
+    $mysqli = getMysqliConnection();
+    $closeperiodtable = getClosePeriodsTable();
+    //get close period in which month falls
+$date1 = DateTime::createFromFormat("d/m/Y", $date);
+  // die($date); //$date;
+//    //get the current month (tested-ok)
+//$date1=DateTime::createFromFormat("Y-m-d", $date);
+    $thisday = $date1->format("d");
+    $thismonth = $date1->format("m");
+    $thisyear = $date1->format("Y");
+    $currentdate = $date1->format("Y-m-d");
+
+   // $res = $mysqli->query
+   // return "SELECT * FROM $closeperiodtable WHERE `start_date` <= '$currentdate' AND `end_date` >= '$currentdate' AND is_active=1 ";// or die($mysqli->error);
+//echo($res);
+    // $rows = null;
+    // while ($row = $res->fetch_assoc()) {
+    //     $startdate = new DateTime($row['start_date']);
+    //     $enddate = new DateTime($row['end_date']);
+    //     $startdatemonth = $startdate->format("m");
+    //     $enddatemonth = $enddate->format("m");
+    //     $enddateday = $enddate->format("d");
+    //     $startdateyear = $startdate->format("Y");
+    //     if ($thismonth <= $enddatemonth && $thismonth >= $startdatemonth && $thisyear <= $startdateyear) {
+    //         //if($enddatemonth>$thismonth=>$startdatemonth && $thisyear==$startdateyear){
+    //         $rows = $row;
+    //     }
+    //     $mysqli->close();
+    //     if ($rows) {
+    //         return $rows;
+    //     } else {
+    //         return false;
+    //     }
+    // }
+}
 
 //get period by date
 function getPeriodByDate($date) {
@@ -705,6 +743,7 @@ function getPeriodByDate($date) {
     $currentdate = $date1->format("Y-m-d");
 
     $res = $mysqli->query("SELECT * FROM $closeperiodtable WHERE `start_date` <= '$currentdate' AND `end_date` >= '$currentdate' AND is_active=1 ") or die($mysqli->error);
+//    echo($res);
     $rows = null;
     while ($row = $res->fetch_assoc()) {
         $startdate = new DateTime($row['start_date']);
@@ -3644,9 +3683,11 @@ function create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $user,
 function getApartmentChargeables($aptid) {
     $mysqli = getMysqliConnection();
     $floorplantable = 'floorplan';
-    $res = $mysqli->query("SELECT propertyid,monthlyincome FROM $floorplantable WHERE apt_id='$aptid'") or die($mysqli->error);
+    $res = $mysqli->query("SELECT propertyid,monthlyincome FROM $floorplantable WHERE apt_id='$aptid' limit 1") or die($mysqli->error);
     while ($row = $res->fetch_assoc()) {
+      
         $rent = $row['monthlyincome'];
+        
     }
     return $rent;
     //get rent
@@ -3659,6 +3700,7 @@ function getInvoiceDetails($invoiceno) {
     $mysqli = getMysqliConnection();
     $tablename = getInvoiceTable();
     $invoicedetail = array();
+  //  echo $invoiceno;
     $res = $mysqli->query("SELECT  * FROM $tablename WHERE invoiceno='$invoiceno'") or die($mysqli->error);
 
     while ($row = $res->fetch_assoc()) {
@@ -4399,6 +4441,7 @@ function incrementnumber($column) {
     while ($row = mysqli_fetch_array($q)) {
         $result = $row[$column];
     }
+    
     $result = $result + 1;
     $q1 = $mysqli->query("UPDATE $tablename set `$column`='$result'") or die($mysqli->error);
     $q2 = $mysqli->query("SELECT $column from $tablename") or die($mysqli->error);
@@ -5179,7 +5222,8 @@ function payLandlord($params) {
     $amount = $params['amount'];
     $fperiod = $params['idclose_periods'];
     $journals = $params['journal_refs'];
-
+   
+   // die("dd");
     //debit entry for landlord account on agent side
     $glaccountal = getGLCodeForAccount(array('gl' => 'AgentLandlord', 'property_id' => $propid));
     $glcode1 = $glaccountal['glcode'];
@@ -6204,7 +6248,7 @@ function get_water_rate($propid) {
 function fetchstatement2($tenantid, $propid, $startdate, $enddate, $count, $allpropertiesflag) {
     //die('dsdsdsds');
     include_once '../includes/config.php';
-    $rent=getApartmentChargeables($propid);
+   
     $mysqli = getMysqliConnection();
     date_default_timezone_set('Africa/Nairobi');
     $startdate = date("Y-m-d", strtotime($startdate));
@@ -6266,6 +6310,7 @@ echo '<tr><td colspan="4" align="right"><b>B/F Amount</b></td><td></td><td></td>
         $aptdetails = getApartmentDetails($aptid);
 
         $invoice = getInvoiceDetails($row['invoiceno']);
+        $rent=getRentItemFromInvoice($row['invoiceno']);
        $dtot = $dtot + $row['debit'];
  $ctot = $ctot + $row['credit'];  
  $gtot = $gtot + $row['debit']- $row['credit'];
@@ -6509,12 +6554,15 @@ function fetchstatement3($tenantid, $propid, $startdate, $enddate, $count, $allp
         }
         $invoicedetails['credit'] = $invamn;
         $invoicedetails['transaction_type'] = $row['transactiontype'];
-
+      //  die($row['invoiceno']);
         $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
+       // echo "<br>ss".getInvoiceReceipts($row['invoiceno'])."<br/>";
         array_push($allinvoicedetails, $invoicedetails);
+     
     }
-
+    //die(print_r($allinvoicedetails));
     foreach ($allinvoicedetails as $invoicedetail) {
+        
         $paidamount = $invoicedetail['paidamount'];
         $bal = $invoicedetail['credit'] - $paidamount;
         array_push($suminvoiceamount, $invoicedetail['credit']);
@@ -6900,7 +6948,96 @@ function fetchplotperformanceAll($propid,$fromdate,$enddate){
 
          $res = $mysqli->query("select prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop group by prop.property_id") or die($mysqli->error);
          $total=$mysqli->query("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop");
+ //select ag.agent_id as agents,prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND invoicedate )x group by x.idno) prop inner join agentproperty ag on ag.property_id=prop.property_id group by prop.property_id       //  
+         $totals=$total->fetch_assoc();
+        $entity = 'ALL';
+            $i=1;
+    while ($row = $res->fetch_assoc()) {
+//get all payments from recptrans for a given invoice 
+
+       //  $invoicedetails['invoiceno'] = $row['invoiceno'];
+       //  $invoicedetails['invoicedate'] = $row['invoicedate'];
+        $prop_name = findpropertybyid($row['property_id']);
+
       
+ 
+        $debit = $row['debit'];
+        $credit = $row['credit'];
+        $bal=$row['bal'];
+        if($bal<=0){
+                $percent=100;
+            }
+        else{
+            $percent= number_format($credit/$debit*100,1);
+    }
+       //         $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
+       //  array_push($allinvoicedetails, $invoicedetails);
+       //  unset($invoicedetails);
+
+        echo '<tr><td>'.($i++).'</td><td><a href="./defaultreports.php?report=fetchplotperformance&fromdate='.$fdate.'&enddate='.$edate.'&flag=one&propid='.$row['property_id'].'"> 
+        ' .$prop_name. '</a></td><td style="color:red">&nbsp;&nbsp;' . number_format($debit) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($credit) . '</td><td>&nbsp;&nbsp;' . number_format($row['bal']) . '</td><td>'.$percent.'</td></tr>';
+    }
+
+    
+    echo '</tbody>';
+    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td><b>' . number_format(($totals['debit']), 2) . '</b></td><td><b>' .number_format(($totals['credit']), 2) . '</b></td>
+
+    <td><b>' . number_format(($totals['bal']), 2)  . '</b></td>
+<td><b>'.number_format((($totals['credit']/$totals['debit'])*100),1).'%</b></td>
+
+    </tr></tfoot>';
+    
+    echo '</table>';
+    $mysqli->close();
+}
+function fetchplotperformanceAgent($propid,$fromdate,$enddate){
+    $fdate=$fromdate;
+    $edate=$enddate;
+  include_once '../includes/config.php';
+    $mysqli = getMysqliConnection();
+    date_default_timezone_set('Africa/Nairobi');
+    $accountsopening = getAccountsOpeningDate();
+    //$startdate = date("Y-m-d", strtotime($accountsopening));
+
+    $end=DateTime::createFromFormat("m/d/Y",$enddate);
+     $enddate=$end->format("Y-m-d");
+      $start=DateTime::createFromFormat("m/d/Y",$fromdate);
+     $startdate=$start->format("Y-m-d");
+    $invoicenos = array();
+    $invoicedetails = array();
+    $allinvoicedetails = array();
+    $suminvoiceamount = array();
+    $sumpaidamount = array();
+    $sumbal = array();
+  
+    if ($mysqli->connect_errno) {
+        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
+    }
+    //die($startdate);
+   
+     // $res = $mysqli->query
+     //    ("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
+     //    $entity = 'ALL';
+        $property = findpropertybyid($propid);
+    
+    echo '
+<table class="treport" border="0">
+ <tr><td ><img src="../images/cursors/logo.jpeg" style="height:auto;width:140px;"></td><td colspan="8" style="background-color:beige"><h3><center>' . strtoupper($arrearsprepayments) . ' REPORT FOR <u>' . $entity . '</u> OF <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr></table>  
+    <table class=" sortable treport" ><thead>
+<tr>
+<th><center><u>No</u></center></th>
+
+<th><center><u>Property</u></center></th>
+
+<th><center><u>Credit</center></u></th>
+<th><center><u>Debit</center></u></th>
+<th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
+
+//die(print_r($allproperties));
+
+         $res = $mysqli->query("select ag.agent_id as agents,prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND invoicedate )x group by x.idno) prop inner join agentproperty ag on ag.property_id=prop.property_id group by `agent_id`") or die($mysqli->error);
+         $total=$mysqli->query("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop");
+ //select ag.agent_id as agents,prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND invoicedate )x group by x.idno) prop inner join agentproperty ag on ag.property_id=prop.property_id group by prop.property_id       //  
          $totals=$total->fetch_assoc();
         $entity = 'ALL';
             $i=1;

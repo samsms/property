@@ -16,12 +16,18 @@ foreach($qry->fetch_array() as $k => $v){
 				<label class="control-label">Borrower</label>
 				<?php
 				// $borrower = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM borrowers order by concat(lastname,', ',firstname,' ',middlename) asc ");
-				$borrower = $conn->query("SELECT *,owner as name FROM properties  ");
+				if(!isset($_GET['id'])){
+				$borrower = $conn->query("SELECT *,owner as name FROM properties where propertyid NOT IN(select borrower_id from loan_list where status!=5 )  ");
+}
+				else{
+					$borrower = $conn->query("SELECT *,owner as name FROM properties  ");
+				}
 				?>
 				<select name="borrower_id" id="borrower_id" class="custom-select browser-default select2">
 					<option value=""></option>
 						<?php while($row = $borrower->fetch_assoc()): ?>
 							<option value="<?php echo $row['propertyid'] ?>" <?php echo isset($borrower_id) && $borrower_id == $row['propertyid'] ? "selected" : '' ?>><?php echo $row['name'] . ' | Plot :'.$row['property_name'] ?></option>
+						
 						<?php endwhile; ?>
 				</select>
 			</div>

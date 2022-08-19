@@ -3,6 +3,7 @@ session_start();
 // if(!$_SESSION['propertyid']){
 //  header('Location: ./modules/agentproperty.php');
 // }
+//die(print_r(($_SESSION)));
 include 'views/display.php';
 include  'modules/functions.php';
 $_SESSION['timestamp'] = time();

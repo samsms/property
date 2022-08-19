@@ -97,16 +97,42 @@ Class Action {
 		}
 	}
 	function loan_next($id){
-		$payments = $conn->query("SELECT * from payments where loan_id = $id");
+
+		$conn=$this->db;
+		$loan = $conn->query("SELECT l.*,owner as name, owner as contact_no,owner as address from loan_list l inner join properties b on b.propertyid = l.borrower_id where l.borrower_id = '$id' and l.status='2'");
+		
+		if($loan->num_rows<1){
+			return json_encode(array("success"=>false,"message"=>"No Active Loan"));
+		}
+		foreach ($loan->fetch_array() as $k => $v) {
+			$meta[$k] = $v;
+		}
+		$plan_arr = $conn->query("SELECT *,concat(months,' month/s [ ',interest_percentage,'%, ',penalty_rate,' ]') as plan FROM loan_plan where id  = '" . $meta['plan_id'] . "' ")->fetch_array();
+		$monthly = ($meta['amount'] + ($meta['amount'] * ($plan_arr['interest_percentage'] / 100))) / $plan_arr['months'];
+		$payments = $conn->query("SELECT * from payments where loan_id =".$meta['id']);
 		$paid = $payments->num_rows;
 		$offset = $paid > 0 ? " offset $paid" : "";
+		//die("SELECT * FROM loan_schedules where loan_id = '".$_POST['loan_id']."'  order by date(date_due) asc limit 1 $offset");
+		$id=$meta['id'];
 		$next = $conn->query("SELECT * FROM loan_schedules where loan_id = '$id'  order by date(date_due) asc limit 1  $offset")->fetch_assoc()['date_due'];
+		$sum_paid = 0;
+		while ($p = $payments->fetch_assoc()) {
+			$sum_paid += ($p['amount'] - $p['penalty_amount']);
+		}
+		$monthly_paid = ($plan_arr['months'] * $monthly);
+		$monthly_balance = $monthly_paid - $sum_paid;
 		if(is_null($next)){
-		    return  json_encode(array("success"=>false,"loan"=>"No Active Loan"));
-
+			return json_encode(array("success"=>false,"message"=>"No Active Loan"));
+		
 		}else{
-		    return json_encode(array("success"=>true,"month"=>$next,"amount"=>""));
-		    
+			//die(date('Y/m').' next '.date("Y/m",strtotime($next )));
+			if(date('Y/m')==date("Y/m",strtotime($next ))){
+				$loan=json_encode(array("success"=>true,"ispaid"=>false,"month"=>$next,"amount"=>$monthly,"total_loan"=>$monthly_paid,"balance"=>$monthly_balance,"loan_id"=>$id));
+			}else{
+				$loan=json_encode(array("success"=>true,"ispaid"=>true,"month"=>$next,"amount"=>$monthly,"total_loan"=>$monthly_paid,"balance"=>$monthly_balance,"loan_id"=>$id));
+			}
+		
+			return $loan;
 		}
 
 	}
@@ -254,10 +280,11 @@ Class Action {
 				}
 				$data .= " , ref_no = '$ref_no' ";
 			}
-			if(empty($id))
-			$save = $this->db->query("INSERT INTO loan_list set ".$data);
-			else
-			$save = $this->db->query("UPDATE loan_list set ".$data." where id=".$id);
+			if(empty($id)){
+		//echo ("dhddh");
+			$save = $this->db->query("INSERT INTO loan_list set ".$data) or die(mysqli_error($this->db));
+			}else{
+			$save = $this->db->query("UPDATE loan_list set ".$data." where id=".$id);}
 		if($save)
 			return 1;
 	}
@@ -268,10 +295,39 @@ Class Action {
 			return 1;
 	}
     function landloard_loans($prop_id){
-        $res=$this->db->query("select * from loan_list where borrower_id='$prop_id' ");
+        $res=$this->db->query("select * from loan_list where borrower_id='$prop_id' and status=='2' limit 1");
 
-      echo  json_encode(   $res->fetch_array());
+      echo  json_encode($res->fetch_assoc()[''] );
     }
+	function pay_auto($payee,$amount,$loan_id){
+
+
+            $data = " loan_id = $loan_id ";
+            $data .= " , payee = '$payee' ";
+            $data .= " , amount = '$amount' ";
+            $data .= " , penalty_amount = '0' ";
+            $data .= " , overdue = '0' ";
+
+            if (empty($id)) {
+				$id=$loan_id;
+                $save = $this->db->query("INSERT INTO payments set " . $data) or die(mysqli_error($this->db));
+                $payments = $this->db->query("SELECT * from payments where loan_id = $id");
+				$paid = $payments->num_rows;
+				$offset = $paid > 0 ? " offset $paid" : "";
+				//die("SELECT * from payments where loan_id = $id");
+				$next = $this->db->query("SELECT * FROM loan_schedules where loan_id = '$id'  order by date(date_due) asc limit 1  $offset")->fetch_assoc()['date_due'];
+				if(is_null($next)){
+					$save = $this->db->query("UPDATE loan_list set status='5' where id = " . $id);
+				}
+				else{
+					if ($save)
+					return 1;
+				}
+           
+            if ($save)
+                return 1;
+        }
+	}
 	function save_payment(){
 
 		extract($_POST);
@@ -285,13 +341,19 @@ Class Action {
             $data .= " , overdue = '$overdue' ";
 
             if (empty($id)) {
-                $save = $this->db->query("INSERT INTO payments set " . $data);
-                $payments = $conn->query("SELECT * from payments where loan_id = $id");
+				$id=$loan_id;
+                $save = $this->db->query("INSERT INTO payments set " . $data) or die(mysqli_error($this->db));
+                $payments = $this->db->query("SELECT * from payments where loan_id = $id");
 				$paid = $payments->num_rows;
 				$offset = $paid > 0 ? " offset $paid" : "";
-				$next = $conn->query("SELECT * FROM loan_schedules where loan_id = '$id'  order by date(date_due) asc limit 1  $offset")->fetch_assoc()['date_due'];
+				//die("SELECT * from payments where loan_id = $id");
+				$next = $this->db->query("SELECT * FROM loan_schedules where loan_id = '$id'  order by date(date_due) asc limit 1  $offset")->fetch_assoc()['date_due'];
 				if(is_null($next)){
-					$save = $this->db->query("UPDATE payments set " . $data . " where id = " . $id);
+					$save = $this->db->query("UPDATE loan_list set status='5' where id = " . $id);
+				}
+				else{
+					if ($save)
+					return 1;
 				}
             } else {
                 $save = $this->db->query("UPDATE payments set " . $data . " where id = " . $id);
@@ -303,7 +365,9 @@ Class Action {
 	}
 	function delete_payment(){
 		extract($_POST);
+		//$payments = $this->db->query("SELECT * from payments where loan_id = $id");
 		$delete = $this->db->query("DELETE FROM payments where id = ".$id);
+		$save = $this->db->query("UPDATE loan_list set status='2' where id = " . $loan_id);
 		if($delete)
 			return 1;
 	}

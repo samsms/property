@@ -71,7 +71,7 @@ $monthly_balance = $monthly_paid - $sum_paid;
                     <input type="number" name="amount" step="any" min="" class="form-control text-right" required=""
                            readonly value="<?php echo($monthly) ?>">
                     <input type="hidden" name="penalty_amount" value="<?php echo $add ?>">
-                    <input type="hidden" name="loan_id" value="<?php echo $_POST['loan_id'] ?>">
+                    <!-- <input type="hidden" name="loan_ids" value="<?php echo $_POST['loan_id'] ?>"> -->
                     <input type="hidden" name="overdue" value="<?php echo $add > 0 ? 1 : 0 ?>">
                 <?php } else {
 

@@ -58,8 +58,8 @@
 						 		<?php echo number_format($row['penalty_amount'],2) ?>
 						 	</td>
 						 	<td class="text-center">
-						 			<button class="btn btn-outline-primary btn-sm edit_payment" type="button" data-id="<?php echo $row['id'] ?>"><i class="fa fa-edit"></i></button>
-						 			<button class="btn btn-outline-danger btn-sm delete_payment" type="button" data-id="<?php echo $row['id'] ?>"><i class="fa fa-trash"></i></button>
+						 			
+						 			<button class="btn btn-outline-danger btn-sm delete_payment" type="button" data-loanid="<?php echo $row['loan_id'] ?>" data-id="<?php echo $row['id'] ?>"><i class="fa fa-trash"></i></button>
 						 	</td>
 
 						 </tr>
@@ -92,14 +92,14 @@
 		uni_modal("Edit Payement","manage_payment.php?id="+$(this).attr('data-id'),'mid-large')
 	})
 	$('.delete_payment').click(function(){
-		_conf("Are you sure to delete this data?","delete_payment",[$(this).attr('data-id')])
+		_conf("Are you sure to delete this data?","delete_payment",[$(this).attr('data-id'),$(this).attr('data-loanid')])
 	})
-function delete_payment($id){
+function delete_payment($id,$loan_id){
 		start_load()
 		$.ajax({
 			url:'ajax.php?action=delete_payment',
 			method:'POST',
-			data:{id:$id},
+			data:{id:$id,loan_id:$loan_id},
 			success:function(resp){
 				if(resp==1){
 					alert_toast("Payment successfully deleted",'success')

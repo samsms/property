@@ -18,10 +18,10 @@
   			</div>
   		</div>
       <div class="col-md-4 float-left text-white">
-        <large><b>Loan Management System</b></large>
+        <large><b>LandLord Loans Management System</b></large>
       </div>
 	  	<div class="col-md-2 float-right text-white">
-	  		<a href="ajax.php?action=logout" class="text-white"><?php echo $_SESSION['login_name'] ?> <i class="fa fa-power-off"></i></a>
+	  		<a href="../home.php" class="text-white"> <i class="fa fa-power-off"></i></a>
 	    </div>
     </div>
   </div>

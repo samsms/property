@@ -448,9 +448,27 @@ elseif(isset($_REQUEST['paybill'])){
 
      $user=$_SESSION['username'];
      $propid=htmlspecialchars($_REQUEST['property']);
-     
-   
+     require '../loan/admin_class.php';
+     $crud = new Action();
+     $loan=json_decode($crud->loan_next($_SESSION['propertyid']));
+    
+   if($loan->amount>0&&!$loan->ispaid){
+    $before=$amount;
+    $amount=$amount+$loan->amount;
+    $payee="Auto Deducted";
+    $loan_id=$loan->loan_id;
+    //if($loan->ispaid){
+        $crud-> pay_auto($payee,$loan->amount,$loan_id);
+
+        $params=array("bank"=>$bank,"amount"=>$amount,"bank"=>$bank,"paymode"=>$paymode,"paydate"=>$paydate,"chequeno"=>$chequeno,"chequedate"=>$chequedate,"chequedetails"=>$chequedetails,"user"=>$user,"property_id"=>$propid,"reason"=>"Paid $before as $reason and  Deducted monthly loan of ".round($loan->amount,2));
+      
+    //}
+
+   }else{
     $params=array("bank"=>$bank,"amount"=>$amount,"bank"=>$bank,"paymode"=>$paymode,"paydate"=>$paydate,"chequeno"=>$chequeno,"chequedate"=>$chequedate,"chequedetails"=>$chequedetails,"user"=>$user,"property_id"=>$propid,"reason"=>$reason);
+  
+   }
+    //$params=array("bank"=>$bank,"amount"=>$amount,"bank"=>$bank,"paymode"=>$paymode,"paydate"=>$paydate,"chequeno"=>$chequeno,"chequedate"=>$chequedate,"chequedetails"=>$chequedetails,"user"=>$user,"property_id"=>$propid,"reason"=>$reason);
   
     
     echo makeLandlordpayment($params);
