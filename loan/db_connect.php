@@ -1,3 +1,3 @@
 <?php 
-
-$conn= new mysqli('localhost','root','Trymenot#123$','prop_management')or die("Could not connect to mysql".mysqli_error($con));
+require "../includes/config.php";
+$conn= new mysqli(DB_SERVER,DB_USER,DB_PASS,DB_NAME)or die("Could not connect to mysql".mysqli_error($con));
