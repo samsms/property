@@ -3227,7 +3227,7 @@ function getunithistory($propertyid, $aptid, $sort) {
 //mysqli connect
 function mysqli_connect_db() {
     include_once '../includes/config.php';
-    $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
+    $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 6603);
     if ($mysqli->connect_errno) {
         echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
     }

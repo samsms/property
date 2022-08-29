@@ -8,6 +8,6 @@ defined('DB_PASS')   ? null : define("DB_PASS", "samsaf");
 defined('DB_NAME')   ? null : define("DB_NAME", "prop_management");
 
 date_default_timezone_set("Africa/Nairobi");
-$root="https://localhost/property-rivercourt-test/";
+//$root="https://localhost/property-rivercourt-test/";
 
 ?> 
