@@ -32,6 +32,15 @@ if($status == 1){
 	}
 	elseif($colID==3){
 
+		$status=mysql_query("update $tablename set pay_day='$bal' where propertyid='$id'") or print "Database Error: ".mysql_error();
+		if($status == 1){
+			echo "OK,Succesfuly updated Pay Date.";
+		}else
+			echo "Failed to updatePay Date try again";
+			
+			}
+	elseif($colID==4){
+
 $status=mysql_query("update $tablename set property_type='$bal' where propertyid='$id'") or print "Database Error: ".mysql_error();
 if($status == 1){
 	echo "OK,Succesfuly updated Property Type.";
@@ -39,7 +48,7 @@ if($status == 1){
 	echo "Failed to update Property type, try again";
 	
 	}
-	elseif($colID==4){
+	elseif($colID==5){
 
 $status=mysql_query("update $tablename set address='$bal' where propertyid='$id'") or print "Database Error: ".mysql_error();
 if($status == 1){
@@ -48,7 +57,7 @@ if($status == 1){
 	echo "Failed to update Address, try again";
 	
 	}
-	elseif($colID==5){
+	elseif($colID==6){
 
 $status=mysql_query("update $tablename set category='$bal' where propertyid='$id'") or print "Database Error: ".mysql_error();
 if($status == 1){
@@ -57,7 +66,7 @@ if($status == 1){
 	echo "Failed to update category, try again";
 	
 	}
-	elseif($colID==6){
+	elseif($colID==7){
 
 $status=mysql_query("update $tablename set owner='$bal' where propertyid='$id'") or print "Database Error: ".mysql_error();
 if($status == 1){
@@ -66,7 +75,7 @@ if($status == 1){
 	echo "Failed to update Owner, try again";
 	
 	}
-	elseif($colID==7){
+	elseif($colID==8){
 
 $status=mysql_query("update $tablename set mohalla='$bal' where propertyid='$id'") or print "Database Error: ".mysql_error();
 if($status == 1){
@@ -76,7 +85,7 @@ if($status == 1){
 	
 	} 
         
-        elseif($colID==8){
+        elseif($colID==9){
 
 $status=mysql_query("update $tablename set water_rate='$bal' where propertyid='$id'") or print "Database Error: ".mysql_error();
 if($status == 1){
@@ -85,7 +94,7 @@ if($status == 1){
 	echo "Failed to update rate, try again";
 	
 	} 
-        elseif($colID==9){
+        elseif($colID==10){
 
 $status=mysql_query("update $tablename set agent_commission='$bal' where propertyid='$id'") or print "Database Error: ".mysql_error();
 if($status == 1){
@@ -94,7 +103,7 @@ if($status == 1){
 	echo "Failed to update, try again";
 	
 	}        
-           elseif($colID==11){
+           elseif($colID==12){
 $newbal=($bal/0.00024711);
 $newbal1=(43560*$bal);
 //$status=mysql_query("update $tablename set area='$bal',areasq='$newbal',areasqft='$newbal1' where propertyid='$id'") or print "Database Error: ".mysql_error();
@@ -106,7 +115,7 @@ if($status == 1){
 	
 	} 
         
-        elseif($colID==12){
+        elseif($colID==13){
 
 $status=mysql_query("update $tablename set titledeed='$bal' where propertyid='$id'") or print "Database Error: ".mysql_error();
 if($status == 1){

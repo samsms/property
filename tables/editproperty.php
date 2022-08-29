@@ -51,7 +51,8 @@
                                          {"bVisible":false},
 					 {},
 					 {},
-                                          {},
+                                    
+										  {},
                                          {},
                                          {},
                                          {},
@@ -60,6 +61,7 @@
                                          {}, 
                                          {},      
                                          {},
+										 {},
                                          {}, 
                                         
                                                                                                         
@@ -72,6 +74,7 @@
 		        "aoColumns":[ // Edittable Columns [Number of Columns] and display Options
 				{indicator: 'Edit Name...',tooltip: 'Click to change Name',type: 'text',submit:'Edit Name'},
                                 {indicator: 'Edit Plot no...',tooltip: 'Click to plotno',type: 'text',submit:'Edit Plot'},	
+								{indicator: 'Edit Pay Date...',tooltip: 'Click to Pay Date',type: 'text',submit:'Edit Pay Date'},	
                                 {indicator: 'Edit Type...',tooltip: 'Click to change type',type: 'text',submit:'Edit Type'},
 				{indicator: 'Edit Address...',tooltip: 'Click to change address',type: 'text',submit:'Edit Address'},
 				{indicator: 'Edit Category...',tooltip: 'Click to change category',type: 'text',submit:'Edit category'},
@@ -107,6 +110,7 @@
                                                 <th>P.ID</th>
 						<th>Property.Name</th>
 						<th>Plot.no</th>
+						<th>Pay Date</th>
 						<th>Type</th>
 						<th>Address</th>
 						<th>Category</th>

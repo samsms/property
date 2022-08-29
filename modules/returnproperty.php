@@ -9,7 +9,7 @@ $db=new MySQLDatabase();
 $db->open_connection();
 
 //////////////  QUERY THE MEMBER DATA INITIALLY 
-$sql="SELECT properties.propertyid,properties.property_name, properties.category,properties.tm,properties.numfloors,properties.mohalla,pictorials.path FROM properties LEFT JOIN pictorials ON properties.propertyid=pictorials.propertyid  order by propertyid";
+$sql="SELECT properties.pay_day,properties.propertyid,properties.property_name, properties.category,properties.tm,properties.numfloors,properties.mohalla,pictorials.path FROM properties LEFT JOIN pictorials ON properties.propertyid=pictorials.propertyid  order by propertyid";
     
 $query=mysql_query($sql)or die(mysql_error());
   

@@ -231,7 +231,8 @@ if ($_SESSION['usergroup'] == 1)
   <td width=60%>
   <a href="modules/receipts_approve.php" class="button big green"></br>New Receipts <br>Pending Approval<br>' . $pedding_receipts->count . '</a>
   </td>
-  <td>' . str_repeat("&nbsp;", 20) . '</td>
+  <td>' . str_repeat("&nbsp;", 20) . '
+</td>
   <td width=60%>
   <a href="modules/invoices_approve.php" class="button big green"></br>New Invoices <br>Pending Approval<br>' . $pedding_invoices->count . '</a>
   </td>
@@ -283,46 +284,32 @@ if ($_SESSION['usergroup'] == 1)
   
   <tr>
     <td width=60%>
-   <a href="modules/updatedata.php" class="button big green"></br>&nbsp;&nbsp;Update Data</a>
+   <a href="modules/landlord_payout.php" class="button big green">
+   </br>Today\'s Payout   <br> 
+    '.(landlord_tobepaid()).' Landlords<br/>
+    KSH '.total_payout().'
+   </a>
     </td>
-    <td>' . str_repeat("&nbsp;", 20) . '</td>
-    <td>
-     <a href="modules/reports.php" class="button big orange"></br>Reports Manager</a>
-    </td>
-    <td>' . str_repeat("&nbsp;", 10) . '</td>
-    <td>
-     <a href="#" id="adduser" class="button big orange"></br>&nbsp;&nbsp;Manage Users</a>
-    </td>
-  </tr>
-  <tr>
-    <td width=70%>
-    <a href="views/tenantlist.php" class="button big blue"></br>Tenants Manager </a>
-    </td>
-    <td>' . str_repeat("&nbsp;", 20) . '</td><td>
-     <a href="backup.php" class="button big green"></br>&nbsp;&nbsp;Data Backup</a>
-    </td>
-    <td>' . str_repeat("&nbsp;", 10) . '</td>
-    <td>
-     <a href="views/accounts.php" class="button big orange"></br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Financials</a>
-    </td>';
+ </tr>
+ ';
   } else {
 
-    echo '
-  <tr>
+  //   echo '
+  // <tr>
   
-    <td>
-     <a href="modules/reports.php" class="button big orange"></br>Reports Manager</a>
-    </td>
-      <td>' . str_repeat("&nbsp;", 15) . '</td>
-    <td width=70%>
-    <a href="views/tenantlist.php" class="button big blue"></br>Tenants Manager </a>
-    </td><td>' . str_repeat("&nbsp;", 15) . '</td>
-    <td>
-     <a href="views/accounts.php" class="button big orange"></br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Financials</a>
-    </td>';
+  //   <td>
+  //    <a href="modules/reports.php" class="button big orange"></br>Reports Manager</a>
+  //   </td>
+  //     <td>' . str_repeat("&nbsp;", 15) . '</td>
+  //   <td width=70%>
+  //   <a href="views/tenantlist.php" class="button big blue"></br>Tenants Manager </a>
+  //   </td><td>' . str_repeat("&nbsp;", 15) . '</td>
+  //   <td>
+  //    <a href="views/accounts.php" class="button big orange"></br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Financials</a>
+  //   </td>';
   }
   echo '
-  </tr>
+
 </table></td></tr></table></div>';
 
   echo '<div id="dvLoading"></div>';

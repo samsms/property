@@ -1,4 +1,5 @@
 <?php
+//die("dd");
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 error_reporting(-1);
@@ -10,7 +11,50 @@ function getSiteRoot() {
     $parent = $_SERVER["DOCUMENT_ROOT"] . '/property-rivercourt';
     return $parent;
 }
-
+function landlord_tobepaid(){
+    $mysqli = getMysqliConnection();
+    $date = date('d');
+    $query =$mysqli->query("SELECT * FROM properties WHERE pay_day='$date'") or die(mysqli_error($mysqli));
+   return mysqli_num_rows($query);
+}
+function payout_list(){
+    $mysqli = getMysqliConnection();
+    $date = date('d');
+    //$list=$mysqli->query(" select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid,p.* from properties p where pay_day=DAY(now())");
+    $list=$mysqli->query("SELECT sum(invoices.amount) as amount, (select property_name from properties where propertyid=invoices.property_id) as property_name FROM invoices WHERE property_id in(select p.propertyid from properties p where pay_day=DAY(now())) AND invoices.revsd=0 AND Month(invoicedate)=MONTH(now()) group by property_id");
+    
+    // $total=$mysqli->query("select sum(l.amount) as total from (select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())) l ");
+   $lists=array();
+while($ln=$list->fetch_assoc()){
+    $lists[]=$ln;
+}
+   return json_encode($lists);
+   
+    //$total=$mysqli->query("SELECT sum(monthlyincome) FROM `floorplan` WHERE `propertyid`=339 and isoccupied=0");
+    //$
+   // die("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND month(invoicedate)=  MONTH(now())  )x group by x.idno) prop");
+    //$total=$mysqli->query("select sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND month(invoicedate)= MONTH(now()) and property_id in(SELECT property_id from properties where pay_day=DAY(now())) )x group by x.idno) prop");
+   // die(print_r($total->fetch_array()));
+    //$query =$mysqli->query("SELECT * FROM properties WHERE pay_day='$date'") or die(mysqli_error($mysqli));
+   
+   // return  mysqli_num_rows($query);
+}
+function total_payout(){
+    $mysqli = getMysqliConnection();
+    $date = date('d');
+    $list=$mysqli->query(" select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())");
+    $total=$mysqli->query("select sum(l.amount) as total from (select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())) l ");
+   return ($total->fetch_assoc()['total']);
+   
+    //$total=$mysqli->query("SELECT sum(monthlyincome) FROM `floorplan` WHERE `propertyid`=339 and isoccupied=0");
+    //$
+   // die("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND month(invoicedate)=  MONTH(now())  )x group by x.idno) prop");
+    //$total=$mysqli->query("select sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND month(invoicedate)= MONTH(now()) and property_id in(SELECT property_id from properties where pay_day=DAY(now())) )x group by x.idno) prop");
+   // die(print_r($total->fetch_array()));
+    //$query =$mysqli->query("SELECT * FROM properties WHERE pay_day='$date'") or die(mysqli_error($mysqli));
+   
+   // return  mysqli_num_rows($query);
+}
 function getSettings() {
     $mysqli = getMysqliConnection();
     $settings = array();
@@ -456,6 +500,7 @@ function getAgentExpenseAccount() {
 }
 
 function updateGLBalance($glcode, $amount) {
+    
     $mysqli = getMysqliConnection();
     $glstable = getAccountsTable();
     $res = $mysqli->query("SELECT * FROM {$glstable} WHERE `glcode` = '$glcode' ") or die($mysqli->error);
@@ -464,7 +509,9 @@ function updateGLBalance($glcode, $amount) {
         $balance = $row['bal'];
     }
     $newbal = $balance + $amount;
+    //echo("UPDATE {$glstable} SET `bal` = '$newbal' WHERE `glcode`='$glcode'<br/>");
     $resultset = $mysqli->query("UPDATE {$glstable} SET `bal` = '$newbal' WHERE `glcode`='$glcode' ") or die($mysqli->error);
+    
     $mysqli->close();
     if ($resultset) {
         return TRUE;
@@ -1130,12 +1177,14 @@ function addproperty1() {
     $water_rate = mysql_real_escape_string($_POST["watercharge"]);
     $agentcomm = mysql_real_escape_string($_POST["agentcommission"]);
     $vat = mysql_real_escape_string($_POST["vat"]);
+    $payday = mysql_real_escape_string($_POST["pay_day"]);
+
     $agentid = 1;
 
 
 //print_r($_POST);
 
-    if ($proptype == '' || $propname == '' || $buyown == '' || $plotno == '' || $titleno == '' || $acres == '' || $mohalla == '' || $occupants == '' || $structstatus == '' || $condition == '' || $address == '' || $propurl == '' || $water_rate == '') {
+    if ($payday==""||$proptype == '' || $propname == '' || $buyown == '' || $plotno == '' || $titleno == '' || $acres == '' || $mohalla == '' || $occupants == '' || $structstatus == '' || $condition == '' || $address == '' || $propurl == '' || $water_rate == '') {
         echo "Enter all Required Fields";
         print_r($_POST);
     } else {
@@ -1152,7 +1201,8 @@ function addproperty1() {
             return($value);
         }
 
-        $sql = "INSERT INTO properties (property_name,plotno,property_type,address,mapurl,category,categoryremarks,status,statusremarks,owner,mohalla,occupants,propcondition,conditiondescr,numfloors,area,areasq,areasqft,titledeed,agent_commission,water_rate,has_vat,agentid) VALUES (" .
+        $sql = "INSERT INTO properties (pay_day,property_name,plotno,property_type,address,mapurl,category,categoryremarks,status,statusremarks,owner,mohalla,occupants,propcondition,conditiondescr,numfloors,area,areasq,areasqft,titledeed,agent_commission,water_rate,has_vat,agentid) VALUES (" .
+                 PrepSQL($payday) . ", " .       
                 PrepSQL($propname) . ", " .
                 PrepSQL($plotno) . ", " .
                 PrepSQL($proptype) . ", " .
@@ -1179,7 +1229,7 @@ function addproperty1() {
 
 
 
-
+//die($sql);
         $result = $db->query($sql) or die(mysql_error());
         $lastid = mysql_insert_id();
         if (!$result) {
@@ -7772,10 +7822,16 @@ function getRentItemFromInvoice($invoiceno) {
     $invoiceitemstable = invoiceitemsTable();
     $res = $mysqli->query("SELECT item_name,amount FROM {$invoiceitemstable} WHERE invoiceno like '$invoiceno' AND item_name like 'rent' LIMIT 1");
     if ($res) {
+        $rent =0;
         while ($row = $res->fetch_assoc()) {
             $rent = $row['amount'];
         }
-        return $rent;
+        if($rent){
+            return $rent;
+        }else{
+            return 0;
+        }
+       // return $rent;
     } else {
         return 0;
     }

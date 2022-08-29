@@ -1,6 +1,6 @@
 <?php
 session_start();
-die(print_r($_SESSION));
+//die(print_r($_SESSION));
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -1922,6 +1922,7 @@ if($_SESSION['usergroup'] !=3){
       <option id="arrearsprepayments">Arrears/Prepayments Report</option> 
          <option id="performance">Performance</option> 
          <option id="filterbypercentageopt">Report By Percentage</option> 
+         <option id="penaltie">Performance By Agents</option>   
             <option id="penalties">Penalties Report</option>            
 </select>
 </fieldset>;
@@ -2486,14 +2487,14 @@ function submitReason(){
 </div><!--arrears prepayments-->
 <!-- Performance -->
 <div id="plotperformance" class="internalwindow normalwindow displaynone" title="">
-    <p class="titletr">Plot Performance<a href="javascript:void(0)" id="closeplotperformance" style="float:right">Close X</a></p>
+    <p class="titletr">Property Performance<a href="javascript:void(0)" id="closeplotperformance" style="float:right">Close X</a></p>
 <p id="validaterecp" class="validateTips3">All fields are required</p>
 
 <form id="newperformanceform" method="post" enctype="multipart/form-data" >
 <fieldset>
 <table>  
-     <tr><td>Report:</td><td style="color:black;"><input type="radio"  name="allplots" value="all">All Plots
-                                <input type="radio" name="allplots" value="one">Selected only
+     <tr><td>Report:</td><td style="color:black;"><input type="radio"  name="allplots" value="all">All Properties
+                                <input type="radio" name="allplots" value="one"><?php echo propertyname($_SESSION['propertyid'])?>
     </td></tr>
    
   <tr><td><br></td></tr>
@@ -2576,8 +2577,8 @@ function submitReason(){
     <tr>
         <td>Report:</td>
         <td style="color:black;">
-            <input type="radio"  name="allplots" value="all">All Plots                    
-            <input type="radio" name="allplots" value="one">Selected only
+            <input type="radio"  name="allplots" value="all">All Properties                 
+            <input type="radio" name="allplots" value="one"><?php echo propertyname($_SESSION['propertyid'])?>
     </td>
 </tr>
    

@@ -1,5 +1,5 @@
 <?php
-die("jj");
+//die("jj");
 error_reporting(0);
 include '../views/display.php';
 include 'functions.php';

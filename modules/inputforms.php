@@ -261,13 +261,15 @@ $hr.'
 
 
             '.$hr.'
-
+            <label for="description">Pay Day:'. str_repeat("&nbsp;", 15).'</label>
+            <input type="number" max="31" min="1" name="pay_day"  oninput="javascript: if (this.value >30 || this.value<1) this.value =1" required/>
+          
                      <label for="comment">&nbsp;&nbsp;</label>
                     <div id="desc">
                      <label for="desc">Please Describe the status of structure</label>
                     <textarea id="desc" name="desc" rows="4" cols="50" class="ui-widget-content" ></textarea></div>
             '.$hr.'
-
+            
              <label for="address">Address</label>
              
                     <textarea id="address" name="address" rows="4" cols="30" class="ui-widget-content" required>'.$settings['address'].'</textarea>
@@ -623,7 +625,9 @@ echo '<table id="updatedata"><tr><td>';
       echo '</select>&nbsp;&nbsp;<br/>
                         
                        <input id="selected" name="selected" style="width:300px;" class="ui-widget-content" readonly="true" type="hidden"  />  
-                       <br/> 
+                       <br/>
+                      
+                      
                          <input id="propertyid" name="propertyid" style="width:300px;" class="ui-widget-content" readonly="true" type="hidden" />
                     <br/>
                   <label for="document">Document Number*:'. str_repeat("&nbsp;", 4).'</label>
@@ -641,6 +645,7 @@ echo '<table id="updatedata"><tr><td>';
                     <label for="description">Description:'. str_repeat("&nbsp;", 15).'</label>
                    <input id="desc1" name="desc1" style="width:300px;" class="ui-widget-content"  required type="text" style="width: 320px;" />
                     <br/> 
+                    
                   <label for="legaldoc">Browse Document:'. str_repeat("&nbsp;",6).'</label>                    
                     <input name="legaldoc" id="legaldoc" style="width:300px;" class="ui-widget-content"  required  type="file" />
                     <label for="path"><a id="legaldocpath"  href="" target="_blank"  ><span style="border:2px solid orange; background-color:#fff" >Preview Document</span></a></label>

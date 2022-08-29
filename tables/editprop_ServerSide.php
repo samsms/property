@@ -1,5 +1,6 @@
 <?php	
 include '../includes/database.php';
+
 $db=new MySQLDatabase();
 $db->open_connection();
 	//LINE OF INTEREST :: 12,21-24, 87, 143
@@ -17,7 +18,7 @@ $db->open_connection();
    // $propid=$row1['propertyid'];$propname=$row1['property_name'];$plotno=$row1['plotno'];$proptype=$row1['property_type'];$address=$row1['address'];$category=$row1['category'];$owner=$row1['owner'];$mohalla=$row1['mohalla'];$occupants=$row1['occupants'];$numfloors=$row1['numfloors'];$area=$row1['area'];$title=$row1['titledeed'];
 //}
 //$aColumns = array($propid ,$propname,$plotno,$proptype,$address, $category,$owner,$mohalla,$occupants,$numfloors,$area,$title);
-	$aColumns = array('propertyid' ,'property_name','plotno','property_type','address', 'category','owner','mohalla','water_rate','agent_commission','numfloors','has_vat','detailslink'); //Change Column Headings
+	$aColumns = array('propertyid' ,'property_name','plotno','pay_day','property_type','address', 'category','owner','mohalla','water_rate','agent_commission','numfloors','has_vat','detailslink'); //Change Column Headings
 	
 	/* Indexed column (used for fast and accurate table cardinality) */
 	$sIndexColumn = "propertyid"; //CHANGE THE INDEX COLUMN

@@ -10,23 +10,17 @@ echo $overallcss;
 echo $jquery;
 //later set variable to session
 $admin='<u>'.$_SESSION['username'].'</u>';
-
-
 ?>
-
 <script>
 $(function() {
 	$( "#menu" ).menu();
 });
-
-
 </script>
 <script src="../js/logout.js"></script>
 <style>
 .ui-menu { width: 150px;}
 </style>
 <?php 
-
 echo '</head><body>';
 echo '<div id="form">';
 // echo '<h2>'.$wheat.$spacer.$logopath.$property['company_name'].' | Property Manager<div id="loggedin">'.$loggedin.' '.$admin.' | '.$clock.' '.$time.'</div>'.$endwheat.'</h2>' .'<hr/>'; 

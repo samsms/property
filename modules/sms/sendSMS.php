@@ -1,11 +1,15 @@
 <?php
-$action = $_POST['submit'];
-$msg = $_POST['message'];
-
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
+// $action = $_POST['send'];
+// $msg = $_POST['message'];
+//die(print_r($_POST));
 $a = 'Hello codestar';
-$b = '254726856965';
+$b = '254714241029';
 
 function sms($a, $b){
+	//die("se");
 	$baseUrl="https://api.mobitechtechnologies.com/sms/sendsms";
 
 	$ch = curl_init($baseUrl);
@@ -23,7 +27,7 @@ function sms($a, $b){
 	curl_close($ch);
 	
 }
-
+sms($a, $b);
 switch($action) {
 	case 'bulky':
 	$fileName = $_FILES["myfile"]["tmp_name"];
@@ -52,6 +56,7 @@ switch($action) {
 	case 'single':
 		$to = $_POST['phone'];
 		sms($msg, $to);
+
 	break;
 }
 		
