@@ -1,6 +1,7 @@
 <?php
 
 error_reporting(1);
+die($_SERVER['REMOTE_ADDR']);
 if($_SERVER['REMOTE_ADDR']=="127.0.0.1"){
 
 defined('DB_SERVER') ? null : define("DB_SERVER", "localhost");

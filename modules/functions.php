@@ -8,6 +8,7 @@ error_reporting(-1);
 @header("Access-Control-Allow-Origin: *");
 
 function getSiteRoot() {
+   
     $parent = $_SERVER["DOCUMENT_ROOT"] ;//. '/property-rivercourt';
     return $parent;
 }
