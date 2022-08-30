@@ -27,11 +27,11 @@ if(!isset($_GET['resource'])){
 	die( json_encode($result));
 	
 }
-else{
+else {
 	$resource=$_GET['resource'];
-	// $prop_id=$_GET['property_id'];
-	// $username=$_GET['username'];
-	// $password=$_GET['password'];
+	$prop_id=$_GET['property_id'];
+	$username=$_GET['username'];
+	$password=$_GET['password'];
 
 }
 

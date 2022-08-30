@@ -394,7 +394,7 @@ echo '<tr>'.str_repeat('<td></td>',12);
 echo  '</tr>';
 //amount banked
    
-    $banked=$totalcollected-($comm+array_sum($totalbill)+$lessvat);
+    $banked=$totalcollected-($comm+array_sum($totalbill)+ loanPaid($propid,$startdate,$enddate)+$lessvat);
  echo '<tr><td><b> Landlord Amount</b>'.str_repeat('<td></td>',9);
  foreach ($chargeables as $value) {
       
