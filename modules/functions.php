@@ -8,8 +8,13 @@ error_reporting(-1);
 @header("Access-Control-Allow-Origin: *");
 
 function getSiteRoot() {
-   
+    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
+        
     $parent = $_SERVER["DOCUMENT_ROOT"] ;//. '/property-rivercourt';
+    }
+    else{
+        $parent = $_SERVER["DOCUMENT_ROOT"] . '/property-rivercourt';
+    }
     return $parent;
 }
 function landlord_tobepaid(){
