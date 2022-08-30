@@ -24,7 +24,12 @@ $inputvalues='<div style="font-weight:bold; color:#c6c6c6>';
 $endinput='</div>';
 
 //application base /root folder
-$baseurl='/property-rivercourt/';
+if($_SERVER['REMOTE_ADDR']=="127.0.0.1"){
+
+$baseurl='/property-rivercourt/';}
+else{
+	$baseurl="";
+}
 $htmlheaders='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">';
 $meta='<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
