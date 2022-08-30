@@ -8,12 +8,12 @@ error_reporting(-1);
 @header("Access-Control-Allow-Origin: *");
 function loanPaid($propid,$startdate,$enddate){
     $mysqli = getMysqliConnection();
-    $sql="SELECT sum(payment.amount*) as amount FROM `loan_list` inner  join payments on payments.loan_id=loan_list.id  WHERE `borrower_id`=338 and (payments.date_created between '$startdate' and '$enddate)'";
-   die($sql);
+    $sql="SELECT sum(payments.amount) as amount FROM `loan_list` inner  join payments on payments.loan_id=loan_list.id  WHERE `borrower_id`=338 and (payments.date_created between '$startdate' and '$enddate')";
+  //die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
    // SELECT * FROM `loan_list` inner  join payments on payments.loan_id=loan_list.id  WHERE `borrower_id`=338
    //die( print_r($query->fetch_array()));
-    return $query->fetch_assoc()['amount'];
+    return round($query->fetch_assoc()['amount'],2);
 }
 function invoiceAmount($propid,$startdate,$enddate){
     $mysqli = getMysqliConnection();

@@ -161,8 +161,9 @@ elseif($reportpost==='landlordstatement') {
 
     $startdate=$fdate->format("Y-m-d");
      $enddate=$todate->format("Y-m-d");
-     $total_invoices=invoiceAmount($propid,$startdate,$enddate);
+    
      $propid=$_REQUEST['propid'];
+     $total_invoices=invoiceAmount($propid,$startdate,$enddate);
      $watchmantotal=array();
      $paidamounts=array();
      $depositamounts=array();
