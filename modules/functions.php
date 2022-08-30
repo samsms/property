@@ -6,7 +6,27 @@ error_reporting(-1);
 @session_start();
 @include '../includes/database.php';
 @header("Access-Control-Allow-Origin: *");
+function loanPaid($propid,$startdate,$enddate){
+    $mysqli = getMysqliConnection();
+    $sql="SELECT sum(payment.amount*) as amount FROM `loan_list` inner  join payments on payments.loan_id=loan_list.id  WHERE `borrower_id`=338 and (payments.date_created between '$startdate' and '$enddate)'";
+   die($sql);
+    $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+   // SELECT * FROM `loan_list` inner  join payments on payments.loan_id=loan_list.id  WHERE `borrower_id`=338
+   //die( print_r($query->fetch_array()));
+    return $query->fetch_assoc()['amount'];
+}
+function invoiceAmount($propid,$startdate,$enddate){
+    $mysqli = getMysqliConnection();
+    // $date = date('d');
+    // $startdate = date("Y-m-d", strtotime($startdate));
+    // $enddate = date("Y-m-d", strtotime($enddate));
+   $sql="SELECT sum(amount) as amount FROM `invoices` WHERE `property_id`=$propid and `invoicedate` between '$startdate' and '$enddate'";
+   //die($sql);
+    $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+   //die( print_r($query->fetch_array()));
+    return $query->fetch_assoc()['amount'];
 
+}
 function getSiteRoot() {
     if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
         

@@ -40,7 +40,7 @@ function generete_data($sql){
 // defined('DB_USER')   ? null : define("DB_USER", "techsava_rpms");
 // defined('DB_PASS')   ? null : define("DB_PASS", "rivercourt#123");
 // defined('DB_NAME')   ? null : define("DB_NAME", "techsava_rivercourt");
-	$conn=mysqli_connect("localhost","sam","samsaf","prop_management");
+	$conn=mysqli_connect(DB_SERVER,DB_USER,DB_PASS,DB_NAME);
 	$result=mysqli_query($conn,$sql) ;
 	$number=mysqli_num_rows($result);
 	$data=[];

@@ -158,8 +158,10 @@ elseif($reportpost==='invoicelist'){
 elseif($reportpost==='landlordstatement') {
     $fdate=  DateTime::createFromFormat("d/m/Y",$_REQUEST['fromdate']);
     $todate=  DateTime::createFromFormat("d/m/Y",$_REQUEST['enddate']);
+
     $startdate=$fdate->format("Y-m-d");
      $enddate=$todate->format("Y-m-d");
+     $total_invoices=invoiceAmount($propid,$startdate,$enddate);
      $propid=$_REQUEST['propid'];
      $watchmantotal=array();
      $paidamounts=array();
@@ -330,18 +332,23 @@ $count++;
 }
 
 echo '</tbody>';
-echo '<tfoot><tr><td><b>TOTAL COLLECTED</b></td><td></td><td></td>><td>'.array_sum($rent).'</td>'.  str_repeat('<td></td>',5);
+echo '<tfoot>
+<tr><td><b>TOTAL Rent Payable</b></td><td></td><td></td>><td>'.array_sum($rent).'</td>'.  str_repeat('<td></td>',5);
 // echo '<tr><td>dd</td></tr>';
  foreach ($chargeables as $value) {
       
         echo '<td></td>';        
     }
     $totalcollected=array_sum($rent);//array_sum($paidamounts);
+    $total_chargables=$total_invoices-$totalcollected;
     //total commission
 $comm=array_sum($commissionamounts);
     // array_sum($watchmantotal)
 echo  '<td><b>' . number_format(array_sum($paidamounts), 2) . '</b></td><td></td><td><b>'.  number_format($comm,2).'</b></td></tr>';
-
+echo '<tr><td><b>Other Chargables</b></td><td></td><td></td><td><b>'.$total_chargables.'</b></td></tr>';
+echo '<tr><td><b>Total Amount</b></td><td></td><td></td><td><b>'.$total_invoices.'</b></td></tr>';
+echo '<tr><td><b>Loan </b></td><td></td><td></td><td><b>'. loanPaid($propid,$startdate,$enddate).'</b></td></tr>';
+$totalcollected=$total_invoices;
 //spacing
 //echo '<tr><td><b>LESS WATCHMAN</b></td>'.str_repeat('<td></td>',11);
 // foreach ($chargeables as $value) {
