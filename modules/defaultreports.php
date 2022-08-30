@@ -164,6 +164,8 @@ elseif($reportpost==='landlordstatement') {
      $watchmantotal=array();
      $paidamounts=array();
      $depositamounts=array();
+     $rent=array();
+     $invoice_amount=array();
      $commissionamounts=array();
      $chargeables=  getChargeItems($propid);
      $chargeablescount=count($chargeables);
@@ -187,8 +189,10 @@ elseif($reportpost==='landlordstatement') {
         array_push($itemnames,  strtolower($value['accname']));
         echo '<td>'.  strtoupper($value['accname']).'</td>';        
     }
-    
-    echo '<td>Rent BBF</td><td>Total Due</td><td>RCT No</td><td>Total Paid</td><td>BCF</td><td>MGT FEE('.getPropertyCommissionRate($propid).' %)</td></u></tr></thead>';
+ //   <td>MGT FEE('.getPropertyCommissionRate($propid).' %)</td>
+    echo '<td>Rent BBF</td><td>Total Due</td><td>RCT No</td><td>Total Paid</td><td>BCF</td>
+   
+    </u></tr></thead>';
 echo '<tbody><tr>';
 $count=1;
 $floordetails=   floorplan($propid) ;
@@ -207,12 +211,21 @@ foreach($depositsfortenant as $deposit){
     array_push($depositamounts,$deposit['amount']);
     }
 }
+$rent_amount=$plan['monthlyincome'];
+if($plan['isoccupied']==1){
+    array_push($rent,$plan['monthlyincome']);
 
-    echo '<tr><td>'.$count.'</td><td>'.$plan['apt-tag'].'</td><td>'.$plan['tenant_name'].'</td><td>'.$plan['monthlyincome'].'</td><td>'. implode(",", $dates).'</td><td>'.@implode(",", $recpnos).'</td>';
+    echo '<tr><td>'.$count.'</td><td>'.$plan['apt-tag'].'</td><td>'.$plan['tenant_name'].'</td><td>'.$plan['monthlyincome'].'</td><td>'. implode(",", $dates).'</td><td>'.@implode(",", $recpnos).'</td>';   
+}else{
+    echo '<tr><td>'.$count.'</td><td>'.$plan['apt-tag'].'</td><td>'.$plan['tenant_name'].'</td><td>-</td><td>'. implode(",", $dates).'</td><td>'.@implode(",", $recpnos).'</td>';
+}
 $receipts=  getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']) ;
+//$invoice=  getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']) ;//
+
 $tenantid=$tenantdetails['Id'];
 
 //if item in chargeables ==item in chargeitems
+
 $countitems=count($itemnames);
 
      for($i=0;$i<$countitems;$i++){
@@ -228,6 +241,7 @@ foreach($receipts[0]['chargeables'] as $itemcharged){
                 //rent amount
                   
               }
+           
               
               if(strtolower($itemcharged['name'])=="watchman"){
                   $vat=0;//$itemcharged['amount'];
@@ -275,10 +289,17 @@ foreach($receipts[0]['chargeables'] as $itemcharged){
                                // $paidamount=$receipts[0]['chargeables'][0]['paidamount'];
                                 $balance=$receipts[0]['chargeables'][0]['amount'];
                             //}
-                            
+                         //   echo $rent_amount;
                             //check if paidamount>0 to calculate commission
                           //  if($paidamount>=$balance){
-                                $commissionamount= (getPropertyCommissionRate($propid)*$paidamount)/100;
+                               // $commissionamount= (getPropertyCommissionRate($propid)*$paidamount)/100;
+                               if($plan['isoccupied']==1){
+                               $commissionamount= (getPropertyCommissionRate($propid)*$rent_amount)/100;
+                               }
+                             //  var_dump($commissionamount);
+                               
+                              /// echo ($commissionamount)."dd";
+                            //    echo ('d'.getPropertyCommissionRate($propid).'d');
                          //   }
                           //  else{
                             //get percentage amount of rent in relation to total paid amount
@@ -292,7 +313,7 @@ foreach($receipts[0]['chargeables'] as $itemcharged){
                     echo '<td>'.number_format(getCorrectBalance($tenantid),2).'</td>';
                     //$commissionamount=  (getPropertyCommissionRate($propid)*$paidamount)/100;//+(getPropertyCommissionRate($propid)*array_sum($amounts)/100);
                     array_push($commissionamounts,$commissionamount);
-                    echo '<td>'.$commissionamount.'</td>';
+                    // echo '<td>'.$commissionamount.'</td>';
     //extract item values
 //unset items for each row-for deposits
 unset($recpnos);
@@ -309,16 +330,18 @@ $count++;
 }
 
 echo '</tbody>';
-echo '<tfoot><tr><td><b>TOTAL COLLECTED</b></td>'.  str_repeat('<td></td>',8);
+echo '<tfoot><tr><td><b>TOTAL COLLECTED</b></td><td></td><td></td>><td>'.array_sum($rent).'</td>'.  str_repeat('<td></td>',5);
+// echo '<tr><td>dd</td></tr>';
  foreach ($chargeables as $value) {
       
         echo '<td></td>';        
     }
-    $totalcollected=array_sum($paidamounts);
+    $totalcollected=array_sum($rent);//array_sum($paidamounts);
     //total commission
 $comm=array_sum($commissionamounts);
     // array_sum($watchmantotal)
-echo  '<td><b>' . number_format($totalcollected, 2) . '</b></td><td></td><td><b>'.  number_format($comm,2).'</b></td></tr>';
+echo  '<td><b>' . number_format(array_sum($paidamounts), 2) . '</b></td><td></td><td><b>'.  number_format($comm,2).'</b></td></tr>';
+
 //spacing
 //echo '<tr><td><b>LESS WATCHMAN</b></td>'.str_repeat('<td></td>',11);
 // foreach ($chargeables as $value) {

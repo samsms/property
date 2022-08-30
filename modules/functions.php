@@ -20,6 +20,7 @@ function landlord_tobepaid(){
 function payout_list(){
     $mysqli = getMysqliConnection();
     $date = date('d');
+    
     //$list=$mysqli->query(" select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid,p.* from properties p where pay_day=DAY(now())");
     $list=$mysqli->query("SELECT sum(invoices.amount) as amount, (select property_name from properties where propertyid=invoices.property_id) as property_name FROM invoices WHERE property_id in(select p.propertyid from properties p where pay_day=DAY(now())) AND invoices.revsd=0 AND Month(invoicedate)=MONTH(now()) group by property_id");
     
