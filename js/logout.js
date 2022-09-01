@@ -1,5 +1,10 @@
 //var approot="http://swimafrica.net/property/logout.php";
-var approot ="http://localhost/property-rivercourt/property-rivercourt/logout.php";
+if($_SERVER['REMOTE_ADDR']=="127.0.0.1"){
+var approot ="http://localhost/property-rivercourt/logout.php";
+}
+else{
+    var approot ="https://rivercourt.techsavanna.technology/logout.php";
+}
 idleTime = 0;
 $(document).ready(function () {
     //Increment the idle time counter every minute.

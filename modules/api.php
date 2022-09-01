@@ -177,7 +177,13 @@ echo json_encode(
  
     //  echo json_encode(generete_data($sql));  
 }
+else if($resource=="feedback"){
+	$prop_id=$_GET['prop_id'];
+	$apt_id=$_GET['apt_id'];
+	$message=$_GET['message'];
+	echo $prop_id.$apt_id.$message;
 
+}
 else if($resource=="login"&&isset($_GET['username'])&&isset($_GET['password']))
 {	
 	// display tenant statement provided tenant id

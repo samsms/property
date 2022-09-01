@@ -8,7 +8,7 @@ error_reporting(-1);
 @header("Access-Control-Allow-Origin: *");
 function loanPaid($propid,$startdate,$enddate){
     $mysqli = getMysqliConnection();
-    $sql="SELECT sum(payments.amount) as amount FROM `loan_list` inner  join payments on payments.loan_id=loan_list.id  WHERE `borrower_id`=338 and (payments.date_created between '$startdate' and '$enddate')";
+    $sql="SELECT sum(payments.amount) as amount FROM `loan_list` inner  join payments on payments.loan_id=loan_list.id  WHERE `borrower_id`=$propid and (payments.date_created between '$startdate' and '$enddate')";
   //die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
    // SELECT * FROM `loan_list` inner  join payments on payments.loan_id=loan_list.id  WHERE `borrower_id`=338
@@ -20,8 +20,8 @@ function invoiceAmount($propid,$startdate,$enddate){
     // $date = date('d');
     // $startdate = date("Y-m-d", strtotime($startdate));
     // $enddate = date("Y-m-d", strtotime($enddate));
-   $sql="SELECT sum(amount) as amount FROM `invoices` WHERE `property_id`=$propid and `invoicedate` between '$startdate' and '$enddate'";
-   //die($sql);
+   $sql="SELECT ifnull(sum(amount),0) as amount FROM `invoices` WHERE `property_id`=$propid and `invoicedate` between '$startdate' and '$enddate'";
+  // die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
    //die( print_r($query->fetch_array()));
     return $query->fetch_assoc()['amount'];
@@ -49,7 +49,8 @@ function payout_list(){
 
     //$list=$mysqli->query(" select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid,p.* from properties p where pay_day=DAY(now())");
     $list=$mysqli->query("SELECT sum(invoices.amount) as amount, (select property_name from properties where propertyid=invoices.property_id) as property_name FROM invoices WHERE property_id in(select p.propertyid from properties p where pay_day=DAY(now())) AND invoices.revsd=0 AND Month(invoicedate)=MONTH(now()) group by property_id");
-    
+    $others=$mysqli->query("SELECT sum(invoices.amount) as amount, (select property_name from properties where propertyid=invoices.property_id) as property_name FROM invoices WHERE property_id in(select p.propertyid from properties p where pay_day=DAY(now())) AND invoices.revsd=0 AND Month(invoicedate)=MONTH(now()) group by property_id");
+   
     // $total=$mysqli->query("select sum(l.amount) as total from (select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())) l ");
    $lists=array();
 while($ln=$list->fetch_assoc()){
@@ -3414,6 +3415,9 @@ function getpaymentmode() {
 //create invoice
 //chargenames:array,charges:array
 function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges, $counter, $currentreading, $aptid, $fperiod, $items,$invoicebbf) {
+   
+   
+   print_r($_REQUEST);
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "invoices";
@@ -3951,6 +3955,7 @@ function printhillsinvoice($invoiceno, $propid, $user) {
         } else{
           $balance = $bbf;  
         }
+    
         $chargestotal = array_sum($chargeablesamount);
         $totaldue = $balance + $chargestotal;
         $settings = getSettings();
@@ -3978,8 +3983,10 @@ function printhillsinvoice($invoiceno, $propid, $user) {
                     }
                 }
                 ?>
+
                 <tr><td><b>Qty</b></td><td colspan="2"><b>Particulars</b></td><td><b>Amount</b></td></tr>
                 <?php
+                 
                 foreach ($tableitems as $key => $value1) {
 
                     echo trim($key, 0) . trim($value1, 0); //remove trailing zeros
@@ -8075,8 +8082,6 @@ function pay_refund($billdate, $payamount, $paymode, $expenseacct, $chequedetail
 	$billdate=str_replace("/","-",$billdate);
     $newentrydate = DateTime::createFromFormat('d-m-Y', $billdate);
     $entrydate = trim($newentrydate->format('Y-m-d'));
-
-
     $payno = incrementnumber("payno");
     $query = $db->query("INSERT into $tablename(`paydate`,`amount`,`pmode`,`payno`,`chqdet`,`chqno`,`chequedate`,`rmks`,`supp_id`,`billnopaid`,`expenseacct`,`us`,`property_id`,`idclose_periods`,`is_refund`) VALUES ('$entrydate','$payamount','$paymode','$payno','$chequedetails','$chequeno','$chequedate','$remarks','$supp_id','$billno','$expenseacct','$user','$propid','$fperiod','$isrefund') ") or die(mysql_error());
     $db->query("UPDATE $receipts SET `refunded`=1 WHERE `recpno`='$recpno'") or die(mysql_error());
@@ -8788,5 +8793,12 @@ function insert_response($callbackData){
 		fwrite($logFailedTransaction, json_encode($callbackData));
 		fclose($logFailedTransaction);
 	}
+}
+
+function landlord_statement($propid){
+    // require 'views/display.php';
+
+    // include 'searchbyname.php';
+
 }
 ?>

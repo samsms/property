@@ -1,6 +1,5 @@
 <?php
 
-
 session_start();
 // if(!$_SESSION['propertyid']){
 //  header('Location: ./modules/agentproperty.php');
@@ -289,7 +288,7 @@ if ($_SESSION['usergroup'] == 1)
    <a href="modules/landlord_payout.php" class="button big green">
    </br>Today\'s Payout   <br> 
     '.(landlord_tobepaid()).' Landlords<br/>
-    KSH '.total_payout().'
+ 
    </a>
     </td>
  </tr>
