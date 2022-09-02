@@ -1,12 +1,11 @@
 <?php
 
-session_start();
-// if(!$_SESSION['propertyid']){
-//  header('Location: ./modules/agentproperty.php');
-// }
-//die(print_r(($_SESSION)));
+
 include 'views/display.php';
+
 include  'modules/functions.php';
+// unset($landlord);
+
 $_SESSION['timestamp'] = time();
 echo  $htmlheaders;
 echo '<head><title>Property Manager|Proper Properties</title>';
@@ -289,7 +288,18 @@ if ($_SESSION['usergroup'] == 1)
    </br>Today\'s Payout   <br> 
     '.(landlord_tobepaid()).' Landlords<br/>
  
-   </a>
+<div id="landlord_pay"></div>  </a>
+    </td>
+    <td>' . str_repeat("&nbsp;", 10) . '</td>
+    <td width=60%>
+   <a href="modules/landlord_payout.php" class="button big green">
+   </br>Cummilated Payout   <br>
+    '.(json_decode(total_accumilated())->number).' Landlords<br/>
+ 
+<div id="landlord_pay">
+'.json_decode(total_accumilated())->amount.'
+</div>
+  </a>
     </td>
  </tr>
  ';
@@ -429,6 +439,17 @@ if ($_SESSION['usergroup'] == 1)
 
 <script>
   $(document).ready(function() {
+    $.ajax({
+        type: "POST",
+        url: "testing.php",
+     
+        success: function(data) { //reload div
+          $("#landlord_pay").html(data);
+        },
+        error: function(data) {
+          //alert(data);
+        }
+      });
     $(".propertyid").change(function(e) {
       propid = $(".propertyid :selected").val();
       var myData = "";

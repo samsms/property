@@ -8,6 +8,13 @@ if ($_REQUEST['getInvpoiceDetails']) {
     $tenant = getTenantDetailsFromRow($entry->idno);
     echo json_encode(array("success"=>true,"tenant"=>$tenant,"details"=>$entry));
 }
+else if($_REQUEST['report_prepayment']){
+    header("content-type:application/json");
+    $propid=$_SESSION['propertyid'] ;
+    $tenantid = htmlspecialchars($_REQUEST['clientid']);
+    
+
+}
 else if ($_REQUEST['approve_invoice']){
     header("content-type:application/json");
     $receipt_id=$_REQUEST['id'];

@@ -16,7 +16,6 @@ $total_amount=0;
 foreach ($list as $prop){
     // echo $."<br>";
     $total_amount+=landlord_statement($prop->propertyid);
-    
 }
 
     echo $total_amount;

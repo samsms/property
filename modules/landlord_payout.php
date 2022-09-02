@@ -3,7 +3,9 @@
 /*a list of all tenants available/adding and deleting them
  */
 include_once 'display.php';
-@include_once '../modules/functions.php';
+// @include 'includes/database.php';
+include  'functions.php';
+include "landlordpay.php";
 @date_default_timezone_set("Africa/Nairobi");
 $settings=  getSettings();
 ?>
@@ -116,12 +118,15 @@ $(".exportlist").table2excel({
 <centreceiptlier>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Payment List</b></centreceiptlier></span></center></center></td></tr>
 <tr><th>Property Name</th><th>Amount</th> </thead><tbody>
 <?php 
+
 $data=json_decode(payout_list());
 foreach ($data as $dt){
+   // echo(  die($dt->propertyid));
 ?>
 <tr>
         <td><?php echo($dt->property_name); ?></td>
-        <td><?php echo($dt->amount); ?></td>
+        
+        <td><?php echo landlord_statement($dt->propertyid); ?></td>
   
     </tr>
 <?php
