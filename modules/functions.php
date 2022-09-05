@@ -3462,7 +3462,7 @@ function getpaymentmode() {
 function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges, $counter, $currentreading, $aptid, $fperiod, $items,$invoicebbf) {
    
    
-   print_r($_REQUEST);
+   //print_r($_REQUEST);
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "invoices";
