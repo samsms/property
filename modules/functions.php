@@ -15,6 +15,15 @@ function loanPaid($propid,$startdate,$enddate){
    //die( print_r($query->fetch_array()));
     return round($query->fetch_assoc()['amount'],2);
 }
+function getTenantApt($tenant_id){
+    $mysqli = getMysqliConnection();
+    $date=date("Y-m-d");
+    $sql="select * from tenants where id=$tenant_id ";
+    //die($sql);
+    $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+
+
+}
 function tobepaid($propid,$amount){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
@@ -44,6 +53,7 @@ function total_accumilated(){
     return json_encode(array("number"=>$number,"amount"=>$amount));
    
 }
+
 
 
 function invoiceAmount($propid,$startdate,$enddate){

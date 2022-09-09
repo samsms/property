@@ -952,8 +952,8 @@ $user =  getUserById($_SESSION['userid']);
                     $("#accountsrecp").html("<select id='incomeacctrecp'  name='incomeacctrecp'  style='width:250px;'>" + "<?php foreach ($gls as $value) {
                                                                                                                                 echo "<option value='" . $value['acno'] . "' >" . htmlspecialchars($value['acname']) . "</option>";
                                                                                                                             } ?>" + "<?php foreach ($bankgls as $value) {
-                echo "<option value='" . $value['acno'] . "' >" . htmlspecialchars($value['acname']) . "</option>";
-            } ?>" +
+                                                                                                                                            echo "<option value='" . $value['acno'] . "' >" . htmlspecialchars($value['acname']) . "</option>";
+                                                                                                                                        } ?>" +
                         "</select>");
                 } else {
                     $("#chequedate").css("display", "none");
@@ -1089,14 +1089,15 @@ $user =  getUserById($_SESSION['userid']);
         $('#closestatement').click(function(e) {
             $('#tstmnt').css("display", "none");
         });
+        $('#closeprepayment').click(function(e) {
+            $('#prepayment-report').css("display", "none");
+        });
         $("#statements").change(function(e) {
             if ($("#statements :selected").attr("id") == "tenantstatement") {
                 $('#tstmnt').show('body');
-            } 
-            else if ($("#statements :selected").attr("id") == "prepayment") {
+            } else if ($("#statements :selected").attr("id") == "prepayment") {
                 $('#prepayment-report').show('body');
-            }
-            else if ($("#statements :selected").attr("id") == "incomestatement") {
+            } else if ($("#statements :selected").attr("id") == "incomestatement") {
                 $('#incomestmnt').show('body');
             } else if ($("#statements :selected").attr("id") == "deplist") {
                 $("#depositlist").toggle();
@@ -1141,7 +1142,23 @@ $user =  getUserById($_SESSION['userid']);
 
         });
         $("#btnreportprepayment").click(function(e) {
-                 alert("hello");
+
+        console.log($("#prepayment option:selected").text());
+            return false
+            // var jqxhrpost = $.get("../modules/accountsprocess.php?prepayment=true&id=" + $("#prepayment option:selected").val(), function() {
+
+            //     })
+            //     .done(function(data) {
+            //         $("#suppitems").val(data.items);
+            //     });
+
+
+
+
+
+
+
+
         });
         //income statement
         $('#incomestmnt').css("display", "none");
@@ -1488,7 +1505,8 @@ $user =  getUserById($_SESSION['userid']);
                         if (data.count <= 1) {
                             window.open("../modules/defaultreports.php?report=printvoucher&voucherno=" + data.status + "&propid=" + <?php echo $_SESSION['propertyid'] ?> + "&user=" + <?php echo $_SESSION['userid'] ?>);
                         } else {
-                            /*open window for payment voucher list*/ }
+                            /*open window for payment voucher list*/
+                        }
                         $('#newpbillform')[0].reset();
                         amount = 0;
                         billnum = '';
@@ -1927,7 +1945,8 @@ $user =  getUserById($_SESSION['userid']);
                         if (data.count <= 1) {
                             window.open("../modules/defaultreports.php?report=printlandlordvoucher&voucherno=" + data.status + "&propid=" + <?php echo $_SESSION['propertyid'] ?> + "&user=" + <?php echo $_SESSION['userid'] ?>);
                         } else {
-                            /*open window for payment voucher list*/ }
+                            /*open window for payment voucher list*/
+                        }
                         $('#newpbillform')[0].reset();
                         amount = 0;
                         billnum = '';
@@ -2090,7 +2109,7 @@ if ($_SESSION['usergroup'] != 3) {
         <option id="agentstatement">Agent Statement</option>
         <option id="commissionsrep">Commissions Report</option>
         <option id="arrearsprepayments">Arrears Report</option>
-        
+
         <option id="performance">Performance</option>
         <option id="filterbypercentageopt">Report By Percentage</option>
         <!-- <option id="penaltie">Performance By Agents</option> -->
@@ -2856,7 +2875,7 @@ echo '</body>';
 
 
 <div id="prepayment-report" class="internalwindow displaynone" title="">
-    <p class="titletr">Report Prepayment<a href="#" id="closestatement" style="float:right">Close X</a></p>
+    <p class="titletr">Report Prepayment<a href="#" id="closeprepayment" style="float:right">Close X</a></p>
     <p id="validaterecp" class="validateTips3">Select Appartment</p>
 
     <form id="newstatementform" method="post" enctype="multipart/form-data">
@@ -2872,13 +2891,31 @@ echo '</body>';
                     <td><br></td>
                 </tr>
                 <tr>
-                    <td><label for="usergroup">Tenant Name &nbsp;</label></td>
-                    <td><select id='clientnamestmnt' name='clientnamestmnt' style="width:250px;">
-                            <option selected="selected" value="">Select Tenant/Client</option>
-                            <?php findtenantbypropertyid($_SESSION['propertyid']) ?>
+                    <td><label for="usergroup">Apartment Tag &nbsp;</label></td>
+                    <td><select id='prepayment' name='prepayment' style="width:250px;">
+                            <option selected="selected" value="">Select Apartment</option>
+                            <?php //find($_SESSION['propertyid']) 
+                            $apt = getPropertyApartments($_SESSION['propertyid']);
+                            //  print_r($apt);
+                            foreach ($apt as $ap) {
+                                $apt_tag = $ap['apt_tag'];
+                                $apt_id = $ap['apt_id'];
+                                echo "<option value='$apt_id'>$apt_tag</option>";
+                            }
+
+                            ?>
                         </select></td>
                 </tr>
-               
+
+                <tr>
+                    <td><br></td>
+                </tr>
+                <tr>
+                    <td><br></td>
+                </tr>
+                <tr>
+                    <td><br></td>
+                </tr>
                 <tr>
                     <td><br></td>
                 </tr>
@@ -2955,10 +2992,10 @@ echo '</body>';
                 <tr>
                     <td>Report:</td>
                     <td style="color:black;">
-                 
+
                         <input type="radio" name="allplots" value="one"><?php echo propertyname($_SESSION['propertyid']) ?>
                         <input type="radio" name="allplots" value="two">Agent wise
-                    <input type="radio" name="allplots" value="all">All Properties
+                        <input type="radio" name="allplots" value="all">All Properties
                     </td>
                 </tr>
 
@@ -3654,7 +3691,7 @@ echo '</body>';
                     ?>
                     <!-- <option value="<?php // echo $property['property_id'] 
                                         ?>"><?php //echo $property['property_name'] 
-                                                                                    ?></option>    -->
+                                            ?></option>    -->
                     <?php //} 
                     ?>
 
