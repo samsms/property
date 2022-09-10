@@ -1,18 +1,29 @@
 <?php
-//ini_set('display_errors',1);
-//ini_set('display_startup_errors',1);
-//error_reporting(-1);
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
+// header('content-type:application/json');
 include 'functions.php';
 if ($_REQUEST['getInvpoiceDetails']) {
     $entry=json_decode(getTempInvoicesById($_REQUEST['id'])->data);
     $tenant = getTenantDetailsFromRow($entry->idno);
     echo json_encode(array("success"=>true,"tenant"=>$tenant,"details"=>$entry));
 }
+
+else if($_REQUEST['prep']){ 
+    
+    $data=  json_decode(getPrepayment(338));
+    foreach($data as $dt){
+        echo $dt->monthlyincome;
+    }
+}
 else if($_REQUEST['report_prepayment']){
     header("content-type:application/json");
     $propid=$_SESSION['propertyid'] ;
-    $tenantid = htmlspecialchars($_REQUEST['clientid']);
-    
+    $apartment= ($_REQUEST['id']);
+    $msg=reportPrepayment($propid,$apartment);
+   echo json_encode(array("success"=>true,"msg"=>$msg));
+ 
 
 }
 else if ($_REQUEST['approve_invoice']){

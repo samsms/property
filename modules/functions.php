@@ -1,8 +1,8 @@
 <?php
-// die("dd");
-// ini_set('display_errors',1);
-// ini_set('display_startup_errors',1);
-// error_reporting(-1);
+//die("dd");
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
 @session_start();
 @include '../includes/database.php';
 @header("Access-Control-Allow-Origin: *");
@@ -21,7 +21,45 @@ function getTenantApt($tenant_id){
     $sql="select * from tenants where id=$tenant_id ";
     //die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+    return $query;
 
+
+}
+function getPrepayment($prop_id){
+//    die('ddk');
+    $mysqli = getMysqliConnection();
+    $date=date("Y-m-d");
+    $exits =$mysqli->query("select * from prepayments p  join floorplan f on(p.aptid=f.apt_id) where p.propid=$prop_id   and MONTH(p.date)=MONTH('$date') AND YEAR(p.date)=YEAR('$date') ") or die(mysqli_error($mysqli));
+  //  die($sql);
+  if(mysqli_num_rows($exits)<1){
+    //$query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+
+    return "Reported Successifully";
+  }else{
+    $data=[];
+    while($row=mysqli_fetch_assoc($exits)){
+        $data[]=$row;
+        //die(print_r($row));
+    }
+    
+    return json_encode($data);
+  }
+
+}
+function reportPrepayment($prop_id,$apt_id){
+    $mysqli = getMysqliConnection();
+    $date=date("Y-m-d");
+    $sql="insert into prepayments (`propid`,`aptid`,`date`) values
+    ($prop_id,'$apt_id','$date') ";
+    $exits =$mysqli->query("select * from prepayments where propid=$prop_id and aptid='$apt_id'  and date='$date'") or die(mysqli_error($mysqli));
+  //  die($sql);
+  if(mysqli_num_rows($exits)<1){
+    $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+
+    return "Reported Successifully";
+  }else{
+    return "Already Reported";
+  }
 
 }
 function tobepaid($propid,$amount){

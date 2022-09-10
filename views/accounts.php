@@ -1143,17 +1143,17 @@ $user =  getUserById($_SESSION['userid']);
         });
         $("#btnreportprepayment").click(function(e) {
 
-        console.log($("#prepayment option:selected").text());
-            return false
-            // var jqxhrpost = $.get("../modules/accountsprocess.php?prepayment=true&id=" + $("#prepayment option:selected").val(), function() {
+        // console.log($("#prepayment-select option:selected").text());
+        //     return false
+            var jqxhrpost = $.get("../modules/accountsprocess.php?report_prepayment=true&id=" + $("#prepayment-select option:selected").text(), function() {
 
-            //     })
-            //     .done(function(data) {
-            //         $("#suppitems").val(data.items);
-            //     });
+                })
+                .done(function(data) {
+                  alert(data.msg);
+                });
 
 
-
+return false;
 
 
 
@@ -2883,8 +2883,8 @@ echo '</body>';
             <table>
                 <tr>
                     <td>Mode:</td>
-                    <td style="color:black;"><input type="radio" name="clients" value="0">Single Tenant
-                        <input type="radio" name="clients" value="1">All Tenants
+                    <td style="color:black;"><input type="radio" name="clients" value="0"><?php echo findpropertybyid($_SESSION['propertyid'])?>
+                       
                     </td>
                 </tr>
                 <tr>
@@ -2892,7 +2892,7 @@ echo '</body>';
                 </tr>
                 <tr>
                     <td><label for="usergroup">Apartment Tag &nbsp;</label></td>
-                    <td><select id='prepayment' name='prepayment' style="width:250px;">
+                    <td><select id='prepayment-select' name='prepayment' style="width:250px;">
                             <option selected="selected" value="">Select Apartment</option>
                             <?php //find($_SESSION['propertyid']) 
                             $apt = getPropertyApartments($_SESSION['propertyid']);

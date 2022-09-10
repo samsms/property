@@ -314,6 +314,7 @@ if ($reportpost === 'tenantlist') {
             // echo '<td>'.$commissionamount.'</td>';
             //extract item values
             //unset items for each row-for deposits
+
             unset($recpnos);
             unset($paidamount);
             unset($balance);
@@ -342,6 +343,22 @@ if ($reportpost === 'tenantlist') {
         // array_sum($watchmantotal)
         echo  '<td><b>' . number_format(array_sum($paidamounts), 2) . '</b></td><td></td><td><b>' .  number_format($comm, 2) . '</b></td></tr>';
         echo '<tr><td><b>Other Chargables</b></td><td></td><td></td><td><b>' . $total_chargables . '</b></td></tr>';
+        
+        $data=  json_decode(getPrepayment(338));
+        $prep=0;
+        $houses="";
+        foreach($data as $dt){
+           $prep+= $dt->monthlyincome;
+          
+           $houses.=$dt->aptid;
+           if($houses!=""){
+            $houses.=" and ";
+           }
+        }
+        echo '<tr>
+            
+            <td><b>Prepayments</b></td><td><td></td><td><b>'.$prep.'</b></td><td colspan="3">'.$houses.'
+            </tr>';
         echo '<tr><td><b>Total Amount</b></td><td></td><td></td><td><b>' . $total_invoices . '</b></td></tr>';
         echo '<tr><td><b>Loan </b></td><td></td><td></td><td><b>' . loanPaid($propid, $startdate, $enddate) . '</b></td></tr>';
         $totalcollected = $total_invoices;
@@ -387,8 +404,8 @@ if ($reportpost === 'tenantlist') {
         echo  '</tr>';
         //amount banked
 
-        $banked = $totalcollected - ($comm + array_sum($totalbill) + loanPaid($propid, $startdate, $enddate) + $lessvat);
-        echo '<tr><td><b> Landlord Amount</b>' . str_repeat('<td></td>', 9);
+        $banked = $totalcollected - ($comm + array_sum($totalbill)+$prep + loanPaid($propid, $startdate, $enddate) + $lessvat);
+        echo '<tr><td><b> Landlord Amount</b>';// . str_repeat('<td></td>', 9);
         foreach ($chargeables as $value) {
 
             echo '<td></td>';
@@ -398,21 +415,21 @@ if ($reportpost === 'tenantlist') {
         $payments = getLandLordPaidAmountsForMonth($todate->format("Y-m"), $propid);
         $paidamounts = 0;
         foreach ($payments as $payment) {
-            echo '<tr><td><b> Paid to Landlord B/Ac</b>' . str_repeat('<td></td>', 11);
-            foreach ($chargeables as $value) {
+            echo '<tr><td><b> Paid to Landlord B/Ac</b>'; //. str_repeat('<td></td>', 11);
+            // foreach ($chargeables as $value) {
 
-                echo '<td></td>';
-            }
+            //     echo '<td></td>';
+            // }
             //add paid amounts to array
             $paidamounts = $paidamounts + $payment["amount"];
             echo  '<td></td><td><b>' . number_format($payment["amount"], 2) . '</b></td><td>Cheque No' . $payment["chequeno"] . '</td><td>Cheque Date' . $payment["chequedate"] . '</td></tr>';
         }
-        echo '<tr><td><b>Balance as at end of' . $todate->format("m-Y") . ' </b>' . str_repeat('<td></td>', 9);
-        foreach ($chargeables as $value) {
+        echo '<tr><td><b>Balance as at end of' . $todate->format("m-Y") . ' </b>' ;//. str_repeat('<td></td>', 9);
+        // foreach ($chargeables as $value) {
 
-            echo '<td></td>';
-        }
-        echo  '<td></td><td><b>' . number_format($banked - $paidamounts, 2) . '</b></td> </tr>';
+        //     echo '<td></td>';
+        // }
+        echo  '<td></td><td></td><td><b>' . number_format($banked - $paidamounts, 2) . '</b></td> </tr>';
 
 
         echo '</tfoot></table>';
