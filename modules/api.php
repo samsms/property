@@ -72,7 +72,7 @@ else if($resource=="propertie"){
 	  WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND invoicedate between 
 	  '$startdate' AND '$enddate' )x group by x.idno) prop join agentproperty a on a.property_id=prop.property_id
 	   join properties p on p.propertyid=prop.property_id where a.agent_id=4 group by prop.property_id "));
-}
+
 }
 
 else if($resource=="tenants"&&isset($_GET['property_id']))
