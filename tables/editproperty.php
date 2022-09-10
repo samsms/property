@@ -45,7 +45,7 @@
 					"sZeroRecords":"No Channels Found"
 							},
 					"bAutoWidth":false,
-                                      "sAjaxSource": "<?php echo $baseurl;?>/tables/editprop_ServerSide.php", //Fetch Data [ServerSide Script Path]
+                                      "sAjaxSource": "<?php echo $baseurl;?>tables/editprop_ServerSide.php", //Fetch Data [ServerSide Script Path]
 				      "aaSorting":[[0,"desc"]],
                                       "aoColumns":[  // Displayed columns [Number of columns]
                                          {"bVisible":false},
