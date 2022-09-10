@@ -332,16 +332,16 @@ if ($reportpost === 'tenantlist') {
         echo '<tfoot>
 <tr><td><b>TOTAL Rent Payable</b></td><td></td><td></td><td>' . array_sum($rent) . '</td>' .  str_repeat('<td></td>', 5);
         // echo '<tr><td>dd</td></tr>';
-        foreach ($chargeables as $value) {
+        // foreach ($chargeables as $value) {
 
-            echo '<td></td>';
-        }
+        //     echo '<td></td>';
+        // }
         $totalcollected = array_sum($rent); //array_sum($paidamounts);
         $total_chargables = $total_invoices - $totalcollected;
         //total commission
         $comm = array_sum($commissionamounts);
         // array_sum($watchmantotal)
-        echo  '<td><b>' . number_format(array_sum($paidamounts), 2) . '</b></td><td></td><td><b>' .  number_format($comm, 2) . '</b></td></tr>';
+        echo  '<td><b>' . number_format(array_sum($paidamounts), 2) . '</b></td></tr>';//<td></td><td><b>' .  number_format($comm, 2) . '</b></td></tr>';
         echo '<tr><td><b>Other Chargables</b></td><td></td><td></td><td><b>' . $total_chargables . '</b></td></tr>';
         
         $data=  json_decode(getPrepayment(338));
@@ -376,14 +376,14 @@ if ($reportpost === 'tenantlist') {
         //expenses
         $expenses =  getPaymentsForProperty(array('propid' => $propid, 'startdate' => $startdate, 'enddate' => $enddate, 'count' => 1));
         $totalbill = array();
-        echo '<tr><td><b>Less&nbsp;' . $commissiondetail[0]['commission'] . '%&nbsp; Commission</b></td>' . str_repeat('<td></td>', 10);
-        foreach ($chargeables as $count) {
-            echo '<td></td>';
-        }
+        echo '<tr><td><b>Less&nbsp;' . $commissiondetail[0]['commission'] . '%&nbsp; Commission</b></td>' ;;//. str_repeat('<td></td>', 10);
+        // foreach ($chargeables as $count) {
+        //     echo '<td></td>';
+        // }
         $lesscommission = $totalminuswatchman - $comm;
         $vat = getVAT("housevat");
         $lessvat = 0; //  round(($vat*$comm)/100,2);
-        echo '<td><b>' .  number_format($lesscommission, 2) . '</b></td></tr>';
+        echo '<td></td><td></td><td><b>' .  number_format($lesscommission, 2) . '</b></td></tr>';
         //   echo '<tr><td><td></td><td></td><td></td>'.str_repeat('<td></td>',7).'<td><b>'.number_format($lessvat,2).'</b></td><td></td><td></td><td></td></tr>'; 
         //extract expenses
         foreach ($expenses as $expense => $value) {
@@ -396,21 +396,21 @@ if ($reportpost === 'tenantlist') {
         }
 
         //spacing
-        echo '<tr>' . str_repeat('<td></td>', 12);
-        foreach ($chargeables as $value) {
+        // echo '<tr>' . str_repeat('<td></td>', 12);
+        // foreach ($chargeables as $value) {
 
-            echo '<td></td>';
-        }
-        echo  '</tr>';
+        //     echo '<td></td>';
+        // }
+        // echo  '</tr>';
         //amount banked
 
         $banked = $totalcollected - ($comm + array_sum($totalbill)+$prep + loanPaid($propid, $startdate, $enddate) + $lessvat);
         echo '<tr><td><b> Landlord Amount</b>';// . str_repeat('<td></td>', 9);
-        foreach ($chargeables as $value) {
+        // foreach ($chargeables as $value) {
 
-            echo '<td></td>';
-        }
-        echo  '<td></td><td><b>' . number_format($banked, 2) . '</b></td></tr>';
+        //     echo '<td></td>';
+        // }
+        echo  '<td></td><td></td><td><b>' . number_format($banked, 2) . '</b></td></tr>';
 
         $payments = getLandLordPaidAmountsForMonth($todate->format("Y-m"), $propid);
         $paidamounts = 0;
@@ -422,7 +422,7 @@ if ($reportpost === 'tenantlist') {
             // }
             //add paid amounts to array
             $paidamounts = $paidamounts + $payment["amount"];
-            echo  '<td></td><td><b>' . number_format($payment["amount"], 2) . '</b></td><td>Cheque No' . $payment["chequeno"] . '</td><td>Cheque Date' . $payment["chequedate"] . '</td></tr>';
+            echo  '<td></td><td></td><td><b>' . number_format($payment["amount"], 2) . '</b></td><td>Cheque No' . $payment["chequeno"] . '</td><td>Cheque Date' . $payment["chequedate"] . '</td></tr>';
         }
         echo '<tr><td><b>Balance as at end of' . $todate->format("m-Y") . ' </b>' ;//. str_repeat('<td></td>', 9);
         // foreach ($chargeables as $value) {
