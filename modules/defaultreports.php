@@ -729,14 +729,11 @@ if ($reportpost === 'tenantlist') {
         echo fetchplotperformanceOne($propid, $fromdate, $enddate);
     } else if ($flag == "two") {
         echo fetchplotperformanceAgent($propid, $fromdate, $enddate);
-    } else if ($flag == "three") {
+    } else{
 
         echo fetchplotperformanceAll($propid, $fromdate, $enddate, $flag);
-    } else if ($flag = "four") {
-        echo fetchplotperformanceAll($propid, $fromdate, $enddate, $flag);
-
-        // die("ss");
-    }
+    } 
+    
 } elseif ($reportpost == 'fetcharrearsprepayments') {
 
     $tenantid = htmlspecialchars($_REQUEST['clientid']);
