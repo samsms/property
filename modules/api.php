@@ -58,6 +58,12 @@ return $result;
 
 
 if($resource=="properties"){
+	echo json_encode(generete_data("SELECT *,(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid ) as  total_houses,
+	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1) as  occupied ,(select count(*) FROM `floorplan` f 
+	WHERE f.`propertyid`=p.propertyid and isoccupied=0) as  vaccant from agentproperty a inner join properties p on p.propertyid=a.property_id  
+	where a.agent_id=4"));
+}
+else if($resource=="propertie"){
 	$startdate=date("Y-m-01");
 	$enddate=date("Y-m-t");
 	echo json_encode(generete_data("select p.*,a.*, prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal 
@@ -67,7 +73,7 @@ if($resource=="properties"){
 	  '$startdate' AND '$enddate' )x group by x.idno) prop join agentproperty a on a.property_id=prop.property_id
 	   join properties p on p.propertyid=prop.property_id where a.agent_id=4 group by prop.property_id "));
 }
-
+}
 
 else if($resource=="tenants"&&isset($_GET['property_id']))
 {	
