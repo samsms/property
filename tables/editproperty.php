@@ -17,7 +17,7 @@
 
 		</style>
 
-		<script type="text/javascript" src="<?php echo $baseurl;?>/tables/media/js/complete.js"></script>
+		<script type="text/javascript" src="<?php echo $baseurl;?>tables/media/js/complete.js"></script>
 		<script src="<?php echo $baseurl;?>js/jquery.min.js" type="text/javascript"></script>
                 <script src="<?php echo $baseurl;?>tables/media/js/jquery.dataTables.min.js" type="text/javascript"></script>
 		<script type="text/javascript" src="<?php echo $baseurl;?>tables/media/js/jquery.dataTables.editable.js"></script>
@@ -68,8 +68,8 @@
                                        ]
                                     }
                                     ).makeEditable({
-			sDeleteURL: "<?php echo $baseurl;?>/tables/deleteData.php",
-			sUpdateURL: "<?php echo $baseurl;?>/tables/UpdateData.php",  //Update Data [Update Data Server Side Script Path]
+			sDeleteURL: "<?php echo $baseurl;?>tables/deleteData.php",
+			sUpdateURL: "<?php echo $baseurl;?>tables/UpdateData.php",  //Update Data [Update Data Server Side Script Path]
 			sAddDeleteToolbarSelector: ".dataTables_length",
 		        "aoColumns":[ // Edittable Columns [Number of Columns] and display Options
 				{indicator: 'Edit Name...',tooltip: 'Click to change Name',type: 'text',submit:'Edit Name'},
