@@ -25,6 +25,23 @@ function getTenantApt($tenant_id){
 
 
 }
+function getTenantfromApt($prop,$apt_tag) {
+   
+    $apt_tag=ltrim($apt_tag,'0');
+    $mysqli = getMysqliConnection();
+    $query =$mysqli->query("SELECT Id FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'") or  die(mysqli_error($mysqli));;
+    return $query->fetch_assoc()['Id'];
+}
+
+function getPropByName($name){
+    $mysqli = getMysqliConnection();
+    $date=date("Y-m-d");
+    $sql="select propertyid as prop from properties where address='$name' ";
+    //die($sql);
+    $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+    return $query->fetch_assoc()['prop'];
+
+}
 function getPrepayment($prop_id){
 //    die('ddk');
     $mysqli = getMysqliConnection();
@@ -5470,6 +5487,7 @@ function getApartmentFromTenant($tenantid) {
     }
     return $aptid;
 }
+
 function getTenantDetailsFromRow($tenantid) {
     $tenantstable = getTenantTable();
     $db = new MySQLDatabase();
@@ -7132,8 +7150,9 @@ function fetchplotperformanceAll($propid,$fromdate,$enddate,$flag){
 
 <th><center><u>Property</u></center></th>
 
-<th><center><u>Credit</center></u></th>
+
 <th><center><u>Debit</center></u></th>
+<th><center><u>Credit</center></u></th>
 <th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
 
 //die(print_r($allproperties));
@@ -7226,11 +7245,9 @@ function fetchplotperformanceAgent($propid,$fromdate,$enddate){
     <table class=" sortable treport" ><thead>
 <tr>
 <th><center><u>No</u></center></th>
-
 <th><center><u>Agent Name</u></center></th>
-
-<th><center><u>Credit</center></u></th>
 <th><center><u>Debit</center></u></th>
+<th><center><u>Credit</center></u></th>
 <th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
 
 //die(print_r($allproperties));
@@ -7321,8 +7338,9 @@ function fetchplotperformanceOne($propid,$fromdate,$enddate) {
 <th><center><u>Appartment</u></center></th>
 <th><center><u>Customer/Tenant Name</u></center></th>
 <th><center><u>House</u></center></th>
-<th><center><u>Credit</center></u></th>
 <th><center><u>Debit</center></u></th>
+<th><center><u>Credit</center></u></th>
+
 <th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
 
 //die(print_r($allproperties));
@@ -7420,8 +7438,9 @@ function fetchplotperformancebypercentageOne($propid,$fromdate,$enddate,$percent
 <th><center><u>Property</u></center></th>
 <th><center><u>Customer/Tenant Name</u></center></th>
 <th><center><u>House</u></center></th>
-<th><center><u>Credit</center></u></th>
+
 <th><center><u>Debit</center></u></th>
+<th><center><u>Credit</center></u></th>
 <th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
 
 //die(print_r($allproperties));
@@ -7528,8 +7547,9 @@ function fetchplotperformancebypercentageall($propid,$fromdate,$enddate,$flag,$p
 <th><center><u>Property</u></center></th>
 <th><center><u>Customer/Tenant Name</u></center></th>
 <th><center><u>House</u></center></th>
-<th><center><u>Credit</center></u></th>
 <th><center><u>Debit</center></u></th>
+<th><center><u>Credit</center></u></th>
+
 <th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
 
 //die(print_r($allproperties));
