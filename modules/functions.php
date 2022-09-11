@@ -231,7 +231,14 @@ function getAbsoluteUrl() {
 }
 
 function getIP() {
-    return "http://" . $_SERVER["HTTP_HOST"] . "/property-rivercourt";
+    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
+        return "https://" . $_SERVER["HTTP_HOST"] ;
+
+    }else{
+        return "http://" . $_SERVER["HTTP_HOST"] . "/property-rivercourt";
+
+    }
+    
 }
 
 function checkIfLoggedInProperty() {
