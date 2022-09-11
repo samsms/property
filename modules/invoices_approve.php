@@ -12,9 +12,9 @@ $settings =  getSettings();
 <head>
     <title>Property Manager| Rivercourt Property Management</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <link rel="stylesheet" type="text/css" media="screen" href="http://localhost/property-rivercourt/css/overall2.css">
-    <link rel="stylesheet" type="text/css" media="print" href="http://localhost/property-rivercourt/css/overall2.css">
-    <link rel="stylesheet" type="text/css" media="print" href="http://localhost/property-rivercourt/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="/css/overall2.css">
+    <link rel="stylesheet" type="text/css" media="print" href="/css/overall2.css">
+    <link rel="stylesheet" type="text/css" media="print" href="/css/bootstrap.css">
     <script type="text/javascript" src="../js/jquery-1.9.1.js"></script>
     <script type="text/javascript" src="../js/jquery-ui.min.js"></script>
     <script type="text/javascript" src="../js/jquery.dataTables.min.js"></script>

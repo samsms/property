@@ -2,7 +2,7 @@
 <head>
 <meta charset="utf-8">
 <title>Load photos</title>
-<link rel="stylesheet" type="text/css" href="http://localhost/property1/css/photos.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="/property1/css/photos.css" media="screen" />
 <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
 </head>
 <body>

@@ -7,7 +7,9 @@ include_once 'display.php';
 @date_default_timezone_set("Africa/Nairobi");
 $settings=  getSettings();
 ?>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><title>Property Manager| Rivercourt Property Management</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><link rel="stylesheet" type="text/css" media="screen" href="http://localhost/property-rivercourt/css/overall2.css"><link rel="stylesheet" type="text/css" media="print" href="http://localhost/property-rivercourt/css/overall2.css"><link rel="stylesheet" type="text/css" media="print" href="http://localhost/property-rivercourt/css/bootstrap.css"><script type="text/javascript" src="../js/jquery-1.9.1.js"></script><script type="text/javascript" src="../js/jquery-ui.min.js"></script><script type="text/javascript" src="../js/jquery.dataTables.min.js"></script><script type="text/javascript" src="../js/jquery.PrintArea.js"></script><script type="text/javascript" src="../js/jquery.table2excel.js"></script><script type="text/javascript" src="../js/core.js"></script>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><title>Property Manager| Rivercourt Property Management</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" media="screen" href="/css/overall2.css"><link rel="stylesheet" type="text/css" media="print" href="/css/overall2.css"><link rel="stylesheet" type="text/css" media="print" href="/css/bootstrap.css"><script type="text/javascript" src="../js/jquery-1.9.1.js"></script><script type="text/javascript" src="../js/jquery-ui.min.js"></script><script type="text/javascript" src="../js/jquery.dataTables.min.js"></script><script type="text/javascript" src="../js/jquery.PrintArea.js"></script><script type="text/javascript" src="../js/jquery.table2excel.js"></script><script type="text/javascript" src="../js/core.js"></script>
 <style>    
 a.export, a.export:visited {
     text-decoration: none;
