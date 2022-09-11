@@ -19,7 +19,7 @@ function root() {
     }
     return location.origin + pathname.slice( 0, same ).join( '/' );
 }
-alert(root());
+//alert(root());
 
     var approot =root()+"/logout.php";
 
