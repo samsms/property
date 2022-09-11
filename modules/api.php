@@ -57,7 +57,7 @@ return $result;
 }
 
 
-if($resource=="propertiess"){
+if($resource=="propertie"){
 	echo json_encode(generete_data("SELECT *,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid ) as  total_houses,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1) as  occupied ,
@@ -68,7 +68,7 @@ if($resource=="propertiess"){
 else if($resource=="properties"){
 	$startdate=date("Y-m-01");
 	$enddate=date("Y-m-t");
-	echo (("select p.*,(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid ) as  total_houses,
+	echo json_encode(generete_data("select p.*,(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid ) as  total_houses,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1) as  occupied ,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=0) as  vaccant
 	,a.*, prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal 
