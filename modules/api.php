@@ -228,7 +228,7 @@ else if($resource=="feedback"){
 		$propid=$_GET['propid'];
 		$aptid=$_GET['aptid'];
 		$message=$_GET['message'];
-		echo execute("insert into feedback(`propid`,`aptid`,`message`) values('$propid','$apt_id','$message')");
+		echo execute("insert into feedback(`propid`,`aptid`,`message`) values('$propid','$aptid','$message')");
 
 	}
 else{
