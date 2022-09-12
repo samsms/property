@@ -286,7 +286,7 @@ if ($_SESSION['usergroup'] == 1)
     <td width=60%>
    <a href="modules/landlord_payout.php" class="button big green">
    </br>Today\'s Payout   <br> 
-    '.(landlord_tobepaid()).' Landlords<br/>
+    ' . (landlord_tobepaid()) . ' Landlords<br/>
  
 <div id="landlord_pay"></div>  </a>
     </td>
@@ -294,10 +294,10 @@ if ($_SESSION['usergroup'] == 1)
     <td width=60%>
    <a href="modules/landlord_payout.php" class="button big green">
    </br>Cummilated Payout   <br>
-    '.(json_decode(total_accumilated())->number).' Landlords<br/>
+    ' . (json_decode(total_accumilated())->number) . ' Landlords<br/>
  
 <div id="landlord_pay">
-'.json_decode(total_accumilated())->amount.'
+' . json_decode(total_accumilated())->amount . '
 </div>
   </a>
     </td>
@@ -305,19 +305,19 @@ if ($_SESSION['usergroup'] == 1)
  ';
   } else {
 
-  //   echo '
-  // <tr>
-  
-  //   <td>
-  //    <a href="modules/reports.php" class="button big orange"></br>Reports Manager</a>
-  //   </td>
-  //     <td>' . str_repeat("&nbsp;", 15) . '</td>
-  //   <td width=70%>
-  //   <a href="views/tenantlist.php" class="button big blue"></br>Tenants Manager </a>
-  //   </td><td>' . str_repeat("&nbsp;", 15) . '</td>
-  //   <td>
-  //    <a href="views/accounts.php" class="button big orange"></br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Financials</a>
-  //   </td>';
+    //   echo '
+    // <tr>
+
+    //   <td>
+    //    <a href="modules/reports.php" class="button big orange"></br>Reports Manager</a>
+    //   </td>
+    //     <td>' . str_repeat("&nbsp;", 15) . '</td>
+    //   <td width=70%>
+    //   <a href="views/tenantlist.php" class="button big blue"></br>Tenants Manager </a>
+    //   </td><td>' . str_repeat("&nbsp;", 15) . '</td>
+    //   <td>
+    //    <a href="views/accounts.php" class="button big orange"></br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Financials</a>
+    //   </td>';
   }
   echo '
 
@@ -440,16 +440,16 @@ if ($_SESSION['usergroup'] == 1)
 <script>
   $(document).ready(function() {
     $.ajax({
-        type: "POST",
-        url: "testing.php",
-     
-        success: function(data) { //reload div
-          $("#landlord_pay").html(data);
-        },
-        error: function(data) {
-          //alert(data);
-        }
-      });
+      type: "POST",
+      url: "testing.php",
+
+      success: function(data) { //reload div
+        $("#landlord_pay").html(data);
+      },
+      error: function(data) {
+        //alert(data);
+      }
+    });
     $(".propertyid").change(function(e) {
       propid = $(".propertyid :selected").val();
       var myData = "";

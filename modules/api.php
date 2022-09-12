@@ -2,12 +2,15 @@
 require '../includes/config.php';
 include 'functions.php';
  $resource=$_GET['resource'];
-error_reporting(1);
-error_reporting(1);
-ini_set('error_reporting', 1);
+// error_reporting(1);
+// error_reporting(1);
+// ini_set('error_reporting', 1);
 //
 if(!(isset($_GET["resource"])&&$_GET["resource"]=="login")){
 //authorize();
+}
+function error(){
+	return	json_encode(array("success"=>false,"message"=>"error occured"));
 }
 function authorize(){
 	$token=json_decode(base64_decode(base64_decode($_GET['token'])));
@@ -56,7 +59,21 @@ function generete_data($sql){
 return $result;
 }
 
-
+function execute($sql){
+	//     defined('DB_SERVER') ? null : define("DB_SERVER", "localhost");
+	// defined('DB_USER')   ? null : define("DB_USER", "techsava_rpms");
+	// defined('DB_PASS')   ? null : define("DB_PASS", "rivercourt#123");
+	// defined('DB_NAME')   ? null : define("DB_NAME", "techsava_rivercourt");
+		$conn=mysqli_connect(DB_SERVER,DB_USER,DB_PASS,DB_NAME);
+		if(mysqli_query($conn,$sql)){
+			return json_encode(array("success"=>true,"data added successifully"));
+		}
+			
+		else{
+			return json_encode(array("success"=>false,"failed to add data"));
+		}
+		
+	}
 if($resource=="propertie"){
 	echo json_encode(generete_data("SELECT *,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid ) as  total_houses,
@@ -206,12 +223,40 @@ echo json_encode(
     //  echo json_encode(generete_data($sql));  
 }
 else if($resource=="feedback"){
-	$prop_id=$_GET['prop_id'];
-	$apt_id=$_GET['apt_id'];
-	$message=$_GET['message'];
-	echo $prop_id.$apt_id.$message;
+	//die("dd");
+	if(isset($_GET['propid'])&&isset($_GET['aptid']) &&isset($_GET['message'])){
+		$propid=$_GET['propid'];
+		$aptid=$_GET['aptid'];
+		$message=$_GET['message'];
+		echo execute("insert into feedback(`propid`,`aptid`,`message`) values('$propid','$apt_id','$message')");
 
+	}
+else{
+echo error();
 }
+	
+}
+else if($resource=="addtenant"){
+	//die("dd");
+	if(isset($_GET['propid'])&&isset($_GET['aptid']) &&isset($_GET['message'])){
+		$propid=$_GET['propid'];
+		$aptid=$_GET['aptid'];
+		$message=$_GET['message'];
+		echo execute("insert into tenants2(`propid`,`aptid`,`message`) values('$propid','$apt_id','$message')");
+
+	}
+else{
+echo error();
+}
+	
+}
+// else if($resource=="feedback"){
+// 	$prop_id=$_GET['prop_id'];
+// 	$apt_id=$_GET['apt_id'];
+// 	$message=$_GET['message'];
+// 	execute("insert into feedback(`propid`,`aptid`,`message`) values('$propid','$apt_id','$message')");
+
+// }
 else if($resource=="login"&&isset($_GET['username'])&&isset($_GET['password']))
 {	
 	// display tenant statement provided tenant id
