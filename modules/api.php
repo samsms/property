@@ -93,7 +93,7 @@ else if($resource=="properties"){
 	 as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans
 	  WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND invoicedate between 
 	  '$startdate' AND '$enddate' )x group by x.idno) prop join agentproperty a on a.property_id=prop.property_id
-	   join properties p on p.propertyid=prop.property_id  group by prop.property_id "));
+	   join properties p on p.propertyid=prop.property_id  group by prop.property_id order bal asc  "));
 
 }
 
