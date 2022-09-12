@@ -238,16 +238,20 @@ echo error();
 }
 else if($resource=="addtenant"){
 	//die("dd");
-	if(isset($_GET['propid'])&&isset($_GET['aptid']) &&isset($_GET['message'])){
-		$propid=$_GET['propid'];
-		$aptid=$_GET['aptid'];
-		$message=$_GET['message'];
-		echo execute("insert into tenants2(`propid`,`aptid`,`message`) values('$propid','$apt_id','$message')");
 
-	}
-else{
-echo error();
-}
+		$propid=$_POST['propid'];
+		$aptid=$_POST['aptid'];
+		$name=$_POST['name'];
+		$idno=$_POST['idno'];
+		$phone=$_POST['phone'];
+		$sql="INSERT INTO `tenants_temp` (`id`, `propid`, `aptid`, `name`, `idno`, `phone`) VALUES (NULL, '$propid', '$aptid', '$name', '$idno', '$phone'); ";
+		
+		echo execute($sql);
+
+	
+// else{
+// echo error();
+// }
 	
 }
 // else if($resource=="feedback"){

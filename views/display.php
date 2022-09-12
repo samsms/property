@@ -87,7 +87,8 @@ $sidebar='<div style="border:1px solid #ccc;border-radius:10px;padding:10px">
 	<a class="nodecoration" href="'.$baseurl.'modules/reports.php">'.$report.'<span>&nbsp;&nbsp;</span>Reports</a><hr/>
 	  <a class="nodecoration" href="'.$baseurl.'loan">'.$tenants.'<span>&nbsp;&nbsp;</span>Loans</a><hr/>
         <a class="nodecoration" href="'.$baseurl.'views/tenantlist.php">'.$tenants.'<span>&nbsp;&nbsp;</span>Tenant Portal</a><hr/>
-		<a class="nodecoration" href="'.$baseurl.'modules/feedbacks.php">'.$list.'<span>&nbsp;&nbsp;</span>Feeds /a><hr/>
+		<a class="nodecoration" href="'.$baseurl.'modules/feedbacks.php">'.$list.'<span>&nbsp;&nbsp;</span>Feeds </a><hr/>
+		<a class="nodecoration" href="'.$baseurl.'modules/tenantlist.php">'.$list.'<span>&nbsp;&nbsp;</span>Pendding tenants </a><hr/>
 	
             <a class="nodecoration" href="'.$baseurl.'views/template.php?page=repairs">'.$repairs.'<span>&nbsp;&nbsp;</span>Ledgers/Settings</a><hr/>
 			<a class="nodecoration" href="'.$baseurl.'views/template.php?page=closeperiods">'.$close.'<span>&nbsp;&nbsp;</span>Close Period/Settings</a><hr/>
