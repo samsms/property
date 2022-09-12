@@ -130,6 +130,7 @@ foreach ($data as $dt){
         <td><?php echo ($dt->name); ?></td>
         <td><?php echo ($dt->idno); ?></td>
         <td><?php echo ($dt->phone); ?></td>
+        <td><a href="#">approve</a></td>
       
       
     </tr>
