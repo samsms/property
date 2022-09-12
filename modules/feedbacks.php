@@ -107,7 +107,7 @@ $(".exportlist").table2excel({
 <tr>
     <td colspan="14">
         <center><span style="font-size:15px;font-weight:normal;float:left;">
-         <b>Landlord Payment List</b>
+         <b>Feedback List</b>
         </span>
         <span style="font-size:18px;font-weight:bold">Rivercourt Property Management</span>
         <span style="font-size:18px;font-weight:normal; float:right;"></span>
@@ -115,8 +115,8 @@ $(".exportlist").table2excel({
 <br>
 
 <span style="font-size:16px;font-weight:normal;">
-<centreceiptlier>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Payment List</b></centreceiptlier></span></center></center></td></tr>
-<tr><th>Property Name</th><th>Amount</th> </thead><tbody>
+<centreceiptlier>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Feedback List</b></centreceiptlier></span></center></center></td></tr>
+<tr><th>Property Name</th><th>Apartment</th> <th>Message</th></thead><tbody>
 <?php 
 
 $data=json_decode(getfeedbacks());
@@ -125,7 +125,7 @@ foreach ($data as $dt){
 ?>
 <tr>
         <td><?php echo($dt->property_name); ?></td>
-        <td><?php echo ($dt->propertyid); ?></td>
+       
         <td><?php echo ($dt->aptid); ?></td>
         <td><?php echo ($dt->message); ?></td>
       
