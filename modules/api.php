@@ -66,11 +66,11 @@ function execute($sql){
 	// defined('DB_NAME')   ? null : define("DB_NAME", "techsava_rivercourt");
 		$conn=mysqli_connect(DB_SERVER,DB_USER,DB_PASS,DB_NAME);
 		if(mysqli_query($conn,$sql)){
-			return json_encode(array("success"=>true,"data added successifully"));
+			return json_encode(array("success"=>true,"data"=>"data added successifully"));
 		}
 			
 		else{
-			return json_encode(array("success"=>false,"failed to add data"));
+			return json_encode(array("success"=>false,"data"=>"failed to add data"));
 		}
 		
 	}
