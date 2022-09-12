@@ -116,7 +116,7 @@ $(".exportlist").table2excel({
 
 <span style="font-size:16px;font-weight:normal;">
 <centreceiptlier>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Payment List</b></centreceiptlier></span></center></center></td></tr>
-<tr><th>Property Name</th><th>Amount</th> </thead><tbody>
+<tr><th>Property Name</th><th>Amount</th><th>Pay date</th> </thead><tbody>
 <?php 
 
 $data=json_decode(payout_list_cumilated());
