@@ -119,19 +119,19 @@ $(".exportlist").table2excel({
 <tr><th>Property Name</th><th>Apartment</th> <th>Message</th></thead><tbody>
 <?php 
 
-//$data=json_decode(getTenants());
-//foreach ($data as $dt){
+$data=json_decode(gettenants_temp());
+foreach ($data as $dt){
    // echo(  die($dt->propertyid));
 ?>
 <tr>
         <td><?php echo($dt->property_name); ?></td>
        
         <td><?php echo ($dt->aptid); ?></td>
-        <td><?php echo ($dt->message); ?></td>
+        <td><?php echo ($dt->name); ?></td>
       
     </tr>
 <?php
-//}
+}
 ?>
     </tbody>
 </table>

@@ -25,6 +25,19 @@ function getTenantApt($tenant_id){
 
 
 }
+function gettenants_temp(){
+    $mysqli = getMysqliConnection();
+    $date=date("Y-m-d");
+    $sql="select * from tenants_temp join properties on tenants_temp.propid=properties.propertyid";
+    //die($sql);
+    $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+    $data=[];
+    while($row=mysqli_fetch_assoc($query)){
+        $data[]=$row;
+    }
+    return json_encode($data);
+}
+
 function getfeedbacks(){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
