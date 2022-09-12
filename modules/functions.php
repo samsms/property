@@ -188,6 +188,30 @@ while($ln=$list->fetch_assoc()){
    
    // return  mysqli_num_rows($query);
 }
+function payout_list_cumilated(){
+    
+    $mysqli = getMysqliConnection();
+    $date = date('d');
+
+    //$list=$mysqli->query(" select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid,p.* from properties p where pay_day=DAY(now())");
+    $list=$mysqli->query("select p.*,p.propertyid from landlord_peddingpay lp join properties p on lp.propid=p.propertyid ");
+ 
+    // $total=$mysqli->query("select sum(l.amount) as total from (select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())) l ");
+   $lists=array();
+while($ln=$list->fetch_assoc()){
+    $lists[]=$ln;
+}
+   return json_encode($lists);
+   
+    //$total=$mysqli->query("SELECT sum(monthlyincome) FROM `floorplan` WHERE `propertyid`=339 and isoccupied=0");
+    //$
+   // die("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND month(invoicedate)=  MONTH(now())  )x group by x.idno) prop");
+    //$total=$mysqli->query("select sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND month(invoicedate)= MONTH(now()) and property_id in(SELECT property_id from properties where pay_day=DAY(now())) )x group by x.idno) prop");
+   // die(print_r($total->fetch_array()));
+    //$query =$mysqli->query("SELECT * FROM properties WHERE pay_day='$date'") or die(mysqli_error($mysqli));
+   
+   // return  mysqli_num_rows($query);
+}
 function total_payout(){
     $mysqli = getMysqliConnection();
     $date = date('d');
