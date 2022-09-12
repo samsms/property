@@ -116,7 +116,7 @@ $(".exportlist").table2excel({
 
 <span style="font-size:16px;font-weight:normal;">
 <centreceiptlier>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tenant List</b></centreceiptlier></span></center></center></td></tr>
-<tr><th>Property Name</th><th>Apartment</th> <th>Message</th></thead><tbody>
+<tr><th>Property Name</th><th>Apartment</th> <th>name</th><th>ID NO</th><th>phone number</th></thead><tbody>
 <?php 
 
 $data=json_decode(gettenants_temp());
@@ -128,6 +128,9 @@ foreach ($data as $dt){
        
         <td><?php echo ($dt->aptid); ?></td>
         <td><?php echo ($dt->name); ?></td>
+        <td><?php echo ($dt->idno); ?></td>
+        <td><?php echo ($dt->phone); ?></td>
+      
       
     </tr>
 <?php
