@@ -121,13 +121,13 @@ $(".exportlist").table2excel({
 
 $data=json_decode(payout_list_cumilated());
 foreach ($data as $dt){
-   // echo(  die($dt->propertyid));
+  // echo(  die(print_r($dt)));
 ?>
 <tr>
         <td><?php echo($dt->property_name); ?></td>
         
-        <td><?php echo $dt->propertyid; ?></td>
-  
+        <td><?php echo $dt->amount; ?></td>
+        <td><?php echo $dt->pay_day; ?></td>
     </tr>
 <?php
 }

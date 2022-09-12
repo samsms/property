@@ -194,7 +194,7 @@ function payout_list_cumilated(){
     $date = date('d');
 
     //$list=$mysqli->query(" select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid,p.* from properties p where pay_day=DAY(now())");
-    $list=$mysqli->query("select p.*,p.propertyid from landlord_peddingpay lp join properties p on lp.propid=p.propertyid ");
+    $list=$mysqli->query("select *,p.propertyid from landlord_peddingpay lp join properties p on lp.propid=p.propertyid ");
  
     // $total=$mysqli->query("select sum(l.amount) as total from (select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())) l ");
    $lists=array();
