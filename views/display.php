@@ -80,11 +80,15 @@ $clock='<img src="'.$baseurl.'images/cursors/clock.png'.'"></img>';
 if($_SESSION['usergroup'] !=3){
 $sidebar='<div style="border:1px solid #ccc;border-radius:10px;padding:10px">
 	<a class="nodecoration" href="'.$baseurl.'modules/list.php">'.$list.'<span>&nbsp;&nbsp;</span>List Properties</a><hr/>
+
+
 	<a class="nodecoration" href="'.$baseurl.'modules/addproperty.php">'.$addnew.'<span>&nbsp;&nbsp;</span>Add new</a><hr/>
 	<a class="nodecoration" href="'.$baseurl.'modules/updatedata.php">'.$edit.'<span>&nbsp;&nbsp;</span>Update data</a><hr/>
 	<a class="nodecoration" href="'.$baseurl.'modules/reports.php">'.$report.'<span>&nbsp;&nbsp;</span>Reports</a><hr/>
 	  <a class="nodecoration" href="'.$baseurl.'loan">'.$tenants.'<span>&nbsp;&nbsp;</span>Loans</a><hr/>
         <a class="nodecoration" href="'.$baseurl.'views/tenantlist.php">'.$tenants.'<span>&nbsp;&nbsp;</span>Tenant Portal</a><hr/>
+		<a class="nodecoration" href="'.$baseurl.'modules/feedbacks.php">'.$list.'<span>&nbsp;&nbsp;</span>Feeds /a><hr/>
+	
             <a class="nodecoration" href="'.$baseurl.'views/template.php?page=repairs">'.$repairs.'<span>&nbsp;&nbsp;</span>Ledgers/Settings</a><hr/>
 			<a class="nodecoration" href="'.$baseurl.'views/template.php?page=closeperiods">'.$close.'<span>&nbsp;&nbsp;</span>Close Period/Settings</a><hr/>
 
