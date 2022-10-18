@@ -52,7 +52,7 @@ class EclipseReporter extends SimpleScorer {
      *    @param string $host       Normally localhost.
      *    @return SimpleSocket      Connection to Eclipse.
      */
-    function &createListener($port, $host="127.0.0.1"){
+    function &createListener($port, $host="::1"){
         $tmplistener = &new SimpleSocket($host, $port, 5);
         return $tmplistener;
     }

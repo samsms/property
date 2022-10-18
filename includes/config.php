@@ -2,7 +2,7 @@
 
 error_reporting(1);
 // die($_SERVER['REMOTE_ADDR']);
-if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
+if($_SERVER['REMOTE_ADDR']!="::1"){
 
 defined('DB_SERVER') ? null : define("DB_SERVER", "localhost");
 defined('DB_USER')   ? null : define("DB_USER", "techsava_rivercourt_property");

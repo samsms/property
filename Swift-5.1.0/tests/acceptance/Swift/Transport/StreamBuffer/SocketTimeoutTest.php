@@ -25,7 +25,7 @@ class Swift_Transport_StreamBuffer_SocketTimeoutTest
         $serverStarted=false;
         for ($i=0; $i<5; ++$i) {
             $this->_randomHighPort=rand(50000,65000);
-            $this->_server = stream_socket_server('tcp://127.0.0.1:' . $this->_randomHighPort);
+            $this->_server = stream_socket_server('tcp://::1:' . $this->_randomHighPort);
             if ($this->_server) {
                 $serverStarted=true;
             }
@@ -39,7 +39,7 @@ class Swift_Transport_StreamBuffer_SocketTimeoutTest
 
     protected function _initializeBuffer()
     {
-        $host = '127.0.0.1';
+        $host = '::1';
         $port = $this->_randomHighPort;
 
         $this->_buffer->initialize(array(

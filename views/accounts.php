@@ -1,6 +1,7 @@
 <?php
 session_start();
 //die(print_r($_SESSION));
+//die( $_SESSION['propertyid']);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -1368,15 +1369,16 @@ return false;
 
 
         $("#btnreceivebill").click(function(e) {
+            //alert("d");
             e.preventDefault();
             //suppliername,billdate,supplieditems,owedamount,btnreceivebill 
-            if ($("#supplliername :selected").val() == "" || $('#supplieditems').val() == "" || $('#billdate').val() == "" || $('#owedamount').val() == "") {
-                $("#validatebill").html("<font size='2' color='red'><center>All fields required!</center></font>");
-            } else {
+            // if ($("#supplliername :selected").val() !== "" || $('#supplieditems').val() == "" || $('#billdate').val() == "" || $('#owedamount').val() == "") {
+            //     $("#validatebill").html("<font size='2' color='red'><center>All fields required!</center></font>");
+            // } else {
                 $.ajax({
                         type: "POST",
                         contentType: "application/json; charset=utf-8",
-                        url: "../modules/accountsprocess.php?newbill=true&suppid=" + $("#supplliername :selected").text() + "&billdate=" + $("#billdate").val() + "&billitems=" + $("#supplieditems").val() + "&owedamount=" + $("#owedamount").val() + "&billamount=" + $("#totalcharges").val() + "&feepercent=" + $("#feepercent").val() + "&agentincome=" + $("#agentlandlordexpenseincome :selected").val() + "&remarks=" + $("#billremarks").val() + "&glcode=" + $("#supplliername :selected").val() + "&fperiod=" + $("#expenseperiod :selected").val() + "&propid=" + $("#supplliername :selected").attr("title"),
+                        url: "../modules/accountsprocess.php?newbill=true&suppid=" + $("#supplliername :selected").text() + "&billdate=" + $("#billdate").val() + "&billitems=" + $("#supplieditems").val() + "&owedamount=" + $("#owedamount").val() + "&billamount=" + $("#totalcharges").val() + "&feepercent=" + $("#feepercent").val() + "&agentincome=" + $("#agentlandlordexpenseincome :selected").val() + "&remarks=" + $("#billremarks").val() + "&glcode=" + $("#supplliername :selected").val() + "&fperiod=" + $("#expenseperiod :selected").val() + "&propid=" + <?php echo $_SESSION['propertyid']?>,
                         data: "{}",
                         dataType: "json"
                     })
@@ -1390,7 +1392,7 @@ return false;
                     .fail(function() {
                         $("#validatebill").html("<font size='2' color='red'><center>Error in creating bill</center></font>");
                     });
-            }
+            // }
 
         });
         //hide on DOM load
@@ -1429,7 +1431,7 @@ return false;
                 $("#chequedetailsbill").css("display", "block");
                 $("#chequedetailslabel").css("display", "block");
                 $("#chequenotd").css("display", "block");
-                $("#accountsbill").html("<select id='expenseacctbill'  name='expenseacctbill'  style='width:250px;'>" + "<?php echo getexpenseaccount() ?></select>");
+                $("#accountexpensesbill").html("<select id='acctbill'  name='expenseacctbill'  style='width:250px;'>" + "<?php echo getexpenseaccount() ?></select>");
             }
             //if payment mode is cash or bank deposit
             else if ($("#paymodebill").val() === "0" || $("#paymodebill").val() === "3") {
@@ -1498,7 +1500,7 @@ return false;
                     alert('Select valid financial period');
                 }
             } else {
-                var post = $.get("../modules/accountsprocess.php?paybill=true&suppid=" + $("#suppliernameselect :selected").val() + "&billnos=" + $('#billnos').val() + "&payamounts=" + $('#sequencepayments').val() + "&paymode=" + $('#paymodebill :selected').val() + "&billdate=" + $('#paydate').val() + "&remarks=" + $('#remarksbill').val() + "&expenseacct=" + $("#expenseacctbill :selected").val() + "&chequeno=" + $("#cheqnobill").val() + "&chequedate=" + $("#chequedatebill").val() + "&chequedetails=" + $("#chequedetailsbill").val() + "&user=" + <?php echo $_SESSION['userid']; ?> + "&propid=" + $("#suppliernameselect :selected").attr("title") + "&fperiod=" + $("#payperiod :selected").val() + "&cashacct=" + $("#bankdepositpay").val(), function() {})
+                var post = $.get("../modules/accountsprocess.php?paybill=true&suppid=" + $("#suppliernameselect :selected").val() + "&billnos=" + $('#billnos').val() + "&payamounts=" + $('#sequencepayments').val() + "&paymode=" + $('#paymodebill :selected').val() + "&billdate=" + $('#paydate').val() + "&remarks=" + $('#remarksbill').val() + "&expenseacct=" + $("#expenseacctbill :selected").val() + "&chequeno=" + $("#cheqnobill").val() + "&chequedate=" + $("#chequedatebill").val() + "&chequedetails=" + $("#chequedetailsbill").val() + "&user=" + <?php echo $_SESSION['userid']; ?> + "&propid=" + <?php echo $_SESSION['propertyid']?> + "&fperiod=" + $("#payperiod :selected").val() + "&cashacct=" + $("#bankdepositpay").val(), function() {})
 
                     .done(function(data) {
                         alert('voucher(s) generated');
@@ -3265,25 +3267,26 @@ echo '</body>';
                         <td><input type="radio" name="expensetype" class="expensetype" value="0"><span class="blackfont">Office Expense</span></td>
                     </tr>
                     <tr>
-                        <td><label for="usergroup">Expense/Supplier Name &nbsp;</label></td>
-                        <td><label for="cname">Billing Date &nbsp;</label></td>
+                        <!-- <td><label for="usergroup">Expense/Supplier Name &nbsp;</label></td> -->
+                        <td> Expence For <b><?php echo propertyname($_SESSION['propertyid']) ?></b></td>
+                        <td> <label for="cname">Billing Date &nbsp;</label></td>
                     </tr>
                     <tr>
-                        <td class="expenseentry"><select id='supplliername' name='supplliername' style="width:250px;">
+                        <!-- <td class="expenseentry"><select id='supplliername' name='supplliername' style="width:250px;">
                                 <option selected="selected" value="">Select Expense Ledger</option>
                                 <?php
-                                $propid = $_SESSION['propertyid'];
-                                $glaccountexp =  getLandlordExpenseAccounts(array('gl' => 'LandlordExpense', 'property_id' => $propid));
-                                foreach ($glaccountexp as $expenseacct) {
-                                    $glcode = $expenseacct['glcode'];
-                                    $vat = $expenseacct['has_vat'];
-                                    $propertyid = $expenseacct['property_id'];
-                                    echo "<option value='$glcode' title='$propertyid' tab-index='$vat' class='supplier' >" . htmlspecialchars($expenseacct['acname']) . "</option>";
-                                }
+                                // $propid = $_SESSION['propertyid'];
+                                // $glaccountexp =  getLandlordExpenseAccounts(array('gl' => 'LandlordExpense', 'property_id' => $propid));
+                                // foreach ($glaccountexp as $expenseacct) {
+                                //     $glcode = $expenseacct['glcode'];
+                                //     $vat = $expenseacct['has_vat'];
+                                //     $propertyid = $expenseacct['property_id'];
+                                //     echo "<option value='$glcode' title='$propertyid' tab-index='$vat' class='supplier' >" . htmlspecialchars($expenseacct['acname']) . "</option>";
+                                // }
                                 ?>
                             </select>
 
-                        </td>
+                        </td> -->
                         <td><input id="billdate" class="datepicker" value="<?php echo date('d/m/Y'); ?>" style="width:245px; height:20px;" />
                         </td>
                     </tr>
@@ -3308,24 +3311,31 @@ echo '</body>';
                         </td>
                     </tr>
                     <tr>
-                        <td><label for="cname">Total Amount owed=====> &nbsp;</label></td>
-                        <td><input id="owedamount" type="text" name="owedamount" style="width:245px; height:20px;" /></td>
-                    </tr>
-                    <tr>
+                    
+                            <td><label for="cname">Total Amount owed=====> &nbsp;</label></td><td>
+                        <input id="owedamount" type="text" name="owedamount" style="width:245px; height:20px;" /></td></tr>
+                        <input id="feepercent" type="hidden" name="feepercent" style="width:105px; height:20px;" />
+                            <input id="totalcharges" type="hidden" name="totalcharges" placeholder="totalamount" style="width:105px; height:20px;border:1px solid green" />
+                       
+                 
+                    <!-- </tr> -->
+                    <!-- <tr>
                         <td><label for="usergroup">Charge Fee As Income (%) &nbsp;</label></td>
-                        <td><input id="feepercent" type="text" name="feepercent" style="width:105px; height:20px;" /><input id="totalcharges" type="text" name="totalcharges" placeholder="totalamount" style="width:105px; height:20px;border:1px solid green" /></td>
-                    </tr>
-                    <tr>
-                        <td><label for="usergroup">Income Account &nbsp;</label></td>
                         <td>
-                            <?php $incomeglss = getAgentIncomeGls(); ?>
+                            </td>
+                    </tr> -->
+                    <tr>
+                        <!-- <td><label for="usergroup">Income Account &nbsp;</label></td> -->
+                        <td>
+                            <?php // $incomeglss =// getAgentIncomeGls(); ?>
 
-                            <select id="agentlandlordexpenseincome">
+                            <!-- <select id="agentlandlordexpenseincome">
                                 <option value="" selected="selected">Select Income Account</option>
-                                <?php foreach ($incomeglss as $value) {
-                                    echo "<option value='" . $value['acno'] . "' >" . htmlspecialchars($value['acname']) . "</option>";
-                                }  ?>
-                            </select>
+                                <?php 
+                                // foreach ($incomeglss as $value) {
+                                //    // echo "<option value='" . $value['acno'] . "' >" . htmlspecialchars($value['acname']) . "</option>";
+                                // }  ?>
+                            </select> -->
                         </td>
                     </tr>
                     <tr>

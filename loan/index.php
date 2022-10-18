@@ -12,6 +12,7 @@
 	session_start();
  //  if(!isset($_SESSION['login_id']))
  //    header('location:login.php');
+
  include('./header.php'); 
  // include('./auth.php'); 
  ?>
@@ -40,7 +41,16 @@
   </div>
   <main id="view-panel" >
       <?php $page = isset($_GET['page']) ? $_GET['page'] :'home'; ?>
-  	<?php include $page.'.php' ?>
+      
+  	<?php 
+     if($page=="payments"&&$_SESSION['usergroup'] != 1){
+      die("<script>alert('access denied')</script>");
+    }
+    else{
+      include $page.'.php' ;
+    }
+   
+    ?>
   	
 
   </main>

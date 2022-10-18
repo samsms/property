@@ -1,5 +1,6 @@
 <?php 
 include('db_connect.php');
+session_start();
 if(isset($_GET['id'])){
 $qry = $conn->query("SELECT * FROM loan_list where id = ".$_GET['id']);
 foreach($qry->fetch_array() as $k => $v){
@@ -83,16 +84,18 @@ foreach($qry->fetch_array() as $k => $v){
 		<div class="row">
 			<div class="form-group col-md-6">
 				<label class="control-label">&nbsp;</label>
+				
 				<select class="custom-select browser-default" name="status">
 					<option value="0" <?php echo $status == 0 ? "selected" : '' ?>>For Approval</option>
+					
+					<?php if($status !='4' &&$_SESSION['usergroup'] == 1): ?>
 					<option value="1" <?php echo $status == 1 ? "selected" : '' ?>>Approved</option>
-					<?php if($status !='4' ): ?>
 					<option value="2" <?php echo $status == 2 ? "selected" : '' ?>>Released</option>
 					<?php endif ?>
-					<?php if($status =='2' ): ?>
+					<?php if($status =='2' && $_SESSION['usergroup'] == 1): ?>
 					<option value="3" <?php echo $status == 3 ? "selected" : '' ?>>Complete</option>
 					<?php endif ?>
-					<?php if($status !='2' ): ?>
+					<?php if($status !='2'&&$_SESSION['usergroup'] == 1 ): ?>
 					<option value="4" <?php echo $status == 4 ? "selected" : '' ?>>Denied</option>
 					<?php endif ?>
 				</select>

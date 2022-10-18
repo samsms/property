@@ -123,7 +123,7 @@ class Sweety_Runner_HtmlRunner extends Sweety_Runner_AbstractTestRunner
     $protocol = !empty($_SERVER['HTTPS']) ? 'https://' : 'http://';
     
     //Most likely a HTTP/1.0 server not supporting HOST header
-    $server = !empty($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '127.0.0.1';
+    $server = !empty($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '::1';
     
     $path = '/';
     if (!empty($_SERVER['REQUEST_URI']))

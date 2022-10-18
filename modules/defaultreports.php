@@ -374,7 +374,7 @@ if ($reportpost === 'tenantlist') {
         $commissiondetail = get_commissions_listProperty($propid, $startdate, $enddate);
 
         //expenses
-        $expenses =  getPaymentsForProperty(array('propid' => $propid, 'startdate' => $startdate, 'enddate' => $enddate, 'count' => 1));
+        $expenses =  getExpenses(array('propid' => $propid, 'startdate' => $startdate, 'enddate' => $enddate, 'count' => 1));
         $totalbill = array();
         echo '<tr><td><b>Less&nbsp;' . $commissiondetail[0]['commission'] . '%&nbsp; Commission</b></td>' ;;//. str_repeat('<td></td>', 10);
         // foreach ($chargeables as $count) {
@@ -386,9 +386,10 @@ if ($reportpost === 'tenantlist') {
         echo '<td></td><td></td><td><b>' .  number_format($lesscommission, 2) . '</b></td></tr>';
         //   echo '<tr><td><td></td><td></td><td></td>'.str_repeat('<td></td>',7).'<td><b>'.number_format($lessvat,2).'</b></td><td></td><td></td><td></td></tr>'; 
         //extract expenses
+        //echo json_encode($expenses);
         foreach ($expenses as $expense => $value) {
-            array_push($totalbill, $value['billpaid']);
-            echo '<tr><td><b>' . ucfirst($value['bill_items']) . '</b></td>' .  str_repeat("<td></td>", 10);
+            array_push($totalbill, $value['amount']);
+            echo '<tr><td><b>' . ucfirst($value['remarks']) . '</b></td><td></td><td></td><td><b>' . number_format($value['amount']).  str_repeat("<td></td>", 10);
             foreach ($chargeables as $count) {
                 echo '<td></td>';
             }

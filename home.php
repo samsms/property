@@ -281,7 +281,8 @@ if ($_SESSION['usergroup'] == 1)
     </td>
 
   </tr>
-  
+  ';}
+  if ($_SESSION['usergroup'] == 1) {echo'
   <tr>
     <td width=60%>
    <a href="modules/landlord_payout.php" class="button big green">

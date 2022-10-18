@@ -55,16 +55,25 @@ function getTenantfromApt($prop,$apt_tag) {
    
     $apt_tag=ltrim($apt_tag,'0');
     $mysqli = getMysqliConnection();
-    $query =$mysqli->query("SELECT Id FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'") or  die(mysqli_error($mysqli));;
-    return $query->fetch_assoc()['Id'];
+   // echo "<br>SELECT * FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'<br>";
+    $query =$mysqli->query("SELECT * FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'") or  die(mysqli_error($mysqli));;
+    if(mysqli_num_rows($query)<1){
+        return "";
+    }
+    $row= $query->fetch_assoc();
+    return  json_decode(json_encode($row));
 }
 
 function getPropByName($name){
     $mysqli = getMysqliConnection();
-    $date=date("Y-m-d");
+    $name=$mysqli->escape_string($name);
     $sql="select propertyid as prop from properties where address='$name' ";
     //die($sql);
+    //echo "<br/>".$sql."<br/>";
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+    if($query->num_rows<1){
+        return "";
+    }
     return $query->fetch_assoc()['prop'];
 
 }
@@ -150,7 +159,7 @@ function invoiceAmount($propid,$startdate,$enddate){
 
 }
 function getSiteRoot() {
-    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
+    if($_SERVER['REMOTE_ADDR']!="::1"){
         
     $parent = $_SERVER["DOCUMENT_ROOT"] ;//. '/property-rivercourt';
     }
@@ -298,7 +307,7 @@ function getAbsoluteUrl() {
 }
 
 function getIP() {
-    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
+    if($_SERVER['REMOTE_ADDR']!="::1"){
         return "https://" . $_SERVER["HTTP_HOST"] ;
 
     }else{
@@ -1363,11 +1372,20 @@ function addproperty1() {
 
 
 //print_r($_POST);
+$result1 = $db->query("select * from properties where plotno='$plotno'") or die(mysql_error());
+
+
 
     if ($payday==""||$proptype == '' || $propname == '' || $buyown == '' || $plotno == '' || $titleno == '' || $acres == '' || $mohalla == '' || $occupants == '' || $structstatus == '' || $condition == '' || $address == '' || $propurl == '' || $water_rate == '') {
         echo "Enter all Required Fields";
         print_r($_POST);
-    } else {
+    }else 
+        if($db->num_rows($result1)>1){
+            echo "Plot Number Already Exist";
+        }
+    
+    
+    else {
 
         function PrepSQL($value) {
 // Stripslashes
@@ -1410,7 +1428,10 @@ function addproperty1() {
 
 
 //die($sql);
+           
+
         $result = $db->query($sql) or die(mysql_error());
+        
         $lastid = mysql_insert_id();
         if (!$result) {
             echo 'Database update failed! '; /* this also exits the script */
@@ -3600,8 +3621,14 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
         // $result2 = incrementnumber("credno");
     }
     //invoice amount is now gotten from sum of charges
-    $invoiceamount = array_sum($charges);
+    if($remarks!="imported"){
+        $invoiceamount = array_sum($charges);
     
+    }else{
+        $invoiceamount = $amount;
+    
+    }
+ 
     $query = "INSERT into $tablename(`invoiceno`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2','$entrydate','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
     $resultquery = $db->query("SELECT current_water_reading FROM floorplan WHERE apt_id='$aptid'") or die($db->error());
     while ($row = mysql_fetch_array($resultquery)) {
@@ -3695,6 +3722,7 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
     }
 
     $db->close_connection();
+    return $result2;
 }
 
 function create_crdtnote($id, $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges, $counter, $currentreading, $aptid, $fperiod, $items,$crdtinvce) {
@@ -8748,6 +8776,7 @@ function getPaymentsForProperty($arraydetails) {
         $res = $mysqli->query("SELECT DISTINCT (paytrans.payno),paytrans.amount,paytrans.payno,paytrans.paydate,paytrans.rmks,supplierexpenselist.suppliername,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.bill_items,bills.remarks FROM paytrans LEFT JOIN supplierexpenselist ON paytrans.supp_id=supplierexpenselist.sup_id LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE paytrans.property_id='$propid' AND paytrans.paydate between '$startdate' AND '$enddate' AND revsd=0 GROUP BY payno") or die($mysqli->error);
         $entity = 'ALL';
     }
+  //  die("SELECT DISTINCT (paytrans.payno),paytrans.amount,paytrans.payno,paytrans.paydate,paytrans.rmks,supplierexpenselist.suppliername,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.bill_items,bills.remarks FROM paytrans LEFT JOIN supplierexpenselist ON paytrans.supp_id=supplierexpenselist.sup_id LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE paytrans.property_id='$propid' AND paytrans.paydate between '$startdate' AND '$enddate' AND revsd=0 GROUP BY payno");
     while ($row = $res->fetch_assoc()) {
         $paydetails['payno'] = $row['payno'];
         $paydetails['paydate'] = $row['paydate'];
@@ -8760,7 +8789,28 @@ function getPaymentsForProperty($arraydetails) {
     }
     return $allbilldetails;
 }
-
+function getExpenses($arraydetails) {
+    $mysqli = getMysqliConnection();
+    $startdate = date("Y-m-d", strtotime($arraydetails['startdate']));
+    $enddate = date("Y-m-d", strtotime($arraydetails['enddate']));
+    $allbilldetails = array();
+    $propid = $arraydetails['propid'];
+    $suppid = $arraydetails['suppid'];
+    // if ($suppid) {
+        $res = $mysqli->query("select * from bills where prop_id=' $propid' and reversed=0") or die($mysqli->error);
+        //$entity = strtoupper(findSupplieryById($suppid));
+ 
+  //  die("SELECT DISTINCT (paytrans.payno),paytrans.amount,paytrans.payno,paytrans.paydate,paytrans.rmks,supplierexpenselist.suppliername,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.bill_items,bills.remarks FROM paytrans LEFT JOIN supplierexpenselist ON paytrans.supp_id=supplierexpenselist.sup_id LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE paytrans.property_id='$propid' AND paytrans.paydate between '$startdate' AND '$enddate' AND revsd=0 GROUP BY payno");
+    while ($row = $res->fetch_assoc()) {
+     
+       
+        $paydetails['remarks'] = $row['remarks'];
+        $paydetails['amount'] = $row['bill_amnt'];
+      
+        array_push($allbilldetails, $paydetails);
+    }
+    return $allbilldetails;
+}
 //manage system users
 function get_system_users() {
     $db = new MySQLDatabase();
