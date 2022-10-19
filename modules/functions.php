@@ -2146,6 +2146,7 @@ function saveChargeItem($propid, $itemid, $item, $amount, $vat, $commission, $is
     $db = new MySQLDatabase();
     $db->open_connection();
     $chargeitemstable = getChargeItemsTable();
+    
     $result = $db->query("SELECT * FROM $chargeitemstable WHERE id='$itemid'") or die($db->error());
     if ($db->num_rows($result) >= 1) {
         $sql = $db->query("UPDATE $chargeitemstable SET accname='$item',amount='$amount',has_vat='$vat',charged_commission='$commission',is_deposit='$isdeposit' WHERE id='$itemid'") or die($db->error());

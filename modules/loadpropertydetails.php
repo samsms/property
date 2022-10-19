@@ -5,11 +5,19 @@ include 'functions.php';
 if($_REQUEST['table']==='floorplan'){
 $rows=floorplan($_SESSION['propertyid']);
 if($_SESSION['usergroup']==1){
-?><a  id="addnewfloor" href="#" ><div style="padding:10px;float:right;border:1px solid grey;"><img src="../images/add.png">Add New</div></a>
+?>
+
+<a  id="addnewfloor" href="#" ><div style="padding:10px;float:right;border:1px solid grey;"><img src="../images/add.png">Add New</div>
+</a>
 <?php }?>
      <br><br>
 <table id="treport" style="width:100%" class="display dataTable"><br>
-<thead><tr>
+<thead><tr><td colspan="13" style="text-align:end">
+<form id="form-csv" action='callfunctions.php?addfloorplan=true&batch=true&apt_id=&propertyid="<?php echo $propertyid;?>' method="post" enctype="multipart/form-data">
+<input id="uploadata" type="file"  name="floors" value="Upload CSV" />
+
+</form></td>
+</tr>
     <tr><th>No</th><th>Floor</th><th>House No</th><th>Rent/month</th><th>Mkt Value</th><th>Annual rent</th><th>Elec Meter</th><th>Water Meter</th><th>Meter Reading</th><th>Deposit</th><th>Receipt Due</th><th>Edit</th><th>Delete</th></tr>
 </thead><tbody>
     <?php  $count=1;

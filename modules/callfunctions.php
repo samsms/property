@@ -9,12 +9,56 @@ if($_REQUEST["editfloorplan"]){
 
 }
 else if($_REQUEST["addfloorplan"]){
+    header('Content-type: application/json');   
+    if($_REQUEST['batch']){
+        // $_REQUEST
+        $fname=$_FILES['floors']['tmp_name'];
+        if (!($fp = fopen($fname, 'r'))) {
+            die("Can't open file...");
+        }
+        
+        //read csv headers
+        $key = fgetcsv($fp,"1024",",");
+        
+        // parse csv rows into array
+        $data = array();
+        $result=array();
+            while ($row = fgetcsv($fp,"1024",",")) {
+            $data= array_combine($key, $row);
+            //die(print_r($data));
+            $floordetails=array(
+            "apt_id"=>strip_tags($_REQUEST["apt_id"]),
+            "propertyid"=>strip_tags($_SESSION['propertyid']),
+            "floornumber"=>strip_tags($data["floornumber"]),
+            "apt_tag"=>strip_tags($data["apt_tag"]),
+            "monthlyincome"=>strip_tags($data["monthlyincome"]),
+            "marketvalue"=>strip_tags($data["marketvalue"]),
+            "elecmeter"=>strip_tags($data["elec_meter"]),
+            "watermeter"=>strip_tags($data["water_meter"]),
+            "metereading"=>strip_tags($data["current_water_reading"]),
+            "receipt_due"=>strip_tags($data["receipt_due"]));
+            $result[]=  addapartments($floordetails);
+
+          //  die(print_r(json_encode($floordetails)));
+     
+        }
+     
+
+        $responsearray['status']=$result;
+        echo json_encode($responsearray);
+        // release file handle
+        fclose($fp);
+     
+        }else{
+//die(print_r(json_encode($json)));
     $floordetails=array("apt_id"=>strip_tags($_REQUEST["apt_id"]),"propertyid"=>strip_tags($_REQUEST["propertyid"]),"floornumber"=>strip_tags($_REQUEST["floornumber"]),"apt_tag"=>strip_tags($_REQUEST["apt_tag"]),"monthlyincome"=>strip_tags($_REQUEST["monthlyincome"]),"marketvalue"=>strip_tags($_REQUEST["marketvalue"]),"elecmeter"=>strip_tags($_REQUEST["elec_meter"]),"watermeter"=>strip_tags($_REQUEST["water_meter"]),"metereading"=>strip_tags($_REQUEST["current_water_reading"]),"receipt_due"=>strip_tags($_REQUEST["receipt_due"]));
-    header('Content-type: application/json');
+
     $result=  addapartments($floordetails);
+
+
     $responsearray['status']=$result;
     echo json_encode($responsearray);
-
+        }
 }
 else if($_REQUEST["deletefloorplan"]){
     $floordetails=array("apt_id"=>strip_tags($_REQUEST["apt_id"]));

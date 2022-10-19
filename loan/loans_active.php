@@ -44,9 +44,14 @@
 							}
 							$qry = $conn->query("SELECT l.*,owner as name, owner as contact_no, owner as address from loan_list l inner join properties b on b.propertyid = l.borrower_id where l.status='2'  order by id asc ");
 							while($row = $qry->fetch_assoc()):
+								$compound_interest=$row['amount'] + ($row['amount'] * ($plan_arr[$row['plan_id']]['interest_percentage']/100));
+							// = ($row['amount'] + ($row['amount'] * ($plan_arr[$row['plan_id']]['interest_percentage']/100))) / $plan_arr[$row['plan_id']]['months'];
 								$monthly = ($row['amount'] + ($row['amount'] * ($plan_arr[$row['plan_id']]['interest_percentage']/100))) / $plan_arr[$row['plan_id']]['months'];
 								$penalty = $monthly * ($plan_arr[$row['plan_id']]['penalty_rate']/100);
-								$payments = $conn->query("SELECT * from payments where loan_id =".$row['id']);
+								//$payments = $conn->query("SELECT * from payments where loan_id =".$row['id']);
+								$payments = $conn->query("SELECT sum(amount)as total from payments where loan_id =".$row['id']);
+								 $paid1 =$compound_interest/ $payments->fetch_assoc()['total'];
+							//	die('ss'.ftrucate($paid1));
 								$paid = $payments->num_rows;
 								$offset = $paid > 0 ? " offset $paid ": "";
 								if($row['status'] == 2):

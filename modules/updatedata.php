@@ -195,6 +195,9 @@ $("#addfloor").dialog("close");
       
 }//reload table
 
+$(document).on("change","#uploadata",function(e){
+   $("#form-csv").submit();
+});
   $("#floorplan").on("click",function(e){
 e.preventDefault();
 reload_table();
