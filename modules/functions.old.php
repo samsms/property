@@ -55,16 +55,25 @@ function getTenantfromApt($prop,$apt_tag) {
    
     $apt_tag=ltrim($apt_tag,'0');
     $mysqli = getMysqliConnection();
-    $query =$mysqli->query("SELECT Id FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'") or  die(mysqli_error($mysqli));;
-    return $query->fetch_assoc()['Id'];
+   // echo "<br>SELECT * FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'<br>";
+    $query =$mysqli->query("SELECT * FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'") or  die(mysqli_error($mysqli));;
+    if(mysqli_num_rows($query)<1){
+        return "";
+    }
+    $row= $query->fetch_assoc();
+    return  json_decode(json_encode($row));
 }
 
 function getPropByName($name){
     $mysqli = getMysqliConnection();
-    $date=date("Y-m-d");
+    $name=$mysqli->escape_string($name);
     $sql="select propertyid as prop from properties where address='$name' ";
     //die($sql);
+    //echo "<br/>".$sql."<br/>";
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+    if($query->num_rows<1){
+        return "";
+    }
     return $query->fetch_assoc()['prop'];
 
 }
@@ -150,7 +159,7 @@ function invoiceAmount($propid,$startdate,$enddate){
 
 }
 function getSiteRoot() {
-    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
+    if($_SERVER['REMOTE_ADDR']!="::1"){
         
     $parent = $_SERVER["DOCUMENT_ROOT"] ;//. '/property-rivercourt';
     }
@@ -298,7 +307,7 @@ function getAbsoluteUrl() {
 }
 
 function getIP() {
-    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
+    if($_SERVER['REMOTE_ADDR']!="::1"){
         return "https://" . $_SERVER["HTTP_HOST"] ;
 
     }else{
@@ -1363,11 +1372,20 @@ function addproperty1() {
 
 
 //print_r($_POST);
+$result1 = $db->query("select * from properties where plotno='$plotno'") or die(mysql_error());
+
+
 
     if ($payday==""||$proptype == '' || $propname == '' || $buyown == '' || $plotno == '' || $titleno == '' || $acres == '' || $mohalla == '' || $occupants == '' || $structstatus == '' || $condition == '' || $address == '' || $propurl == '' || $water_rate == '') {
         echo "Enter all Required Fields";
         print_r($_POST);
-    } else {
+    }else 
+        if($db->num_rows($result1)>1){
+            echo "Plot Number Already Exist";
+        }
+    
+    
+    else {
 
         function PrepSQL($value) {
 // Stripslashes
@@ -1410,7 +1428,10 @@ function addproperty1() {
 
 
 //die($sql);
+           
+
         $result = $db->query($sql) or die(mysql_error());
+        
         $lastid = mysql_insert_id();
         if (!$result) {
             echo 'Database update failed! '; /* this also exits the script */
@@ -2125,6 +2146,7 @@ function saveChargeItem($propid, $itemid, $item, $amount, $vat, $commission, $is
     $db = new MySQLDatabase();
     $db->open_connection();
     $chargeitemstable = getChargeItemsTable();
+    
     $result = $db->query("SELECT * FROM $chargeitemstable WHERE id='$itemid'") or die($db->error());
     if ($db->num_rows($result) >= 1) {
         $sql = $db->query("UPDATE $chargeitemstable SET accname='$item',amount='$amount',has_vat='$vat',charged_commission='$commission',is_deposit='$isdeposit' WHERE id='$itemid'") or die($db->error());
@@ -2774,7 +2796,7 @@ function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, 
     $leaseend = date('Y-m-d',strtotime($leaseend));
     $photopath = '<img src="../images/tenantphotos/' . $photo . '" width="50" height="50"/>';
     if (isset($agentname)) {
-        $queryresult = $db->query("SELECT agentid FROM agents WHERE agentname like '$agentname'"); //set agentid 
+        $queryresult = $db->query("SELECT agentid FROM agents WHERE agentname like '$agentname' "); //set agentid 
         while ($row = mysql_fetch_array($queryresult)) {
             $agentid = $row['agentid'];
         }
@@ -2792,65 +2814,7 @@ function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, 
         $sql2 = $db->query("INSERT INTO $table2 (tenantId,propertyid,apt_id,start_date,end_date,comments)VALUES
 ('$lastid','$propertyid','$aptid','$leasestart','0','comment to be added')");
         $status2 = $db->query("update floorplan set isoccupied='1',tenant_id='$lastid' where apt_id='$aptid'") or print "Database Error: " . $db->error();
-        if($lastid){
-        $json = array();
-    			
-    			$data = array('CustName' => $name,
-                            'CustId' => $lastid,
-                            'Address' => $physcaddress,
-                            'TaxId' => '',
-                            'CurrencyCode' => 'KS',
-                            'SalesType' => '1',
-                            'CreditStatus' => '0',
-    						'PaymentTerms' => '7',
-    						'Discount' => '0',
-    						'paymentDiscount' => '0',
-    						'CreditLimit' => '0',
-    						'Notes' => '');
-    			
-    			$json[] = $data;
-                $json_data = json_encode($json);
-                $username = "api-user";
-                $password = "admin";
-                $headers = array(
-                    'Authorization: Basic '. base64_encode($username.':'.$password),
-                );
-    
-                //Perform curl post request to add item to the accounts erp
-                $curl = curl_init();
-    
-                curl_setopt_array($curl, array(
-    			CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/customers.php?action=add-customer&company-id=RIVER",
-    			CURLOPT_RETURNTRANSFER => true,
-    			CURLOPT_ENCODING => "",
-    			CURLOPT_MAXREDIRS => 10,
-    			CURLOPT_TIMEOUT => 0,
-    			CURLOPT_FOLLOWLOCATION => true,
-    			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    			CURLOPT_CUSTOMREQUEST => "POST",
-    			CURLOPT_POSTFIELDS => $json_data,
-    			CURLOPT_HTTPHEADER => $headers,
-    		    ));
-    
-    		    $response = curl_exec($curl);
-    	
-    		    curl_close($curl);
-                
-                $response_data = json_decode($response);
-                // Further processing ...
-                foreach($response_data as $itemObj){
-                	$status = $itemObj->Status;
-                }
-    
-                if ($status == 'ok') { 
-                    return "Tenant Added and posted to erp";;
-                } else {
-                    return "Tenant Added but erp failed";;
-                }
-            
-        }else{
-                    return "Tenant Added";
-                }
+        return "Tenant Added";
         $db->close_connection();
     }
 }
@@ -3658,9 +3622,15 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
         // $result2 = incrementnumber("credno");
     }
     //invoice amount is now gotten from sum of charges
-    $invoiceamount = array_sum($charges);
+    if($remarks!="imported"){
+        $invoiceamount = array_sum($charges);
     
-    $query = "INSERT into $tablename(`invoiceno`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2','$entrydate','$invoi ceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
+    }else{
+        $invoiceamount = $amount;
+    
+    }
+ 
+    $query = "INSERT into $tablename(`invoiceno`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2','$entrydate','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
     $resultquery = $db->query("SELECT current_water_reading FROM floorplan WHERE apt_id='$aptid'") or die($db->error());
     while ($row = mysql_fetch_array($resultquery)) {
         $lastreading = $row['current_water_reading'];
@@ -3726,7 +3696,6 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
         $glcode1 = $glaccount1['glcode'];
         $commission = getPropertyCommissionRate($propid);
         $creditamount = ((($commission * $invoiceamount) / 100) - (($commission * $commissionnotcharged) / 100));
-        if(empty($creditamount)){$creditamount=0;}
         $commissionentry = createJournalEntry(array('glcode' => $glcode1, 'document_ref' => $result2, 'credit' => round($creditamount, 2), 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
         //credit entry for landlord account on agent side
         $glaccountal = getGLCodeForAccount(array('gl' => 'AgentLandlord', 'property_id' => $propid));
@@ -3746,185 +3715,6 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
         $landlordcomm = getGLCodeForAccount(array('gl' => 'LandlordCommission', 'property_id' => $propid));
         $landlordrentgl = $landlordcomm['glcode'];
         $entry1 = createJournalEntry(array('glcode' => $landlordrentgl, 'document_ref' => $result2, 'debit' => $creditamount, 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-        $tablenam = "tenants";
-
-    $queryy = $db->query("SELECT tenant_name FROM $tablenam WHERE id='$id' ") or die($db->error());
-    $rowtenant = mysql_fetch_array($queryy);
-        $tnt = $rowtenant['tenant_name'];
-         /**
-        if($creditamount > 0){
-        $items = array(
-                            array(
-                                'account_code'=> 30000001,
-                                'amount'=> $invoiceamount-$creditamount,
-                                'memo'=> $id
-                            ),
-                           array(
-                                'account_code'=> 40000001,
-                                'amount'=>$creditamount,
-                                'memo'=> $remarks
-                            ),
-                            array(
-                                'account_code'=> 20000001,
-                                'amount'=> $invoiceamount,
-                                'memo'=> $remarks
-                            )
-                        ); } else{
-                            
-                             $items = array(
-                            array(
-                                'account_code'=> 30000001,
-                                'amount'=> $invoiceamount,
-                                'memo'=> $remarks
-                            ),
-                            array(
-                                'account_code'=> 20000001,
-                                'amount'=> $invoiceamount,
-                                'memo'=> $remarks
-                            )
-                        );
-                        }
-                        $json2=array(
-                            'currency'=> 'KS',
-                            'source_ref'=> 30000001,
-                            'reference'=> 30000001,
-                            'memo'=> "Rent invoice",
-                            'amount'=> $invoiceamount,
-                            'bank_act'=>20000001,
-                            'items'=> $items
-                        );
-                        $json_data2 = json_encode($json2);
-                        $myfile = fopen("invoice.txt", "a");
-                         fwrite($myfile, $json_data2);
-                        fclose($myfile);
-
-                        //Perform curl post request to add gl to the accounts erp
-                        $curl2 = curl_init();
-
-                        curl_setopt_array($curl2, array(
-                            CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/journal.php?action=add-journal&company-id=RIVER",
-                            CURLOPT_RETURNTRANSFER => true,
-                            CURLOPT_ENCODING => "",
-                            CURLOPT_MAXREDIRS => 10,
-                            CURLOPT_TIMEOUT => 0,
-                            CURLOPT_FOLLOWLOCATION => true,
-                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                            CURLOPT_CUSTOMREQUEST => "POST",
-                            CURLOPT_POSTFIELDS => $json_data2,
-                            CURLOPT_HTTPHEADER => $headers,
-                        ));
-
-                        $response2 = curl_exec($curl2);
-
-                        curl_close($curl2);
-
-                        $new_id2 = json_decode($response2)->id;
-
-                        if ($new_id2) {
-                            $response= array("success" => "1", "message" => "Success");
-                            //$response = array("success" => "1", "message" => "Short detected and added total_short = " . $total_short. " total_comments = ". $total_comments);
-                        } else {
-                            $response= array("success" => "0", "message" => "Failed to add invoice  to ERP");
-                        } **/
-                         $itms[] = array(
-                    'product_id' => 1,
-                    'product_code' => 1000,
-                    'product_name' => "Landlord amount and Chargables",
-                    'unit_price' =>$invoiceamount-$creditamount,
-                    'quantity' => 1
-                );
-                 $items2[] = array(
-                    'product_id' => 2,
-                    'product_code' => 1005,
-                    'product_name' => "Agent Commission",
-                    'unit_price' =>$creditamount,
-                    'quantity' => 1
-                );
-                 array_push($itms, $items2);
-                 
-                  /** foreach($itms as $item){
-                    $itm[] = array(
-                    'product_id' =>$item['product_id'],
-                    'product_code' => $item['product_code'],
-                    'product_name' => $item['product_name'],
-                    'unit_price' =>$item['unit_price'],
-                    'quantity' =>$item['quantity']
-                ); } **/
-               $itm=array( array(
-                    'product_id' => 1,
-                    'product_code' => 1000,
-                    'product_name' => "Landlord amount and Chargables",
-                    'unit_price' =>$invoiceamount-$creditamount,
-                    'quantity' => 1
-                ),
-                array(
-                    'product_id' => 2,
-                    'product_code' => 1005,
-                    'product_name' => "Agent Commission",
-                    'unit_price' =>$creditamount,
-                    'quantity' => 1
-                )
-                );
-                     
-                
-                        $json = array();
-            			
-            			$data2 = array('InvoiceNo' => $result2,
-                                    'CustId' => $id,
-                                    'RefNo' => $result2,
-                                    'comments' => 'some comment',
-                                    'OrderDate' => $entrydate,
-                                    'DeliverTo' => $tnt,
-                                    'DeliveryAddress' => "River",
-            						'DeliveryCost' => '0',
-            						'DeliveryDate' => $entrydate,
-            						'InvoiceTotal' => $invoiceamount,
-            						'agentamount' =>$creditamount,
-            						'DueDate' => $entrydate,
-            						'items' =>$itm);
-            			
-            			$json[] = $data2;
-                        $json_data = json_encode($json);
-                        $myfile = fopen("invoice.txt", "a");
-                        fwrite($myfile, $json_data);
-                        fclose($myfile);
-                        $username = "api-user";
-                        $password = "admin";
-                        $headers = array(
-                            'Authorization: Basic '. base64_encode($username.':'.$password),
-                        );
-            
-                        //Perform curl post request to add item to the accounts erp
-                        $curl = curl_init();
-            
-                        curl_setopt_array($curl, array(
-            			CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/invoice.php?action=add-invoice&company-id=RIVER",
-            			CURLOPT_RETURNTRANSFER => true,
-            			CURLOPT_ENCODING => "",
-            			CURLOPT_MAXREDIRS => 10,
-            			CURLOPT_TIMEOUT => 0,
-            			CURLOPT_FOLLOWLOCATION => true,
-            			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            			CURLOPT_CUSTOMREQUEST => "POST",
-            			CURLOPT_POSTFIELDS => $json_data,
-            			CURLOPT_HTTPHEADER => $headers,
-            		    ));
-            
-            		    $response = curl_exec($curl);
-            	
-            		    curl_close($curl);
-                        
-                        $response_data = json_decode($response);
-                        // Further processing ...
-                        foreach($response_data as $itemObj){
-                        	$status = $itemObj->Status;
-                        }
-            
-                        if ($status == 'ok') { 
-                            $response= array("success" => "1", "message" => "Sale added","data"=>$payments);
-                        } else {
-                            $response= array("success" => "0", "message" => "Sale not added. Erp fail.");
-                        } 
 
         header('Content-Type: application/json');
         $response_array['status'] = 'Invoice/Credit Note ' . $result2 . ' created!';
@@ -3933,6 +3723,7 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
     }
 
     $db->close_connection();
+    return $result2;
 }
 
 function create_crdtnote($id, $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges, $counter, $currentreading, $aptid, $fperiod, $items,$crdtinvce) {
@@ -5555,44 +5346,6 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
             saveUndepositedCash($data);
         }
         $response_array['status'] = $recpno;
-        $datereceipt=date("Y-m-d", strtotime($receiptdate));
-        //$idno
-        //$json = array();
-        $data2 = array(
-          "CustId"=> 5998,
-          "TransactionRef"=> $reference,
-          "TransDate"=> $datereceipt,
-          "BankAcct"=> 20000001,
-          "Amount"=> $recpamount
-        );
-    $json[] = $data2;
-    $json_data = json_encode($json);
-    $username = "api-user";
-    $password = "admin";
-    $headers = array(
-        'Authorization: Basic '. base64_encode($username.':'.$password),
-    );
-
-
-    //Perform curl post request to add item to the accounts erp
-    $curl = curl_init();
-
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "POST",
-        CURLOPT_POSTFIELDS => $json_data,
-        CURLOPT_HTTPHEADER => $headers,
-    ));
-
-    $response = curl_exec($curl);
-
-    curl_close($curl);
         echo json_encode($response_array);
     }
 }
@@ -5652,92 +5405,8 @@ function create_other_receipt($customer, $receiptdate, $paymode, $recpamount, $c
                 $penaltyamount = calculatePenalty(array('tenantid' => $idno, 'rdate' => $receiptdate, 'amount' => $invoicedetail['amount'], 'recpno' => $recpno, 'property_id' => $propid, 'penalty_gl' => $penaltygl, 'idclose_period' => $fperiod));
             }
             $response_array['status'] = $recpno;
-            
-            $datereceipt=date("Y-m-d", strtotime($receiptdate));
-            
-//20000001
-//$datereceipt
-//$reference
-//$recpamount
-
-            $json = array(
-          "CustId"=> 5998,
-          "TransactionRef"=> $recpno,
-          "TransDate"=>$datereceipt,
-          "BankAcct"=> 20000001,
-          "Amount"=> $recpamount
-        );
-    $json_data = json_encode($json);
-    $username = "api-user";
-    $password = "admin";
-    $headers = array(
-        'Authorization: Basic '. base64_encode($username.':'.$password),
-    );
-
-
-    //Perform curl post request to add item to the accounts erp
-    $curl = curl_init();
-
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "POST",
-        CURLOPT_POSTFIELDS => $json_data,
-        CURLOPT_HTTPHEADER => $headers,
-    ));
-
-    $response = curl_exec($curl);
-
-    curl_close($curl);
-    
-    
-            echo json_encode($response);
+            echo json_encode($response_array);
         } else {
-            $datereceipt=date("Y-m-d", strtotime($receiptdate));
-        //$idno
-        //$json = array();
-            $data2 = array(
-          "CustId"=>5998 ,
-          "TransactionRef"=> $recpno,
-          "TransDate"=> $datereceipt,
-          "BankAcct"=> 20000001,
-          "Amount"=> $recpamount
-        );
-        //die($data2);
-    $json[] = $data2;
-    $json_data = json_encode($json);
-    $username = "api-user";
-    $password = "admin";
-    $headers = array(
-        'Authorization: Basic '. base64_encode($username.':'.$password),
-    );
-
-
-    //Perform curl post request to add item to the accounts erp
-    $curl = curl_init();
-
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "POST",
-        CURLOPT_POSTFIELDS => $json_data,
-        CURLOPT_HTTPHEADER => $headers,
-    ));
-
-    $response = curl_exec($curl);
-
-    curl_close($curl);
-    
             return $response_array;
         }
     }
@@ -5857,63 +5526,6 @@ function payLandlord($params) {
 //       $creditamount=((100/(100-$commission))*$amount);
     $landlordagentgl = $landlordagent['glcode'];
     $entry = createJournalEntry(array('glcode' => $landlordagentgl, 'document_ref' => $payno, 'credit' => $amount, 'ttype' => 'PAY', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-                            
-                             $items = array(
-                            array(
-                                'account_code'=> 30000001,
-                                'amount'=>  -$amount,
-                                'memo'=> $remarks
-                            ),
-                            array(
-                                'account_code'=> 10000002,
-                                'amount'=>  -$amount,
-                                'memo'=> $remarks
-                            )
-                        );
-                       
-                        $json2=array(
-                            'currency'=> 'KS',
-                            'source_ref'=> 30000001,
-                            'reference'=> 30000001,
-                            'memo'=> "Rent invoice",
-                            'amount'=>  $amount,
-                            'bank_act'=>10000002,
-                            'items'=> $items
-                        );
-                        $json_data2 = json_encode($json2);
-                        $myfile = fopen("invoice.txt", "a");
-                         fwrite($myfile, $json_data2);
-                        fclose($myfile);
-
-                        //Perform curl post request to add gl to the accounts erp
-                        $curl2 = curl_init();
-
-                        curl_setopt_array($curl2, array(
-                            CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/journal.php?action=add-journal&company-id=RIVER",
-                            CURLOPT_RETURNTRANSFER => true,
-                            CURLOPT_ENCODING => "",
-                            CURLOPT_MAXREDIRS => 10,
-                            CURLOPT_TIMEOUT => 0,
-                            CURLOPT_FOLLOWLOCATION => true,
-                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                            CURLOPT_CUSTOMREQUEST => "POST",
-                            CURLOPT_POSTFIELDS => $json_data2,
-                            CURLOPT_HTTPHEADER => $headers,
-                        ));
-
-                        $response2 = curl_exec($curl2);
-
-                        curl_close($curl2);
-
-                        $new_id2 = json_decode($response2)->id;
-
-                        if ($new_id2) {
-                            $response= array("success" => "1", "message" => "Success");
-                            //$response = array("success" => "1", "message" => "Short detected and added total_short = " . $total_short. " total_comments = ". $total_comments);
-                        } else {
-                            $response= array("success" => "0", "message" => "Failed to add invoice  to ERP");
-                        }
-    
     if ($entry) {
         //update journals
         updateJournals($journals);
@@ -6484,46 +6096,6 @@ function getrecpbyid($id,$type="") {
     echo '</tr></tbody>'
     . '</table></center>';
     $db->close_connection();
-    
-    
-    // call erp
-    $json = array();
-        $data2 = array(
-          "CustId"=> $idno,
-          "TransactionRef"=> $recpno,
-          "TransDate"=> $recpdate,
-          "BankAcct"=> 20000001,
-          "Amount"=> $amount
-        );
-    $json[] = $data2;
-    $json_data = json_encode($json);
-    $username = "api-user";
-    $password = "admin";
-    $headers = array(
-        'Authorization: Basic '. base64_encode($username.':'.$password),
-    );
-
-
-    //Perform curl post request to add item to the accounts erp
-    $curl = curl_init();
-
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=reverse-payment&company-id=RIVER",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "POST",
-        CURLOPT_POSTFIELDS => $json_data,
-        CURLOPT_HTTPHEADER => $headers,
-    ));
-
-    $response = curl_exec($curl);
-
-    curl_close($curl);
-    
 }
 
 
@@ -9205,6 +8777,7 @@ function getPaymentsForProperty($arraydetails) {
         $res = $mysqli->query("SELECT DISTINCT (paytrans.payno),paytrans.amount,paytrans.payno,paytrans.paydate,paytrans.rmks,supplierexpenselist.suppliername,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.bill_items,bills.remarks FROM paytrans LEFT JOIN supplierexpenselist ON paytrans.supp_id=supplierexpenselist.sup_id LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE paytrans.property_id='$propid' AND paytrans.paydate between '$startdate' AND '$enddate' AND revsd=0 GROUP BY payno") or die($mysqli->error);
         $entity = 'ALL';
     }
+  //  die("SELECT DISTINCT (paytrans.payno),paytrans.amount,paytrans.payno,paytrans.paydate,paytrans.rmks,supplierexpenselist.suppliername,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.bill_items,bills.remarks FROM paytrans LEFT JOIN supplierexpenselist ON paytrans.supp_id=supplierexpenselist.sup_id LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE paytrans.property_id='$propid' AND paytrans.paydate between '$startdate' AND '$enddate' AND revsd=0 GROUP BY payno");
     while ($row = $res->fetch_assoc()) {
         $paydetails['payno'] = $row['payno'];
         $paydetails['paydate'] = $row['paydate'];
@@ -9217,7 +8790,28 @@ function getPaymentsForProperty($arraydetails) {
     }
     return $allbilldetails;
 }
-
+function getExpenses($arraydetails) {
+    $mysqli = getMysqliConnection();
+    $startdate = date("Y-m-d", strtotime($arraydetails['startdate']));
+    $enddate = date("Y-m-d", strtotime($arraydetails['enddate']));
+    $allbilldetails = array();
+    $propid = $arraydetails['propid'];
+    $suppid = $arraydetails['suppid'];
+    // if ($suppid) {
+        $res = $mysqli->query("select * from bills where prop_id=' $propid' and reversed=0") or die($mysqli->error);
+        //$entity = strtoupper(findSupplieryById($suppid));
+ 
+  //  die("SELECT DISTINCT (paytrans.payno),paytrans.amount,paytrans.payno,paytrans.paydate,paytrans.rmks,supplierexpenselist.suppliername,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.bill_items,bills.remarks FROM paytrans LEFT JOIN supplierexpenselist ON paytrans.supp_id=supplierexpenselist.sup_id LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE paytrans.property_id='$propid' AND paytrans.paydate between '$startdate' AND '$enddate' AND revsd=0 GROUP BY payno");
+    while ($row = $res->fetch_assoc()) {
+     
+       
+        $paydetails['remarks'] = $row['remarks'];
+        $paydetails['amount'] = $row['bill_amnt'];
+      
+        array_push($allbilldetails, $paydetails);
+    }
+    return $allbilldetails;
+}
 //manage system users
 function get_system_users() {
     $db = new MySQLDatabase();
