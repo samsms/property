@@ -49,18 +49,21 @@
 								$monthly = ($row['amount'] + ($row['amount'] * ($plan_arr[$row['plan_id']]['interest_percentage']/100))) / $plan_arr[$row['plan_id']]['months'];
 								$penalty = $monthly * ($plan_arr[$row['plan_id']]['penalty_rate']/100);
 								//$payments = $conn->query("SELECT * from payments where loan_id =".$row['id']);
-								$payments = $conn->query("SELECT sum(amount)as total from payments where loan_id =".$row['id']);
-								 $paid1 =$compound_interest/ $payments->fetch_assoc()['total'];
+								$payments = $conn->query("SELECT sum(amount)as total from payments where loan_id =".$row['id'])->fetch_assoc();
+								$months_paid= $payments['total']/$monthly ;
+								$paid =$months_paid|0;
+								//$thismonth=$monthly-($months_paid-$paid)*$mothly;
+									$thismonth=$monthly-($months_paid-$paid)*$monthly;
 							//	die('ss'.ftrucate($paid1));
-								$paid = $payments->num_rows;
+								// $paid = $payments->num_rows;
 								$offset = $paid > 0 ? " offset $paid ": "";
 								if($row['status'] == 2):
 									$next = $conn->query("SELECT * FROM loan_schedules where loan_id = '".$row['id']."'  order by date(date_due) asc limit 1 $offset ")->fetch_assoc()['date_due'];
 								endif;
-								$sum_paid = 0;
-								while($p = $payments->fetch_assoc()){
-									$sum_paid += ($p['amount'] - $p['penalty_amount']);
-								}
+								// $sum_paid = 0;
+								// while($p = $payments->fetch_assoc()){
+								// 	$sum_paid += ($p['amount'] - $p['penalty_amount']);
+								// }
 
 						 ?>
 						 <tr>
@@ -79,7 +82,9 @@
 						 		<p><small>Total Payable Amount :<b><?php echo number_format($monthly * $plan_arr[$row['plan_id']]['months'],2) ?></small></b></p>
 						 		<p><small>Monthly Payable Amount: <b><?php echo number_format($monthly,2) ?></small></b></p>
 						 		<p><small>Overdue Payable Amount: <b><?php echo number_format($penalty,2) ?></small></b></p>
-						 		<p><small>Amount Paid: <b><?php echo number_format($sum_paid,2) ?></small></b></p>
+						 		<p><small>Amount Paid: <b><?php echo number_format($payments['total'],2) ?></small></b></p>
+								 <p><small>This Month Payment: <b><?php echo number_format($thismonth,2) ?></small></b></p>
+								
 						 		<?php if($row['status'] == 2 || $row['status'] == 3): ?>
 						 		<p><small>Date Released: <b><?php echo date("M d, Y",strtotime($row['date_released'])) ?></small></b></p>
 						 		<?php endif; ?>

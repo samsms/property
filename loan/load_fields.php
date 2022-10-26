@@ -55,12 +55,12 @@ $monthly_balance = $monthly_paid - $sum_paid;
                 echo "<p class='alert alert-success'>cleared<p></p>";
             }
             ?>
-            <p><small>Total Amount Borrowed:<b><?php echo number_format($monthly_paid, 2) ?></b></small></p>
-            <p><small>Total amount paid:<b><?php echo number_format($sum_paid, 2) ?></b></small></p>
-            <p><small>Monthly Payable amount:<b><?php echo number_format($monthly, 2) ?></b></small></p>
+            <p><small>Total Amount Borrowed:<b><?php echo number_format($monthly_paid, 0) ?></b></small></p>
+            <p><small>Total amount paid:<b><?php echo number_format($sum_paid, 0) ?></b></small></p>
+            <p><small>Monthly Payable amount:<b><?php echo number_format($monthly, 0) ?></b></small></p>
             <p><small>Penalty :<b><?php echo $add = (date('Ymd', strtotime($next)) < date("Ymd")) ? $penalty : 0; ?></b></small>
             </p>
-            <p><small>Payable Amount :<b><?php echo number_format($monthly + $add, 2) ?></b></small></p>
+            <p><small>Payable Amount :<b><?php echo number_format($monthly + $add, 0) ?></b></small></p>
         </div>
         <div class="col-md-5">
             <div class="form-group">
@@ -69,7 +69,7 @@ $monthly_balance = $monthly_paid - $sum_paid;
 
                     <label for="">Amount</label>
                     <input type="number" name="amount" step="any" min="" class="form-control text-right" required=""
-                           readonly value="<?php echo($monthly) ?>">
+                            value="<?php echo(round($monthly,0)) ?>" max="<?=round($monthly,0)?>">
                     <input type="hidden" name="penalty_amount" value="<?php echo $add ?>">
                     <!-- <input type="hidden" name="loan_ids" value="<?php echo $_POST['loan_id'] ?>"> -->
                     <input type="hidden" name="overdue" value="<?php echo $add > 0 ? 1 : 0 ?>">

@@ -15,6 +15,11 @@
 			.css_right { float: right; }
 			.example_wrapper .fg-toolbar { font-size: 0.8em }
 			.theme_links span { float: left; padding: 2px 10px; }
+            .add{ cursor:pointer;
+                cursor: pointer;
+                cursor: pointer;
+                position: relative;
+            }
 
 		</style>
        
@@ -109,6 +114,7 @@ var imagetext=$('#images').val();
 alert(imagetext); 
 
 })*/
+
 $('#propertyname2').change(function() {
 propertytextedit=$('#propertyname2 option:selected').text();
 $( "#tenantname" ).load( "../modules/getactions.php?action=tenantsprop&propid="+$("#propertyname2").val(), function() {
@@ -138,11 +144,14 @@ $('#tenantname').change(function () {
         
                             } } );
                         });
+
+          
 $(function() {
 email = $("#email" ),
 phone = $("#phoneno"),
 allFields = $( [] ).add( email ).add( phone ),
 tips = $( ".validateTips" );
+
 
 function updateTips( t ) {
 tips
@@ -465,7 +474,9 @@ $( "#apartmentsrel" ).load( "../modules/getapartments.php?propid="+$("#propertyn
 });    
 
 })
-
+$("#uploadata").change(function(e){
+   $("#form-csv").submit();
+});
 //relocate a tenant
 $("#btnrelocate").click(function(e) {
 e.preventDefault();
@@ -655,10 +666,25 @@ $(".validateTips").replaceWith("<font size='2' color='red'><center>Error in relo
 <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs" align="center">
 <a href="#" id="addtenant"></a><div class="add"><b><u>Add Tenant</u></b></div>
 <a href="#" id="editenant"></a><div class="edit"><b><u>Edit Tenant</u></b></div>
-<div class="relocate"><a href="#" id="relocatetenant"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>RelocateTenant</u></b></a></div>
+<div class="relocate"><a href="#" id="relocatetenant"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u style="margin-left: 110%;">RelocateTenant</u></b></a></div>
+<div class="add"><a href="#" id="addtenant"><b><u style="font-weight:bold; cursor: pointer;">
+
+
+</u></b></a></div>
 <!-- Define Table Header with it's Id attribute <= (Important!!)' [<thead></thead>] and the table's header columns [<th></th>]'-->
+<div>
+
+        <form id="form-csv" action="../modules/addtenants.php" method="post" enctype="multipart/form-data">
+         
+<input id="uploadata" type="file" name="tenants" value="Upload CSV">
+
+</form>
+ 
+</div>
 <table cellpadding="0" cellspacing="0" border="0" class="display" id="drafts">
+    
 <thead>
+   
 <tr align="left" border = '1'>
 <th>P.ID</th>
 <th>Tenant.Name</th>

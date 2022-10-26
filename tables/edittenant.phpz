@@ -471,7 +471,15 @@ $(".validateTips").replaceWith("<font size='2' color='red'><center>Error in relo
 <!--tenant relocation ends-->
 
 <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs" align="center">
-<a href="#" id="addtenant"></a><div class="add"><b><u>Add Tenant</u></b></div>
+<a href="#" id="addtenant"></a>
+<div class="add"><b><u>Add Tenants</u></b>
+</div>
+<a href="#" id="addtenant">
+    <div class="upload">
+        <b>
+            <u>Add Batch</u>
+        </b>
+</div></a>
 <a href="#" id="addtenant"></a><div class="add"><b><u>Edit Tenant</u></b></div>
 <div class="relocate"><a href="#" id="relocatetenant"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>RelocateTenant</u></b></a></div>
 <!-- Define Table Header with it's Id attribute <= (Important!!)' [<thead></thead>] and the table's header columns [<th></th>]'-->
