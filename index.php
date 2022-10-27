@@ -1,5 +1,4 @@
-<?php 
-phpinfo();?>
+
 
 //die(json_encode($_SERVER)); ?>
 
