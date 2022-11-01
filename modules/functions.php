@@ -2854,6 +2854,35 @@ function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, 
         $db->close_connection();
     }
 }
+
+
+function tenantsApproval($id){
+    $conn=getMysqliConnection();
+    $sql="SELECT* FROM tenants_temp WHERE id='$id'";
+    $response=mysqli_query($conn,$sql);
+    $rows=mysqli_num_rows($response);
+    if($rows>0){
+$record=mysqli_fetch_assoc($response);
+    } else{
+        echo "Failed";
+    }
+return $record;
+}
+function tenantApprovalUpdate($id){
+$conn=getMysqliConnection();
+$sql="UPDATE tenants_temp SET status='1' WHERE id='$id'";
+$result=mysqli_query($conn,$sql);
+}
+function tenantDisapprovalUpdate($id){
+    $conn=getMysqliConnection();
+$sql="UPDATE tenants_temp SET status='2' WHERE id='$id'";
+$result=mysqli_query($conn,$sql);
+}
+
+
+
+
+
 function update_tenant($aptname, $propertyid, $propertyname, $name, $phone, $email, $pin, $work, $idno, $photo, $leasestart, $leaseend, $leasedoc, $agentname, $physcaddress, $postaddress, $kinsname, $kinstel, $kinsemail, $regdate,$bankcct) {
     $db = new MySQLDatabase();
     $db->open_connection();

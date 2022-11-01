@@ -124,14 +124,15 @@ foreach ($data as $dt){
    // echo(  die($dt->propertyid));
 ?>
 <tr>
-        <td><?php echo($dt->property_name); ?></td>
-       
+<td><?php echo($dt->property_name); ?></td>
         <td><?php echo ($dt->aptid); ?></td>
         <td><?php echo ($dt->name); ?></td>
         <td><?php echo ($dt->idno); ?></td>
         <td><?php echo ($dt->phone); ?></td>
-        <td><a href="#">approve</a></td>
-      
+        <!-- <td><input type="button" name='approve'value='Approve' /></td>          -->
+        <td><a href="tenants_approved.php?id=<?php echo $dt->id?>">Approve!</td>
+        <td><a href="tenants_approved.php?id=<?php echo $dt->id?>">Disapprove!</td>
+
       
     </tr>
 <?php

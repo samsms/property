@@ -11,20 +11,32 @@ include "modules/landlordpay.php";
 ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
 
-require_once __DIR__ . '/simplexlsx/src/SimpleXLSX.php';
-// getPropByName()
-//echo '<h1>Parse books.xslx</h1><pre>';
-
-if ($xlsx = SimpleXLSX::parse('techsavanna.xlsx')) {
-    $json = ($xlsx->rows());
-} else {
-    echo SimpleXLSX::parseError();
-}
-foreach ($json as $row) {
-    // if( getPropByName($row[3])==null){
-    //    echo json_encode($row)."</br>";;
-    // }
-    // else{
+// require_once __DIR__ . '/simplexlsx/src/SimpleXLSX.php';
+// // getPropByName()
+// //echo '<h1>Parse books.xslx</h1><pre>';
+// $fileName=$_FILES['import_file']['tmp_name'];
+// if ($xlsx = SimpleXLSX::parse($fileName)) {
+//     $json = ($xlsx->rows());
+// } else {
+//     echo SimpleXLSX::parseError();
+// }
+// foreach ($json as $row) {
+    if(isset($_FILES['import_file'])){
+        $fname=$_FILES['import_file']['tmp_name'];
+        if (!($fp = fopen($fname, 'r'))) {
+            die("Can't open file...");
+        }
+        //read csv headers
+      
+        $key = fgetcsv($fp,"1024",",");
+        // parse csv rows into array
+        $data = array();
+        $result=array();
+            while ($row = fgetcsv($fp,"1024",",")){
+    if( getPropByName($row[3])==null){
+       echo json_encode($row)."</br>";
+    }
+    else{
 
     $propid = getPropByName($row[3]);
     $debit = $row['5'];
@@ -80,11 +92,11 @@ foreach ($json as $row) {
         33, 
         0,
         "null");
-        //die(json_encode($tenant));
+        //}die(json_encode($tenant));
     }
-
+    }
         // echo $propid.'-         -'.$house.'-- '. getTenantfromApt($propid,$house)."-    $debit : $credit = $balance  <br>";
     }
 
-
-}
+            }
+ }

@@ -2044,6 +2044,17 @@ echo '<fieldset class="fieldsettenants">';
 echo '<legend id="financials"><b>FINANCIALS AND ACCOUNTING</b></legend>';
 if ($_SESSION['usergroup'] != 3) {
 ?>
+
+<fieldset class="fieldsetcustomers">
+    <select class="width50"   name="propertyid">
+      <option value=" ">Select Property</option>
+      <?php foreach (get_agent_property($agentid) as  $value) {
+        $individualresult = explode('#', $value);
+        echo '<option  value="' . $individualresult[0] . '"' . ($individualresult[0] == $_REQUEST["propertyid"] ? ' selected="selected"' : '') . '>' . strtoupper($individualresult[1]) . '</option>';
+        // echo "<option value='$individualresult[0]' title='$individualresult[2]'>".$individualresult[1]."</option>";
+      } ?>
+    </select>
+    </fieldset>
     <fieldset class="fieldsetsuppliers">
         <legend id="suppliers">
             <h3><span style="color:red">ACCOUNTS PAYABLE |</span>&nbsp;Expenses/Suppliers | Other Clients</h3>

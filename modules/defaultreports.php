@@ -40,7 +40,6 @@ $admin = '<u>' . @$_SESSION['username'] . '</u>'; ?>
                 [5000, 10000, "All"]
             ]
         });
-
         function exportTableToCSV($table, filename) {
 
             var $rows = $table.find('tr:has(td)'),
@@ -70,10 +69,8 @@ $admin = '<u>' . @$_SESSION['username'] . '</u>'; ?>
                 }).get().join(tmpRowDelim)
                 .split(tmpRowDelim).join(rowDelim)
                 .split(tmpColDelim).join(colDelim) + '"',
-
                 // Data URI
                 csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
-
             $(this)
                 .attr({
                     'download': filename,
@@ -81,7 +78,6 @@ $admin = '<u>' . @$_SESSION['username'] . '</u>'; ?>
                     'target': '_blank'
                 });
         }
-
         // This must be a hyperlink
         $(".export").on('click', function(event) {
             // CSV
@@ -90,8 +86,6 @@ $admin = '<u>' . @$_SESSION['username'] . '</u>'; ?>
             // IF CSV, don't do event.preventDefault() or return false
             // We actually need this to be a typical hyperlink
         });
-
-
         $("#export").on('click', function(event) {
 
             $(".exportlist").table2excel({
@@ -440,7 +434,7 @@ if ($reportpost === 'tenantlist') {
     echo '<tr><i>Printed by:</i> ' . $user . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
     ?>
     <br><br>
-    <a href="#" class="export" style="float:right">Export Table data into Excel</a>
+    <a href="#" class="export" style="float:right">Export Table data into Excel</a>    
 <?php
 } elseif ($reportpost === 'fetchaccountstatement') {
     $fromdate = $_GET['fromdate'];

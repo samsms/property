@@ -125,7 +125,6 @@ foreach ($data as $dt){
 ?>
 <tr>
         <td><?php echo($dt->property_name); ?></td>
-       
         <td><?php echo ($dt->aptid); ?></td>
         <td><?php echo ($dt->message); ?></td>
       
