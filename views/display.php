@@ -24,9 +24,10 @@ $inputvalues='<div style="font-weight:bold; color:#c6c6c6>';
 $endinput='</div>';
 
 //application base /root folder
-if($_SERVER['REMOTE_ADDR']=="::1"){
+if($_SERVER['REMOTE_ADDR']!="::1"||$_SERVER['REMOTE_ADDR']!="127.0.0.1"){
 
-$baseurl='/property-rivercourt/';}
+$baseurl='/property-rivercourt/';
+}
 else{
 	$baseurl="/";
 }

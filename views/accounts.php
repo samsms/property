@@ -58,6 +58,7 @@ $user =  getUserById($_SESSION['userid']);
         $("#newinvoice").css("display", "none"); //hide window on load
         $("#reverseinvoice").css("display", "none"); //hide window on load
         $("#printinvoice").css("display", "none");
+        $("#importinvoice").css("display", "none");
         $(".printable").css("display", "none");
         $("#invoicelist").css("display", "none");
         $("#batchinvoicing").css("display", "none");
@@ -408,6 +409,18 @@ $user =  getUserById($_SESSION['userid']);
                 // $("#addreason").show('body');
             }
         });
+
+        $('#accountsreceivable').change(function(e) {
+            if ($("#accountsreceivable :selected").attr("id") == "importinv") {
+                e.preventDefault();
+                $("#importinvoice").show('body');
+                // $("#addreason").show('body');
+            }
+        });
+
+
+
+
         $("#closeinvoiceprint").click(function(e) {
             e.preventDefault();
             $(".printable").css("display", "none");
@@ -419,6 +432,20 @@ $user =  getUserById($_SESSION['userid']);
             });
 
         });
+
+        $("#closeinvoiceimport").click(function(e) {
+            e.preventDefault();
+            $(".printable").css("display", "none");
+            $("#importinvoice").fadeOut("slow", function() {
+                $('#formimportinvoice')[0].reset();
+                $("#importinvoice").css("display", "none");
+                $("#accountsreceivable").val('');
+
+            });
+        });
+
+
+
         $("#btnprintinvoice").click(function(e) {
             e.preventDefault();
             $("#reverseinvoice").css("display", "none");
@@ -426,7 +453,13 @@ $user =  getUserById($_SESSION['userid']);
             window.open("../modules/defaultreports.php?report=printhillsinvoice&invoiceno=" + $("#searchinvoiceprint").val());
 
         });
+        $("#btnimportinvoice").click(function(e){
+            e.preventDefault();
+            $("#reverseinvoice").css("display", "none");
+            $(".printable").show('body');
+            window.open("../modules/defaultreports.php?report=printhillsinvoice&invoiceno=" + $("#searchinvoiceprint").val());
 
+        });
         //invoicelist
         $('#accountsreceivable').change(function(e) {
             if ($("#accountsreceivable :selected").attr("id") == "invlist") {
@@ -2048,6 +2081,7 @@ if ($_SESSION['usergroup'] != 3) {
 
             <option id="invoicenew">New Invoice</option>
             <option id="printinv">Print Invoice</option>
+            <option id="importinv">Import Invoice</option>
             <?php if ($user["group"] == 1) { ?>
                 <option id="invoicereverse">Reverse Invoice</option>
                 <option id="batch">Batch Invoicing</option>
@@ -2691,6 +2725,29 @@ echo '</body>';
 
 </div>
 <!--s-->
+
+
+<div id="importinvoice" class="internalwindow" >
+    <p class="titletr">Print | Email Invoice <a href="#" style="float:right" id="closeinvoiceimport">Close [X]</a></p>
+    <p class="validateTips4">Import Invoice.</p>
+    <fieldset id="importinv">
+        <form action="../load.php" id="formimportinvoice" method="post" enctype="multipart/form-data">
+            <center>
+                <table>
+                    <tr>
+                        <td><label for="inv">Import Invoice. &nbsp;</label></td>
+                        <td><input id="searchinvoiceprint" type="file" name='import_file' style="width:100px; ">
+                        </td>
+                        <!-- <td><input type="submit" id="btnimportinvoice" class="text ui-widget-content ui-corner-aEll" value="Submit" style="width:150px;font-weight:bold;" /></td> -->
+                    <td><button type="submit" name="save_excel_data" class="btn btn-primary mt-3">Import</button>
+</td>
+                    </tr>
+                </table>
+            </center>
+        </form>
+    </fieldset>
+
+</div>
 
 
 <div id="reversepayment " class="displaynone internalwindow ">
