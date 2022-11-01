@@ -1997,6 +1997,26 @@ return false;
 
 
     }); //document ready
+
+
+
+
+    $(".propertyid").change(function(e) {
+      propid = $(".propertyid :selected").val();
+      var myData = "";
+      $.ajax({
+        type: "POST",
+        url: "modules/agentproperty.php?propertyid=" + propid,
+        data: myData,
+        success: function(data) { //reload div
+        },
+        error: function(data) {
+          //alert(data);
+        }
+      });
+
+      window.location.replace("home.php?propertyid=" + propid);
+    });
 </script>
 
 <style>
@@ -2046,7 +2066,7 @@ if ($_SESSION['usergroup'] != 3) {
 ?>
 
 <fieldset class="fieldsetcustomers">
-    <select class="width50"   name="propertyid">
+    <select class="propertyid   width50"   name="propertyid">
       <option value=" ">Select Property</option>
       <?php foreach (get_agent_property($agentid) as  $value) {
         $individualresult = explode('#', $value);

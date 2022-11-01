@@ -1,3 +1,6 @@
+<div id="content">
+
+
 <?php
 //die("jj");
 error_reporting(0);
@@ -35,11 +38,12 @@ $admin = '<u>' . @$_SESSION['username'] . '</u>'; ?>
             "paging": true,
             "ordering": true,
             "info": false,
-            "iDisplayLength": 5000 "aLengthMenu": [
+            "iDisplayLength": 5000 , "aLengthMenu": [
                 [5000, 10000, -1],
                 [5000, 10000, "All"]
             ]
         });
+
         function exportTableToCSV($table, filename) {
 
             var $rows = $table.find('tr:has(td)'),
@@ -69,8 +73,10 @@ $admin = '<u>' . @$_SESSION['username'] . '</u>'; ?>
                 }).get().join(tmpRowDelim)
                 .split(tmpRowDelim).join(rowDelim)
                 .split(tmpColDelim).join(colDelim) + '"',
+
                 // Data URI
                 csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+
             $(this)
                 .attr({
                     'download': filename,
@@ -78,6 +84,7 @@ $admin = '<u>' . @$_SESSION['username'] . '</u>'; ?>
                     'target': '_blank'
                 });
         }
+
         // This must be a hyperlink
         $(".export").on('click', function(event) {
             // CSV
@@ -86,10 +93,12 @@ $admin = '<u>' . @$_SESSION['username'] . '</u>'; ?>
             // IF CSV, don't do event.preventDefault() or return false
             // We actually need this to be a typical hyperlink
         });
+
+
         $("#export").on('click', function(event) {
 
             $(".exportlist").table2excel({
-                //exclude: ".noExl",
+                //exclude: ".noExl",jj
                 name: "Exported File",
                 filename: "exportedList"
             });
@@ -368,7 +377,7 @@ if ($reportpost === 'tenantlist') {
         $commissiondetail = get_commissions_listProperty($propid, $startdate, $enddate);
 
         //expenses
-        $expenses =  getExpenses(array('propid' => $propid, 'startdate' => $startdate, 'enddate' => $enddate, 'count' => 1));
+        $expenses =  getPaymentsForProperty(array('propid' => $propid, 'startdate' => $startdate, 'enddate' => $enddate, 'count' => 1));
         $totalbill = array();
         echo '<tr><td><b>Less&nbsp;' . $commissiondetail[0]['commission'] . '%&nbsp; Commission</b></td>' ;;//. str_repeat('<td></td>', 10);
         // foreach ($chargeables as $count) {
@@ -380,10 +389,9 @@ if ($reportpost === 'tenantlist') {
         echo '<td></td><td></td><td><b>' .  number_format($lesscommission, 2) . '</b></td></tr>';
         //   echo '<tr><td><td></td><td></td><td></td>'.str_repeat('<td></td>',7).'<td><b>'.number_format($lessvat,2).'</b></td><td></td><td></td><td></td></tr>'; 
         //extract expenses
-        //echo json_encode($expenses);
         foreach ($expenses as $expense => $value) {
-            array_push($totalbill, $value['amount']);
-            echo '<tr><td><b>' . ucfirst($value['remarks']) . '</b></td><td></td><td></td><td><b>' . number_format($value['amount']).  str_repeat("<td></td>", 10);
+            array_push($totalbill, $value['billpaid']);
+            echo '<tr><td><b>' . ucfirst($value['bill_items']) . '</b></td>' .  str_repeat("<td></td>", 10);
             foreach ($chargeables as $count) {
                 echo '<td></td>';
             }
@@ -421,12 +429,9 @@ if ($reportpost === 'tenantlist') {
         }
         echo '<tr><td><b>Balance as at end of' . $todate->format("m-Y") . ' </b>' ;//. str_repeat('<td></td>', 9);
         // foreach ($chargeables as $value) {
-
         //     echo '<td></td>';
         // }
         echo  '<td></td><td></td><td><b>' . number_format($banked - $paidamounts, 2) . '</b></td> </tr>';
-
-
         echo '</tfoot></table>';
         ?>
     </div>
@@ -434,7 +439,12 @@ if ($reportpost === 'tenantlist') {
     echo '<tr><i>Printed by:</i> ' . $user . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
     ?>
     <br><br>
-    <a href="#" class="export" style="float:right">Export Table data into Excel</a>    
+    <a href="#" class="export" style="float:right">Export Table data into Excel</a>
+<!-- <div id="editor">
+    <button id="cmd" class="save">Generate PDF</button>
+    </div> -->
+  
+
 <?php
 } elseif ($reportpost === 'fetchaccountstatement') {
     $fromdate = $_GET['fromdate'];
@@ -1068,3 +1078,23 @@ elseif ($reportpost == 'commissionlist') {
 echo '</div>';
 echo '</body>';
 ?>
+</div>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+
+    $('#cmd').click(function () {
+        window.html2canvas = html2canvas;
+  var doc = new jsPDF(
+    'p', 'pt', 'a4'
+  );
+  doc.html(document.querySelector("#formreport"), {
+    callback: function(pdf) {
+      pdf.save("cv-a4.pdf");
+    }
+  });
+});
+
+ 
+
+    // This code is collected but useful, click below to jsfiddle link.
+</script>

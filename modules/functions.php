@@ -37,11 +37,11 @@ function gettenants_temp(){
     }
     return json_encode($data);
 }
-
 function getfeedbacks(){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
-    $sql="select * from feedback join properties on feedback.propid=properties.propertyid";
+    $sql="select * from feedback join properties on feedback.propid=properties.propertyid 
+    WHERE feedback.date BETWEEN (CURDATE() - INTERVAL 30 DAY) AND CURDATE()";
     //die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
     $data=[];
@@ -50,6 +50,33 @@ function getfeedbacks(){
     }
     return json_encode($data);
 }
+
+// function getfeedbacks(){
+//     $mysqli = getMysqliConnection();
+//     $date=date("Y-m-d");
+//     $sql="select * from feedback join properties on feedback.propid=properties.propertyid 
+//     WHERE feedback.date BETWEEN (CURDATE() - INTERVAL 30 DAY) AND CURDATE()";
+//     //die($sql);
+//     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+//     $data=[];
+//     while($row=mysqli_fetch_assoc($query)){
+//         $data[]=$row;
+//     }
+//     return json_encode($data);
+// }
+
+// function getfeedbacks(){
+//     $mysqli = getMysqliConnection();
+//     $date=date("Y-m-d");
+//     $sql="select * from feedback join properties on feedback.propid=properties.propertyid";
+//     //die($sql);
+//     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+//     $data=[];
+//     while($row=mysqli_fetch_assoc($query)){
+//         $data[]=$row;
+//     }
+//     return json_encode($data);
+// }
 
 function getTenantfromApt($prop,$apt_tag) {
    
@@ -2854,7 +2881,6 @@ function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, 
         $db->close_connection();
     }
 }
-
 
 function tenantsApproval($id){
     $conn=getMysqliConnection();
