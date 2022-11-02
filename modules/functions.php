@@ -24,11 +24,10 @@ function getTenantApt($tenant_id){
     return $query;
 
 
-}
-function gettenants_temp(){
+}function gettenants_temp(){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
-    $sql="select * from tenants_temp join properties on tenants_temp.propid=properties.propertyid";
+    $sql="select * from tenants_temp join properties on tenants_temp.propid=properties.propertyid WHERE tenants_temp.status='0'";
     //die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
     $data=[];
@@ -37,6 +36,8 @@ function gettenants_temp(){
     }
     return json_encode($data);
 }
+
+
 function getfeedbacks(){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
@@ -50,20 +51,6 @@ function getfeedbacks(){
     }
     return json_encode($data);
 }
-
-// function getfeedbacks(){
-//     $mysqli = getMysqliConnection();
-//     $date=date("Y-m-d");
-//     $sql="select * from feedback join properties on feedback.propid=properties.propertyid 
-//     WHERE feedback.date BETWEEN (CURDATE() - INTERVAL 30 DAY) AND CURDATE()";
-//     //die($sql);
-//     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
-//     $data=[];
-//     while($row=mysqli_fetch_assoc($query)){
-//         $data[]=$row;
-//     }
-//     return json_encode($data);
-// }
 
 // function getfeedbacks(){
 //     $mysqli = getMysqliConnection();

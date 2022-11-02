@@ -32,7 +32,7 @@ addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, $email, $
  $work, $idno,$photo,$leasestart,$leaseend, $leasedoc, $agentname, $physcaddress, 
  $postaddress, $kinsname, $kinstel, $kinsemail, $regdate);
  tenantApprovalUpdate($id);
- tenantDisapprovalUpdate($id);
+tenantDisapprovalUpdate($id);
 ?>
 
  </body>
