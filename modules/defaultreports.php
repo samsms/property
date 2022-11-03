@@ -332,7 +332,12 @@ if ($reportpost === 'tenantlist') {
         }
 
         echo '</tbody>';
+        if($total_invoices){
+            echo '<h3>NOT INVOICED</h3>';
+        }
+      
         echo '<tfoot>
+        
 <tr><td><b>TOTAL Rent Payable</b></td><td></td><td></td><td>' . array_sum($rent) . '</td>' .  str_repeat('<td></td>', 5);
         // echo '<tr><td>dd</td></tr>';
         // foreach ($chargeables as $value) {
@@ -340,8 +345,9 @@ if ($reportpost === 'tenantlist') {
         //     echo '<td></td>';
         // }
         $totalcollected = array_sum($rent); //array_sum($paidamounts);
-        if($totalcollected>$total_invoices){
-            $total_chargables =$totalcollected- $total_invoices;
+        if($totalcollected<$total_invoices){
+           
+            $total_chargables =$total_invoices-$totalcollected;
         }
         // else{
         //     $total_chargables = $total_invoices;
