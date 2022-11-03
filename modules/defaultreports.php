@@ -350,7 +350,7 @@ if ($reportpost === 'tenantlist') {
         echo  '<td><b>' . number_format(array_sum($paidamounts), 2) . '</b></td></tr>';//<td></td><td><b>' .  number_format($comm, 2) . '</b></td></tr>';
         echo '<tr><td><b>Other Chargables</b></td><td></td><td></td><td><b>' . $total_chargables . '</b></td></tr>';
         
-        $data=  json_decode(getPrepayment(338));
+        $data=  json_decode(getPrepayment($propid));
         $prep=0;
         $houses="";
         foreach($data as $dt){
