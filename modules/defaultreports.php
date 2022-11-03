@@ -343,6 +343,9 @@ if ($reportpost === 'tenantlist') {
         if($total_invoices>$totalcollected){
             $total_chargables = $total_invoices - $totalcollected;
         }
+        else{
+            $total_chargables = $total_invoices;
+        }
        
         //total commission
         $comm = array_sum($commissionamounts);
