@@ -332,9 +332,10 @@ if ($reportpost === 'tenantlist') {
         }
 
         echo '</tbody>';
-        if($total_invoices){
-            echo '<h3>NOT INVOICED</h3>';
+        if($total_invoices<100){
+            echo '<tr><td><b><h3>NOT INVOICED</h3></td></tr>';
         }
+        die;
       
         echo '<tfoot>
         
@@ -349,6 +350,7 @@ if ($reportpost === 'tenantlist') {
            
             $total_chargables =$total_invoices-$totalcollected;
         }
+
         // else{
         //     $total_chargables = $total_invoices;
         // }
