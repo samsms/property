@@ -340,7 +340,10 @@ if ($reportpost === 'tenantlist') {
         //     echo '<td></td>';
         // }
         $totalcollected = array_sum($rent); //array_sum($paidamounts);
-        $total_chargables = $total_invoices - $totalcollected;
+        if($total_invoices>$totalcollected){
+            $total_chargables = $total_invoices - $totalcollected;
+        }
+       
         //total commission
         $comm = array_sum($commissionamounts);
         // array_sum($watchmantotal)
