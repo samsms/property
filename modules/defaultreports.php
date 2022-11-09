@@ -151,7 +151,11 @@ if ($reportpost === 'tenantlist') {
     $enddate = date("Y-m-d", strtotime($_REQUEST['enddate']));
     $allpropertiesflag = $_REQUEST['allpropertiesflag'];
     echo  getinvoicelist($startdate, $enddate, $_REQUEST['accid'], $_REQUEST['accname'], $_REQUEST['propid'], $_SESSION['username'], $allpropertiesflag);
-} elseif ($reportpost === 'landlordstatement') {
+} 
+
+
+elseif ($reportpost === 'landlordstatement') {
+    
     $fdate =  DateTime::createFromFormat("d/m/Y", $_REQUEST['fromdate']);
     $todate =  DateTime::createFromFormat("d/m/Y", $_REQUEST['enddate']);
 
@@ -160,6 +164,8 @@ if ($reportpost === 'tenantlist') {
 
     $propid = $_REQUEST['propid'];
     $total_invoices = invoiceAmount($propid, $startdate, $enddate);
+    // print_r($total_invoices);
+    // die();
     $watchmantotal = array();
     $paidamounts = array();
     $depositamounts = array();
@@ -167,27 +173,36 @@ if ($reportpost === 'tenantlist') {
     $invoice_amount = array();
     $commissionamounts = array();
     $chargeables =  getChargeItems($propid);
+    // print_r($chargeables);
+    // die();
     $chargeablescount = count($chargeables);
     $landlordchargeitems = array('rent', 'watchman', 'security', 'vat', 'garbage'); //'water','deposit','rent_deposit'
     //$invoices=getinvoicelistChargeables($startdate,$enddate,$_REQUEST['accid'],$_REQUEST['accname'],$_REQUEST['propid'],$_SESSION['username']);
 
     $itemnames = array();
+    $additionalCharges=array()
 
-?>
+ ?>
     <div class="dvData">
         <?php
         echo '<table class="treport1 exportlist" style="width:90%" ><thead style="font-weight:bold;">
-<tr><td colspan="24"><center><span style="font-size:14px;font-weight:bold"> ' . $settings['company_name'] . '</span><center><br>
-    <span style="font-size:14px;font-weight:bold">ADDRESS: ' . $settings['address'] . '</span><center>
-</td></tr>';
-        echo '<tr><td colspan="24"><center><span style="font-size:13px;font-weight:normal;"> <b>LANDLORD STATEMENT -' . $accname . '</b></span><span style="font-size:18px;font-weight:normal; ">' . findpropertybyid($propid) . '</span><br/><span style="font-size:12px;font-weight:normal;float:right">' . str_repeat('&nbsp;', 25) . 'Statement From <b> ' . date('d-m-Y',  strtotime($startdate)) . '</b>  To  <b>' . date('d-m-Y',  strtotime($enddate)) . '</b></span><center></tr>';
+    <tr><td colspan="24"><center><span style="font-size:14px;font-weight:bold"> ' . $settings['company_name'] . '</span><center><br>
+        <span style="font-size:14px;font-weight:bold">ADDRESS: ' . $settings['address'] . '</span><center>
+    </td></tr>';
+            echo '<tr><td colspan="24"><center><span style="font-size:13px;font-weight:normal;"> <b>LANDLORD STATEMENT -' . $accname . '</b></span><span style="font-size:18px;font-weight:normal; ">' . findpropertybyid($propid) . '</span><br/><span style="font-size:12px;font-weight:normal;float:right">' . str_repeat('&nbsp;', 25) . 'Statement From <b> ' . date('d-m-Y',  strtotime($startdate)) . '</b>  To  <b>' . date('d-m-Y',  strtotime($enddate)) . '</b></span><center></tr>';
 
-        echo '<tr>
-<u><td>S/no</td><td>House</td><td>Name</td><td>Rent/PM</td><td>Deposit Paid</td><td>RCP</td>';
-        foreach ($chargeables as $value) {
+            echo '<tr>
+    <u><td>S/no</td><td>House</td><td>Name</td><td>Rent/PM</td><td>Deposit Paid</td><td>RCP</td>';
+            foreach ($chargeables as $value) {
             array_push($itemnames,  strtolower($value['accname']));
             echo '<td>' .  strtoupper($value['accname']) . '</td>';
+            
+            array_push($additionalCharges,  $value['amount']);
+
+            // echo '<td>' .  strtoupper($value['amount']) . '</td>';
         }
+        // print_r($additionalCharges);
+        // die('new');
         //   <td>MGT FEE('.getPropertyCommissionRate($propid).' %)</td>
         echo '<td>Rent BBF</td><td>Total Due</td><td>RCT No</td><td>Total Paid</td><td>BCF</td>
    
@@ -228,10 +243,14 @@ if ($reportpost === 'tenantlist') {
             //if item in chargeables ==item in chargeitems
 
             $countitems = count($itemnames);
-
+            // additional charges items
             for ($i = 0; $i < $countitems; $i++) {
-                echo '<td id="' . $itemnames[$i] . '">';
+                if ($plan['isoccupied'] == 1){
+                echo '<td id="' . $itemnames[$i] . '">'.$additionalCharges[$i];
+                }else{
+                    echo '<td id="' . $itemnames[$i] . '">'.'-';
 
+                }
                 foreach ($receipts[0]['chargeables'] as $itemcharged) {
                     if (strtolower($itemcharged['name']) == strtolower($itemnames[$i])) {
                         echo $itemcharged['amount'];
@@ -260,6 +279,7 @@ if ($reportpost === 'tenantlist') {
             if ($balanceminuslastrentinvoice < 0) {
                 $balanceminuslastrentinvoice = 0;
             }
+          
             echo '</td><td>' . number_format($balanceminuslastrentinvoice, 2) . '</td>' .
                 //amount due
                 '<td>' . number_format((getCorrectBalance($tenantid)), 2) . '</td><td>';
@@ -331,11 +351,14 @@ if ($reportpost === 'tenantlist') {
             $count++;
         }
 
+
+        // print_r($total_invoices);
+        // die();
         echo '</tbody>';
         if($total_invoices<100){
             echo '<tr><td><b><h3>NOT INVOICED</h3></td></tr>';
         }
-        die;
+        // die;
       
         echo '<tfoot>
         
@@ -460,7 +483,9 @@ if ($reportpost === 'tenantlist') {
   
 
 <?php
-} elseif ($reportpost === 'fetchaccountstatement') {
+} 
+
+elseif ($reportpost === 'fetchaccountstatement') {
     $fromdate = $_GET['fromdate'];
     $todate = $_GET['todate'];
     $acctid = $_GET['account'];

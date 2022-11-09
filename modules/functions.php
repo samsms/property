@@ -1,8 +1,8 @@
 <?php
-// //die("dd");
-// ini_set('display_errors',1);
-// ini_set('display_startup_errors',1);
-// error_reporting(-1);
+//die("dd");
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
 @session_start();
 @include '../includes/database.php';
 @header("Access-Control-Allow-Origin: *");
@@ -154,17 +154,24 @@ function total_accumilated(){
 function invoiceAmount($propid,$startdate,$enddate){
     $mysqli = getMysqliConnection();
     // $date = date('d');
-    // $startdate = date("Y-m-d", strtotime($startdate));
-    // $enddate = date("Y-m-d", strtotime($enddate));
+    $startdate = $_GET['fromdate'];
+    $startdate=date("Y-m-d", strtotime($startdate));
+    $enddate = $_GET['enddate'];
+    $enddate=date("Y-m-d", strtotime($enddate));
+    echo $enddate;
+
+
    $sql="SELECT ifnull(sum(amount),0) as amount FROM `invoices` WHERE `property_id`=$propid and `invoicedate` between '$startdate' and '$enddate'";
-  // die($sql);
+//     $sql="SELECT * FROM  invoices WHERE property_id=338 AND  
+//     invoicedate BETWEEN '2022-08-01' AND '2022-11-30'";
+// //    die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
-   //die( print_r($query->fetch_array()));
+//    die( print_r($query->fetch_array()));
     return $query->fetch_assoc()['amount'];
 
 }
 function getSiteRoot() {
-    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
+    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"&&$_SERVER['REMOTE_ADDR']!="::1"){
         
     $parent = $_SERVER["DOCUMENT_ROOT"] ;//. '/property-rivercourt';
     }
@@ -1934,13 +1941,14 @@ function floorplan($id) {
 //chargeitems
 //retreive floor plan details
 function getChargeItems($propid) {
+    // die($propid);
     
     $db = new MySQLDatabase();
     $db->open_connection();
     $chargedetail = array();
     $allchargedetails = array();
     $sql = "SELECT * FROM chargeitems WHERE propertyid='$propid' ORDER BY accname ASC";
-    $query = $db->query($sql) or die(mysql_error());
+    $query = $db->query($sql) or die(mysqli_error());
     while ($row = $db->fetch_array($query)) {
         $accname = $row['accname'];
         $amount = $row['amount'];
@@ -1954,6 +1962,10 @@ function getChargeItems($propid) {
         array_push($allchargedetails, $chargedetail);
     }
     $db->close_connection();
+
+        // print_r($allchargedetails);
+        // die();
+
     return $allchargedetails;
 }
 
