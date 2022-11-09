@@ -1,8 +1,8 @@
 <?php
-// //die("dd");
-// ini_set('display_errors',1);
-// ini_set('display_startup_errors',1);
-// error_reporting(-1);
+//die("dd");
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
 @session_start();
 @include '../includes/database.php';
 @header("Access-Control-Allow-Origin: *");
@@ -157,14 +157,14 @@ function invoiceAmount($propid,$startdate,$enddate){
     // $startdate = date("Y-m-d", strtotime($startdate));
     // $enddate = date("Y-m-d", strtotime($enddate));
    $sql="SELECT ifnull(sum(amount),0) as amount FROM `invoices` WHERE `property_id`=$propid and `invoicedate` between '$startdate' and '$enddate'";
-  // die($sql);
+//    die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
    //die( print_r($query->fetch_array()));
     return $query->fetch_assoc()['amount'];
 
 }
 function getSiteRoot() {
-    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"){
+    if($_SERVER['REMOTE_ADDR']!="127.0.0.1"&&$_SERVER['REMOTE_ADDR']!="::1"){
         
     $parent = $_SERVER["DOCUMENT_ROOT"] ;//. '/property-rivercourt';
     }
