@@ -14,10 +14,10 @@ defined('DB_NAME')   ? null : define("DB_NAME", "techsava_rivercourt");
 }else{
    // die("online");
     defined('DB_SERVER') ? null : define("DB_SERVER", "localhost");
-    defined('DB_USER')   ? null : define("DB_USER","root");
-    defined('DB_PASS')   ? null : define("DB_PASS", "root");
+    defined('DB_USER')   ? null : define("DB_USER","silvano");
+    defined('DB_PASS')   ? null : define("DB_PASS", "access");
     //defined('DB_NAME')   ? null : define("DB_NAME", "techsava_property_htest");
-    defined('DB_NAME')   ? null : define("DB_NAME", "property_management");
+    defined('DB_NAME')   ? null : define("DB_NAME", "techsava_rivercourt");
 }
 date_default_timezone_set("Africa/Nairobi");
 //$root="https://localhost/property-rivercourt-test/";
