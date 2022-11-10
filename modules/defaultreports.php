@@ -163,9 +163,10 @@ elseif ($reportpost === 'landlordstatement') {
     $enddate = $todate->format("Y-m-d");
 
     $propid = $_REQUEST['propid'];
-    $total_invoices = invoiceAmount($propid, $startdate, $enddate);
-    // print_r($total_invoices);
-    // die();
+   $total_invoices=0;
+   $total_rent=0;// = invoiceAmount($propid, $startdate, $enddate);
+    //die(print_r($total_invoices));
+    
     $watchmantotal = array();
     $paidamounts = array();
     $depositamounts = array();
@@ -180,7 +181,10 @@ elseif ($reportpost === 'landlordstatement') {
     //$invoices=getinvoicelistChargeables($startdate,$enddate,$_REQUEST['accid'],$_REQUEST['accname'],$_REQUEST['propid'],$_SESSION['username']);
 
     $itemnames = array();
-    $additionalCharges=array()
+    $additionalCharges=array();
+    $expected_rent1=expected_rent($propid,$startdate,$enddate);
+    //print_r($expected_rent1);
+    //die();
 
  ?>
     <div class="dvData">
@@ -192,7 +196,7 @@ elseif ($reportpost === 'landlordstatement') {
             echo '<tr><td colspan="24"><center><span style="font-size:13px;font-weight:normal;"> <b>LANDLORD STATEMENT -' . $accname . '</b></span><span style="font-size:18px;font-weight:normal; ">' . findpropertybyid($propid) . '</span><br/><span style="font-size:12px;font-weight:normal;float:right">' . str_repeat('&nbsp;', 25) . 'Statement From <b> ' . date('d-m-Y',  strtotime($startdate)) . '</b>  To  <b>' . date('d-m-Y',  strtotime($enddate)) . '</b></span><center></tr>';
 
             echo '<tr>
-    <u><td>S/no</td><td>House</td><td>Name</td><td>Rent/PM</td><td>Deposit Paid</td><td>RCP</td>';
+    <u><td>S/no</td><td>House</td><td>Name</td><td>Rent/PM</td><td>Invoiced amt</td><td>Deposit Paid</td><td>RCP</td>';
             foreach ($chargeables as $value) {
             array_push($itemnames,  strtolower($value['accname']));
             echo '<td>' .  strtoupper($value['accname']) . '</td>';
@@ -208,6 +212,7 @@ elseif ($reportpost === 'landlordstatement') {
    
     </u></tr></thead>';
         echo '<tbody><tr>';
+        
         $count = 1;
         $floordetails =   floorplan($propid);
         foreach ($floordetails as $plan) {
@@ -216,6 +221,7 @@ elseif ($reportpost === 'landlordstatement') {
             } else {
                 $vacantrent = "";
             }
+            $tenantid = $tenantdetails['Id'];
 
             $tenantdetails = findtenantDetailsbyapt($plan['apt_id']);
             $depositsfortenant = getTenantDeposit($tenantdetails['Id'], $startdate, $enddate);
@@ -230,22 +236,28 @@ elseif ($reportpost === 'landlordstatement') {
             $rent_amount = $plan['monthlyincome'];
             if ($plan['isoccupied'] == 1) {
                 array_push($rent, $plan['monthlyincome']);
-
-                echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>' . $plan['monthlyincome'] . '</td><td>' . implode(",", $dates) . '</td><td>' . @implode(",", $recpnos) . '</td>';
+                    $tenant_invoice=$expected_rent1["$tenantid"];
+                    //die(print_r($tenant_invoice));
+                    $total_invoices+=$tenant_invoice['Tinvoice'];
+                    $total_rent+=$tenant_invoice['TAmount'];
+                echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>' . $plan['monthlyincome'] .
+                 "</td><td>".number_format($tenant_invoice['Tinvoice'],0)."</td><td>" . 
+                 implode(",", $dates) . '</td><td>' . @implode(",", $recpnos) . '</td>';
             } else {
                 echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>-</td><td>' . implode(",", $dates) . '</td><td>' . @implode(",", $recpnos) . '</td>';
             }
             $receipts =  getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']);
             //$invoice=  getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']) ;//
 
-            $tenantid = $tenantdetails['Id'];
-
+          
             //if item in chargeables ==item in chargeitems
 
             $countitems = count($itemnames);
             // additional charges items
             for ($i = 0; $i < $countitems; $i++) {
                 if ($plan['isoccupied'] == 1){
+
+                    
                 echo '<td id="' . $itemnames[$i] . '">'.$additionalCharges[$i];
                 }else{
                     echo '<td id="' . $itemnames[$i] . '">'.'-';
@@ -314,9 +326,10 @@ elseif ($reportpost === 'landlordstatement') {
             //check if paidamount>0 to calculate commission
             //  if($paidamount>=$balance){
             // $commissionamount= (getPropertyCommissionRate($propid)*$paidamount)/100;
-            if ($plan['isoccupied'] == 1) {
-                $commissionamount = (getPropertyCommissionRate($propid) * $rent_amount) / 100;
-            }
+            // if ($plan['isoccupied'] == 1) {
+            //     $commissionamount = (getPropertyCommissionRate($propid) * $rent_amount) / 100;
+            // }
+           // $commissionamount=getPropertyCommissionRate($propid);// *$total_invoices/100;
             //  var_dump($commissionamount);
 
             /// echo ($commissionamount)."dd";
@@ -351,38 +364,33 @@ elseif ($reportpost === 'landlordstatement') {
             $count++;
         }
 
-
-        // print_r($total_invoices);
-        // die();
         echo '</tbody>';
-        if($total_invoices<100){
-            echo '<tr><td><b><h3>NOT INVOICED</h3></td></tr>';
-        }
+     
         // die;
       
         echo '<tfoot>
         
-<tr><td><b>TOTAL Rent Payable</b></td><td></td><td></td><td>' . array_sum($rent) . '</td>' .  str_repeat('<td></td>', 5);
+<tr><td><b>TOTAL Rent Payable</b></td><td></td><td></td><td></td><td><b>' . $total_invoices . '</b></td>' .  str_repeat('<td></td>', 5);
         // echo '<tr><td>dd</td></tr>';
         // foreach ($chargeables as $value) {
 
         //     echo '<td></td>';
         // }
-        $totalcollected = array_sum($rent); //array_sum($paidamounts);
-        if($totalcollected<$total_invoices){
+        // $totalcollected = $tot //array_sum($paidamounts);
+        // if($totalcollected<$total_invoices){
            
-            $total_chargables =$total_invoices-$totalcollected;
-        }
+        //     $total_chargables =$total_invoices-$totalcollected;
+        // }
 
         // else{
         //     $total_chargables = $total_invoices;
         // }
        
         //total commission
-        $comm = array_sum($commissionamounts);
+        $comm = $commissionamount=getPropertyCommissionRate($propid)*$total_invoices/100;
         // array_sum($watchmantotal)
         echo  '<td><b>' . number_format(array_sum($paidamounts), 2) . '</b></td></tr>';//<td></td><td><b>' .  number_format($comm, 2) . '</b></td></tr>';
-        echo '<tr><td><b>Other Chargables</b></td><td></td><td></td><td><b>' . $total_chargables . '</b></td></tr>';
+        echo '<tr><td><b>Other Chargables</b></td><td></td><td></td><td></td><td><b>' . $total_chargables . '</b></td></tr>';
         
         $data=  json_decode(getPrepayment($propid));
         $prep=0;
@@ -397,11 +405,11 @@ elseif ($reportpost === 'landlordstatement') {
         }
         echo '<tr>
             
-            <td><b>Prepayments</b></td><td><td></td><td><b>'.$prep.'</b></td><td colspan="3">'.$houses.'
+            <td><b>Prepayments</b></td><td><td></td><td></td><td><b>'.$prep.'</b></td><td colspan="3">'.$houses.'
             </tr>';
-        echo '<tr><td><b>Total Amount</b></td><td></td><td></td><td><b>' . $total_invoices . '</b></td></tr>';
-        echo '<tr><td><b>Loan </b></td><td></td><td></td><td><b>' . loanPaid($propid, $startdate, $enddate) . '</b></td></tr>';
-        $totalcollected = $total_invoices;
+        echo '<tr><td><b>Total Amount</b></td><td></td><td></td><td></td><td><b>' . $total_rent . '</b></td></tr>';
+        echo '<tr><td><b>Loan </b></td><td></td><td></td><td></td><td><b>' . loanPaid($propid, $startdate, $enddate) . '</b></td></tr>';
+        $totalcollected = $total_rent;
         //spacing
         //echo '<tr><td><b>LESS WATCHMAN</b></td>'.str_repeat('<td></td>',11);
         // foreach ($chargeables as $value) {
@@ -423,12 +431,12 @@ elseif ($reportpost === 'landlordstatement') {
         $lesscommission = $totalminuswatchman - $comm;
         $vat = getVAT("housevat");
         $lessvat = 0; //  round(($vat*$comm)/100,2);
-        echo '<td></td><td></td><td><b>' .  number_format($lesscommission, 2) . '</b></td></tr>';
+        echo '<td></td><td></td><td></td><td><b>' .  number_format($lesscommission, 2) . '</b></td></tr>';
         //   echo '<tr><td><td></td><td></td><td></td>'.str_repeat('<td></td>',7).'<td><b>'.number_format($lessvat,2).'</b></td><td></td><td></td><td></td></tr>'; 
         //extract expenses
         foreach ($expenses as $expense => $value) {
             array_push($totalbill, $value['billpaid']);
-            echo '<tr><td><b>' . ucfirst($value['bill_items']) . '</b></td>' .  str_repeat("<td></td>", 10);
+            echo '<tr><td><b>' . ucfirst($value['bill_items']) . '</b></td><td></td>' .  str_repeat("<td></td>", 10);
             foreach ($chargeables as $count) {
                 echo '<td></td>';
             }
@@ -450,7 +458,7 @@ elseif ($reportpost === 'landlordstatement') {
 
         //     echo '<td></td>';
         // }
-        echo  '<td></td><td></td><td><b>' . number_format($banked, 2) . '</b></td></tr>';
+        echo  '<td></td><td></td><td></td><td><b>' . number_format($banked, 2) . '</b></td></tr>';
 
         $payments = getLandLordPaidAmountsForMonth($todate->format("Y-m"), $propid);
         $paidamounts = 0;
@@ -462,13 +470,13 @@ elseif ($reportpost === 'landlordstatement') {
             // }
             //add paid amounts to array
             $paidamounts = $paidamounts + $payment["amount"];
-            echo  '<td></td><td></td><td><b>' . number_format($payment["amount"], 2) . '</b></td><td>Cheque No' . $payment["chequeno"] . '</td><td>Cheque Date' . $payment["chequedate"] . '</td></tr>';
+            echo  '<td></td><td></td><td></td><td><b>' . number_format($payment["amount"], 2) . '</b></td><td>Cheque No' . $payment["chequeno"] . '</td><td>Cheque Date' . $payment["chequedate"] . '</td></tr>';
         }
         echo '<tr><td><b>Balance as at end of' . $todate->format("m-Y") . ' </b>' ;//. str_repeat('<td></td>', 9);
         // foreach ($chargeables as $value) {
         //     echo '<td></td>';
         // }
-        echo  '<td></td><td></td><td><b>' . number_format($banked - $paidamounts, 2) . '</b></td> </tr>';
+        echo  '<td></td><td></td><td></td><td><b>' . number_format($banked - $paidamounts, 2) . '</b></td> </tr>';
         echo '</tfoot></table>';
         ?>
     </div>

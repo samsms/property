@@ -149,24 +149,48 @@ function total_accumilated(){
    
 }
 
+function expected_rent($propid,$startdate,$enddate){
+    $mysqli = getMysqliConnection();
+    $sql="SELECT idno,SUM(amount) AS TAmount, SUM(invoicedRent) AS Tinvoice,(SUM(amount)- SUM(invoicedRent)) AS Tchargables
+    FROM (
+    SELECT idno, IFNULL(SUM(amount),0) AS amount,(
+    SELECT SUM(amount)
+    FROM invoiceitems
+    WHERE invoiceno =invoices.invoiceno AND item_name='RENT') AS invoicedRent
+    FROM `invoices`
+    WHERE `property_id`=$propid AND `invoicedate` BETWEEN '$startdate' AND '$enddate'
+    GROUP BY invoiceno)newinvoice
+    GROUP BY idno";
+    // die($sql);
+    $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+    $data=[];
+    //$results=$query->fetch_all();
+    // $fresult=array();
+    // foreach($results as  $expt){
+    //     $data[]=$expt[0];
+    // }
+  //  $fresult=$data;
+while($row=$query->fetch_assoc()){
+    $data[$row['idno']]=$row;
+}
+    return $data;
+
+}
 
 
 function invoiceAmount($propid,$startdate,$enddate){
     $mysqli = getMysqliConnection();
     // $date = date('d');
-    $startdate = $_GET['fromdate'];
-    $startdate=date("Y-m-d", strtotime($startdate));
-    $enddate = $_GET['enddate'];
-    $enddate=date("Y-m-d", strtotime($enddate));
-    echo $enddate;
+  //  $startdate = $_GET[''];
+   // $startdate=date("Y-m-d", strtotime($startdate));
 
+   // $enddate = $_GET[''];
+   // $enddate=date("Y-m-d", strtotime($enddate));
 
    $sql="SELECT ifnull(sum(amount),0) as amount FROM `invoices` WHERE `property_id`=$propid and `invoicedate` between '$startdate' and '$enddate'";
-//     $sql="SELECT * FROM  invoices WHERE property_id=338 AND  
-//     invoicedate BETWEEN '2022-08-01' AND '2022-11-30'";
-// //    die($sql);
+   //die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
-//    die( print_r($query->fetch_array()));
+   //die( print_r($query->fetch_array()));
     return $query->fetch_assoc()['amount'];
 
 }
@@ -1941,14 +1965,13 @@ function floorplan($id) {
 //chargeitems
 //retreive floor plan details
 function getChargeItems($propid) {
-    // die($propid);
     
     $db = new MySQLDatabase();
     $db->open_connection();
     $chargedetail = array();
     $allchargedetails = array();
     $sql = "SELECT * FROM chargeitems WHERE propertyid='$propid' ORDER BY accname ASC";
-    $query = $db->query($sql) or die(mysqli_error());
+    $query = $db->query($sql) or die(mysql_error());
     while ($row = $db->fetch_array($query)) {
         $accname = $row['accname'];
         $amount = $row['amount'];
@@ -1962,10 +1985,6 @@ function getChargeItems($propid) {
         array_push($allchargedetails, $chargedetail);
     }
     $db->close_connection();
-
-        // print_r($allchargedetails);
-        // die();
-
     return $allchargedetails;
 }
 
@@ -3714,7 +3733,8 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
     //invoice amount is now gotten from sum of charges
     $invoiceamount = array_sum($charges);
     
-    $query = "INSERT into $tablename(`invoiceno`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2','$entrydate','$invoi ceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
+    $query = "INSERT into $tablename(`invoiceno`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2','$entrydate','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
+//   die($query);
     $resultquery = $db->query("SELECT current_water_reading FROM floorplan WHERE apt_id='$aptid'") or die($db->error());
     while ($row = mysql_fetch_array($resultquery)) {
         $lastreading = $row['current_water_reading'];
@@ -4204,6 +4224,7 @@ function create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $user,
 
         //so create invoice
         $invoices = create_invoice($value['idno'], $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges1, sizeof($charges1), $currentreading = 0, $value['apt_id'], $fperiod);
+      //  die("rent".$invoices." amount ".$amount); 
     }
     unset($tenantdetails);
     unset($individualdetails);
