@@ -1966,7 +1966,7 @@ return false;
         $("#btnpaylandlord").click(function(e) {
             e.preventDefault();
 
-            if ($('#propertytopay').val() === "" || $('#amountpaylandlord').val() === "" || $('#banktopayfrom').val() === "" || $('#cheqnopay').val() === "" || $('#chequedetailspay').val() === "") {
+            if ($('#propertytopay').val() === "" || $('#amountpaylandlord').val() === "" || $('#banktopayfrom').val() === "" ) {
                 alert("please fill all required details");
                 $(".validateTips3").html("<span style='font size:2; color:red'>All fields required!</span>");
                 if ($("#payperiod :selected").val() == "") {
