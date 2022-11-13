@@ -864,6 +864,7 @@ elseif(isset ($_REQUEST['changeperiodstatus'])){
             }
 }
 
+
 else{
 die('No parameters set');
 }

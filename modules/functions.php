@@ -106,6 +106,22 @@ function getPrepayment($prop_id){
 function reportPrepayment($prop_id,$apt_id){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
+    if($_SESSION['usergroup'] == 1){
+
+    $sql="insert into prepayments (`propid`,`aptid`,`date`,`status`) values
+    ($prop_id,'$apt_id','$date','Approved') ";
+    $exits =$mysqli->query("select * from prepayments where propid=$prop_id and aptid='$apt_id'  and date='$date'") or die(mysqli_error($mysqli));
+  //  die($sql);
+  if(mysqli_num_rows($exits)<1){
+    $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
+
+    return "Reported Successifully";
+  }else{
+    return "Already Reported";
+  }
+
+    }else{
+
     $sql="insert into prepayments (`propid`,`aptid`,`date`) values
     ($prop_id,'$apt_id','$date') ";
     $exits =$mysqli->query("select * from prepayments where propid=$prop_id and aptid='$apt_id'  and date='$date'") or die(mysqli_error($mysqli));
@@ -117,6 +133,7 @@ function reportPrepayment($prop_id,$apt_id){
   }else{
     return "Already Reported";
   }
+    }
 
 }
 function tobepaid($propid,$amount){

@@ -11,6 +11,7 @@ include '../modules/functions.php';
 //die("dd");
 checkIfLoggedInProperty();
 $property =  getSettings();
+
 echo  $htmlheaders;
 echo '<head><title>' . $property['company_name'] . '| Jamar Properties</title>';
 echo $meta;
@@ -1179,20 +1180,17 @@ $user =  getUserById($_SESSION['userid']);
 
         // console.log($("#prepayment-select option:selected").text());
         //     return false
+         if($("#prepayment-select option:selected").text()!="Select Apartment"){
+            
             var jqxhrpost = $.get("../modules/accountsprocess.php?report_prepayment=true&id=" + $("#prepayment-select option:selected").text(), function() {
 
-                })
-                .done(function(data) {
-                  alert(data.msg);
-                });
-
-
-return false;
-
-
-
-
-
+            })
+            .done(function(data) {
+            alert(data.msg);
+            });
+         }
+         return false;
+               
         });
         //income statement
         $('#incomestmnt').css("display", "none");
@@ -2973,8 +2971,7 @@ echo '</body>';
             <table>
                 <tr>
                     <td>Mode:</td>
-                    <td style="color:black;"><input type="radio" name="clients" value="0"><?php echo findpropertybyid($_SESSION['propertyid'])?>
-                       
+                    <td style="color:black;"><input type="radio" name="clients" value="0"><?php echo findpropertybyid($_SESSION['propertyid'])?>  
                     </td>
                 </tr>
                 <tr>
@@ -3011,7 +3008,7 @@ echo '</body>';
                 </tr>
                 <tr>
                     <td></td>
-                    <td><input type="submit" id="btnreportprepayment" class="text ui-widget-content ui-corner-aEll" value="VIEW STATEMENT" style="width:150px;font-weight:bold;" /></td>
+                    <td><input type="submit" id="btnreportprepayment" class="text ui-widget-content ui-corner-aEll" value="Report" style="width:150px;font-weight:bold;" /></td>
                 </tr>
             </table>
             </center>

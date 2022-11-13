@@ -99,8 +99,10 @@ function getPrepayment($prop_id){
 
 }
 function reportPrepayment($prop_id,$apt_id){
+
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
+   
     $sql="insert into prepayments (`propid`,`aptid`,`date`) values
     ($prop_id,'$apt_id','$date') ";
     $exits =$mysqli->query("select * from prepayments where propid=$prop_id and aptid='$apt_id'  and date='$date'") or die(mysqli_error($mysqli));
