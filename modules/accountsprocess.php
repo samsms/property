@@ -812,6 +812,7 @@ elseif(isset ($_REQUEST['changeperiodstatus'])){
  elseif (isset ($_REQUEST['tenantdeposits'])) {
       $id=$_REQUEST['tenant_id'];
      $deposits=getTenantDeposit($id);
+     //die;
      ?>
 <select id="tenantdeposits"  name="tenantdeposits"  style="width:100%;">
     <option selected="selected" value="">Select deposit to refund</option> 

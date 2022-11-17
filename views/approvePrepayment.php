@@ -34,25 +34,4 @@ foreach($pendingP as $pendingP){
 
 
 ?>
-<script>
 
-$( ".Approve" ).click(function() {
-//   alert( "Handler for .click() called." );
-  $.ajax({
-                        type: "POST",
-                        contentType: "application/json; charset=utf-8",
-                        url: "",
-                        data: "{}",
-                        dataType: "json"
-                    })
-
-});
-
-
-// $("#Approve").click(function() {
-// alert('fffffff')
-// });
-
-</script>
-<?php 
-?>
