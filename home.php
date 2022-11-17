@@ -263,8 +263,7 @@ if ($_SESSION['usergroup'] == 1)
   <?php
   echo ' <tr>';
 
-
-
+ 
   if ($_SESSION['usergroup'] != 3) {
     echo   ' <td width=60%>
   <a href="modules/list.php" class="button big orange"></br>&nbsp;Properties List</a>  
@@ -282,8 +281,20 @@ if ($_SESSION['usergroup'] == 1)
 
   </tr>
   ';}
+  // die("..........................................");
+
+
   if ($_SESSION['usergroup'] == 1) {echo'
   <tr>
+
+  <td>
+  <a href="views/approvePrepayment.php" id="AprovePrepayment" class="button big blue "></br>Approve Prepayment
+ '.json_decode(countPendingPrepayments()).
+ ' </br> </a>
+    </td>
+    <td>' . str_repeat("&nbsp;", 10) . '</td>
+    
+  
     <td width=60%>
    <a href="modules/landlord_payout.php" class="button big green">
    </br>Today\'s Payout   <br> 
@@ -293,7 +304,7 @@ if ($_SESSION['usergroup'] == 1)
     </td>
     <td>' . str_repeat("&nbsp;", 10) . '</td>
     <td width=60%>
-   <a href="modules/landlord_payout_cumilated.php" class="button big green">
+   <a href="modules/landlord_payout_cumulated.php" class="button big green">
    </br>Cummilated Payout   <br>
     ' . (json_decode(total_accumilated())->number) . ' Landlords<br/>
  
@@ -302,6 +313,7 @@ if ($_SESSION['usergroup'] == 1)
 </div>
   </a>
     </td>
+    
  </tr>
  ';
   } else {

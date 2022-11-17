@@ -3595,6 +3595,7 @@ echo '</body>';
             <tr>
                 <td><label>Deposit</label></td>
                 <td id="tenantdepositdiv">
+                    
                 </td>
             </tr>
             <tr>
@@ -3656,7 +3657,9 @@ echo '</body>';
                     <td><select name="expenseacct" id="expenseaccountsupplier">
                             <option value="0">Select Filter </option>
                             <?php $expenselists =  array_merge($glaccountexp, getAgentExpenseAccount());
+                           
                             foreach ($expenselists as $expense) { ?>
+                            
                                 <option value="<?php echo $expense['glcode'] ?>"><?php echo $expense['acname'] ?></option>
                             <?php }
                             ?>

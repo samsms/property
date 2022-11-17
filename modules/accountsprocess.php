@@ -16,15 +16,14 @@ else if($_REQUEST['prep']){
     foreach($data as $dt){
         echo $dt->monthlyincome;
     }
-}
+} 
+// ...........
 else if($_REQUEST['report_prepayment']){
     header("content-type:application/json");
     $propid=$_SESSION['propertyid'] ;
     $apartment= ($_REQUEST['id']);
     $msg=reportPrepayment($propid,$apartment);
    echo json_encode(array("success"=>true,"msg"=>$msg));
- 
-
 }
 else if ($_REQUEST['approve_invoice']){
     header("content-type:application/json");

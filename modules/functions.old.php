@@ -98,6 +98,11 @@ function getPrepayment($prop_id){
   }
 
 }
+// function countPendingPrepayments(){
+//     $mysqli = getMysqliConnection();
+//     $count =$mysqli->query("SELECT count(propid) FROM prepayments WHERE STATUS='pending'") or die(mysqli_error($mysqli));
+//     return $count;
+// }
 function reportPrepayment($prop_id,$apt_id){
 
     $mysqli = getMysqliConnection();
@@ -106,7 +111,7 @@ function reportPrepayment($prop_id,$apt_id){
     $sql="insert into prepayments (`propid`,`aptid`,`date`) values
     ($prop_id,'$apt_id','$date') ";
     $exits =$mysqli->query("select * from prepayments where propid=$prop_id and aptid='$apt_id'  and date='$date'") or die(mysqli_error($mysqli));
-  //  die($sql);
+ 
   if(mysqli_num_rows($exits)<1){
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
 
