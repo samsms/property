@@ -120,12 +120,12 @@ function getAllPendingPrepayments(){
     return $data;
     // return $count->fetch_assoc();
 }
-function AprovePrepayments($prop_id){
+function AprovePrepayments($id){
     $mysqli = getMysqliConnection();
     $sql ="UPDATE prepayments SET STATUS='Approved'
-    WHERE propid=$prop_id";
+    WHERE id=$id";
     $count=$mysqli->query($sql) or die(mysqli_error($mysqli));
-    $updated=$mysqli->query("select * from prepayments where propid=$prop_id   and status='Approved'") or die(mysqli_error($mysqli));
+    $updated=$mysqli->query("select * from prepayments where id=$id and status='Approved'") or die(mysqli_error($mysqli));
     if (mysqli_num_rows($updated)==1){
     return 'updated successfully';}else{
         return 'not updated';

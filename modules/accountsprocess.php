@@ -4,6 +4,9 @@
 // error_reporting(-1);
 // header('content-type:application/json');
 include 'functions.php';
+
+
+// die('rrr');
 if ($_REQUEST['getInvpoiceDetails']) {
     $entry=json_decode(getTempInvoicesById($_REQUEST['id'])->data);
     $tenant = getTenantDetailsFromRow($entry->idno);
@@ -24,6 +27,14 @@ else if($_REQUEST['report_prepayment']){
     $apartment= ($_REQUEST['id']);
     $msg=reportPrepayment($propid,$apartment);
    echo json_encode(array("success"=>true,"msg"=>$msg));
+}
+// .......pending
+
+else if($_REQUEST['ApprovethisPrepayment']){
+    $pid =$_REQUEST['ApprovethisPrep'];
+    $msg=AprovePrepayments($pid);
+    echo json_encode(array("success"=>true,"msg"=>$msg));
+   
 }
 else if ($_REQUEST['approve_invoice']){
     header("content-type:application/json");
