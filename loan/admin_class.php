@@ -53,7 +53,7 @@ Class Action {
 		foreach ($_SESSION as $key => $value) {
 			unset($_SESSION[$key]);
 		}
-		header("location:../index.php");
+		header("location:login.php");
 	}
 
 	function save_user(){
