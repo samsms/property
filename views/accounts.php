@@ -3594,9 +3594,14 @@ echo '</body>';
             </tr>
             <tr>
                 <td><label>Deposit</label></td>
-                <td id="tenantdepositdiv">
-                    
+                <td id="tenantdepositdiv">   
                 </td>
+            </tr>
+            <tr>
+               <td><label for="">Deposit To Pay</label> </td> <td><input type="text" id="depositrefundToPay" style="width:90%;"></td>
+            </tr>
+            <tr>
+               <td><label for="">Refund Amount Reason</label> </td> <td><input type="text" id="depositrefundToPayReason" style="width:90%;"></td>
             </tr>
             <tr>
                 <td><label>Refund date</label></td>
