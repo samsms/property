@@ -8418,16 +8418,16 @@ function getTenantDeposit($id, $startdate = "", $enddate = "") {
         AND recptrans.refunded='0'
         AND invoiceitems.item_name='deposit'
         AND recptrans.idno='$id' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-        //query("SELECT * FROM {$receiptstable} WHERE is_deposit='D'  AND refunded='0' AND idno='$id' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
+        // $resultset = $mysqli->query("SELECT * FROM {$receiptstable} WHERE is_deposit='D'  AND refunded='0' AND idno=$id AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
     } else {
         $resultset = $mysqli->query("SELECT recptrans.recpno ,invoiceitems.amount,recptrans.rmks FROM  recptrans 
         JOIN invoiceitems WHERE invoiceitems.invoiceno=recptrans.invoicenopaid
         AND recptrans.refunded='0'
         AND  recptrans.is_deposit='D' 
-        AND recptrans.refunded='0'
         AND invoiceitems.item_name='deposit'
+        AND recptrans.idno='$id'
         ")or die($mysqli->error);
-        //query("SELECT * FROM {$receiptstable} WHERE is_deposit='D'  AND refunded='0' AND idno='$id'") or die($mysqli->error);
+        // $resultset = $mysqli->query("SELECT * FROM {$receiptstable} WHERE is_deposit='D'  AND refunded='0' AND idno=$id") or die($mysqli->error);
     }
     while ($rows = $resultset->fetch_assoc()) {
         array_push($deposits, $rows);

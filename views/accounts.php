@@ -3598,10 +3598,10 @@ echo '</body>';
                 </td>
             </tr>
             <tr>
-               <td><label for="">Deposit To Pay</label> </td> <td><input type="text" id="depositrefundToPay" style="width:90%;"></td>
+               <td><label for="">Deposit To Pay</label> </td> <td><input type="text" id="depositrefundToPay" name="depositrefundToPay" style="width:90%;"></td>
             </tr>
             <tr>
-               <td><label for="">Refund Amount Reason</label> </td> <td><input type="text" id="depositrefundToPayReason" style="width:90%;"></td>
+               <td><label for="">Refund Reason</label> </td> <td><input type="text" id="depositrefundToPayReason" name="depositrefundToPayReason" style="width:90%;"></td>
             </tr>
             <tr>
                 <td><label>Refund date</label></td>
