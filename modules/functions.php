@@ -1,8 +1,8 @@
 <?php
 //die("dd");
-// ini_set('display_errors',1);
-// ini_set('display_startup_errors',1);
-// error_reporting(-1);
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
 @session_start();
 @include '../includes/database.php';
 @header("Access-Control-Allow-Origin: *");
@@ -8850,7 +8850,8 @@ function pay_bill($billdate, $payamounts, $paymode, $expenseacct, $chequedetails
     $db->close_connection();
 }
 
-function pay_refund($billdate, $payamount, $paymode, $expenseacct, $chequedetails, $chequeno, $chequedate, $remarks, $supp_id, $billno, $user, $propid, $fperiod, $isrefund = 0, $recpno) {
+//  phpinfo();
+function pay_refund($billdate, $payamount,$payedRefund,$reasonForPayed, $paymode, $expenseacct, $chequedetails, $chequeno, $chequedate, $remarks, $supp_id, $billno, $user, $propid, $fperiod, $isrefund = 0, $recpno) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "paytrans";
@@ -8861,7 +8862,13 @@ function pay_refund($billdate, $payamount, $paymode, $expenseacct, $chequedetail
     $newentrydate = DateTime::createFromFormat('d-m-Y', $billdate);
     $entrydate = trim($newentrydate->format('Y-m-d'));
     $payno = incrementnumber("payno");
-    $query = $db->query("INSERT into $tablename(`paydate`,`amount`,`pmode`,`payno`,`chqdet`,`chqno`,`chequedate`,`rmks`,`supp_id`,`billnopaid`,`expenseacct`,`us`,`property_id`,`idclose_periods`,`is_refund`) VALUES ('$entrydate','$payamount','$paymode','$payno','$chequedetails','$chequeno','$chequedate','$remarks','$supp_id','$billno','$expenseacct','$user','$propid','$fperiod','$isrefund') ") or die(mysql_error());
+
+    $querry=$db->query("INSERT INTO recptrans_deposit_refunded(`deposit_payed`,`reason`,`reciept_no`) VALUES ('$payedRefund','$reasonForPayed','$recpno')")or die(mysql_error());
+   
+    // $db->query("INSERT INTO recptrans_deposit_refunded(`deposit_payed`,`reason`,`reciept_no`) VALUES ('$payedRefund','$reasonForPayed','$recpno')") or die(mysql_error());
+
+    $query = $db->query("INSERT into $tablename(`paydate`,`amount`,`pmode`,`payno`,`chqdet`,`chqno`,`chequedate`,`rmks`,`supp_id`,`billnopaid`,`expenseacct`,`us`,`property_id`,`idclose_periods`,`is_refund`) 
+    VALUES ('$entrydate','$payamount','$paymode','$payno','$chequedetails','$chequeno','$chequedate','$remarks','$supp_id','$billno','$expenseacct','$user','$propid','$fperiod','$isrefund')") or die(mysql_error());
     $db->query("UPDATE $receipts SET `refunded`=1 WHERE `recpno`='$recpno'") or die(mysql_error());
 
     header('Content-Type: application/json');
@@ -8873,6 +8880,18 @@ function pay_refund($billdate, $payamount, $paymode, $expenseacct, $chequedetail
 
     $db->close_connection();
 }
+// function actual_payed_refund($payedRefund,$reasonForPayed){
+//     $db = new MySQLDatabase();
+//     $db->open_connection();
+//     header('Content-Type: application/json');
+//     $response_array['tenant'] = $supp_id;
+//     $response_array['count'] = 0;
+//     $response_array['status'] = $payno;
+
+//     echo json_encode($response_array);
+
+//     $db->close_connection();
+// }
 
 //landlord payment
 function makeLandlordpayment($params) {

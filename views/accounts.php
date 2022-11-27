@@ -1825,17 +1825,32 @@ $user =  getUserById($_SESSION['userid']);
         });
         $("#btnrefunddeposit").click(function(e) {
             e.preventDefault();
+            // 'console.log($("#depositrefundToPay").val())'
             //suppliername,billdate,supplieditems,owedamount,btnreceivebill 
             if ($("#tenantnamedeposit :selected").val() == "" || $("#tenantdeposits :selected").val() == "" || $('#depositrefunddate').val() == "" || $('#paymoderefund').val() == "") {
                 $("#validatebill").html("<font size='2' color='red'><center>All fields required!</center></font>");
             } else {
+               
                 $.ajax({
                         type: "POST",
                         contentType: "application/json; charset=utf-8",
-                        url: "../modules/accountsprocess.php?depositrefund=true&tenant_id=" + $("#tenantnamedeposit :selected").val() + "&recpno=" + $("#tenantdeposits :selected").attr("title") + "&refunddate=" + $('#depositrefunddate').val() + "&paymode=" + $("#paymoderefund :selected").val() + "&amount=" + $("#tenantdeposits :selected").val() + "&deposititem=" + $("#tenantdeposits :selected").text() + "&chequedate=" + $("#chequedatedeposits").val() + "&chequeno=" + $("#chequenorefund").val() + "&remarks=" + $("#refundremarks").val() + "&propid=" + <?php echo $_SESSION['propertyid'] ?>,
+                        url: "../modules/accountsprocess.php?depositrefund=true&tenant_id=" 
+                        + $("#tenantnamedeposit :selected").val() 
+                        + "&recpno=" + $("#tenantdeposits :selected").attr("title") 
+                        + "&refunddate=" + $('#depositrefunddate').val() 
+                        + "&paymode=" + $("#paymoderefund :selected").val() 
+                        + "&amount=" + $("#tenantdeposits :selected").val() 
+                        +"&payedRefund="+$("#depositrefundToPay").val()
+                        +"&reasonForPayed="+$("#depositrefundToPayReason").val()
+                        + "&deposititem=" + $("#tenantdeposits :selected").text() 
+                        + "&chequedate=" + $("#chequedatedeposits").val() 
+                        +"&chequeno=" + $("#chequenorefund").val() 
+                         + "&remarks=" + $("#refundremarks").val() 
+                         + "&propid=" + <?php echo $_SESSION['propertyid'] ?>,
                         data: "{}",
                         dataType: "json"
-                    })
+                    })            
+
 
                     .done(function(data) {
                         $("#validatebill").html("<font size='2' color='green'><center>Voucher<u>" + data.status + "</u> Created</center></font>");
@@ -3596,12 +3611,13 @@ echo '</body>';
                 <td><label>Deposit</label></td>
                 <td id="tenantdepositdiv">   
                 </td>
+            <tr>
+                <!-- name="depositrefundToPayReason" -->
+                <!-- name="depositrefundToPay" -->
+               <td><label for="">Deposit To Pay</label> </td> <td><input type="text" id="depositrefundToPay"  style="width:90%;"></td>
             </tr>
             <tr>
-               <td><label for="">Deposit To Pay</label> </td> <td><input type="text" id="depositrefundToPay" name="depositrefundToPay" style="width:90%;"></td>
-            </tr>
-            <tr>
-               <td><label for="">Refund Reason</label> </td> <td><input type="text" id="depositrefundToPayReason" name="depositrefundToPayReason" style="width:90%;"></td>
+               <td><label for="">Refund Reason</label> </td> <td><input type="text" id="depositrefundToPayReason"  style="width:90%;"></td>
             </tr>
             <tr>
                 <td><label>Refund date</label></td>

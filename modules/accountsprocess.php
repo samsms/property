@@ -627,6 +627,8 @@ elseif(isset ($_REQUEST['depositrefund'])){
      $tenantid=$_REQUEST['tenant_id'];
      $propid=$_REQUEST['propid'];
      $amount=$_REQUEST['amount'];
+     $payedRefund=$_REQUEST['payedRefund'];
+     $reasonForPayed=$_REQUEST['reasonForPayed'];
         $refunddate=$_REQUEST['refunddate'];
          $paymode=$_REQUEST['paymode'];
           $chequedate=$_REQUEST['chequedate'];
@@ -639,8 +641,10 @@ elseif(isset ($_REQUEST['depositrefund'])){
         $glcode3=$glaccountal['glcode'];
                 $period=getPeriodByDate($refunddate);
         $fperiod=$period['idclose_periods'];
-      
-    echo pay_refund($refunddate,$amount,$paymode,$glcode3,$chequedetails,$chequeno,$chequedate,$remarks,$tenantid,"deposit",$user,0,$fperiod,$isrefund=1,$recpno);      
+
+        // post to the database first
+    // echo actual_payed_refund($payedRefund,$reasonForPayed);
+    echo pay_refund($refunddate,$amount,$payedRefund,$reasonForPayed,$paymode,$glcode3,$chequedetails,$chequeno,$chequedate,$remarks,$tenantid,"deposit",$user,0,$fperiod,$isrefund=1,$recpno);      
          
 }
 
