@@ -25,7 +25,22 @@ date_default_timezone_set('Africa/Nairobi');
 $user =  getUserById($_SESSION['userid']);
 
 ?>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/js/select2.min.js" defer></script>
+ <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
 
+    <!-- ✅ load jQuery UI ✅ -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"
+      integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
 <script>
     $(function() {
         $("#menu").menu();
@@ -100,12 +115,12 @@ $user =  getUserById($_SESSION['userid']);
 
             tenantid = $("#tenantnameinvoice :selected").val();
             $("#balancebroughtforward").load("../modules/accountsprocess.php?getbalance=true&tenantid=" + tenantid);
-            rentamount = $("#tenantnameinvoice :selected").attr("id");
+            rentamount = $("#tenantnameinvoice :selected").attr("itd");
             //using the title attribute of element,appaend the rent amount to appropriate input box
             $("#lastreading").val($("#tenantnameinvoice :selected").attr("title")); //set last reading to title attribute of option selected
             aptid = $("#tenantnameinvoice :selected").attr("class"); //selected option value
             //get the rent value of selected apartnment
-            rent = $("#tenantnameinvoice :selected").attr("id");
+            rent = $("#tenantnameinvoice :selected").attr("itd");
             //assign to vat amount
             housevat = $("#housevat").val();
             if (isNaN(housevat)) {
@@ -255,6 +270,42 @@ $user =  getUserById($_SESSION['userid']);
                     });
             }
         });
+
+        // $(".tenantnameinvoice").ajaxComplete()
+        
+        // $(function () {
+        // var countriesList = ["Afghanistan", "Albania", "Algeria"]
+        // $(".tenantnameinvoice").autocomplete({ source: countriesList });
+        //     });
+      
+        $(document).ready(function(){
+            var arrayReturn=[]
+            var fakedata = ['test1','test2','test3','test4','ietsanders'];
+            $.ajax({
+                url:"https://jsonplaceholder.typicode.com/users",
+                async:true,
+                dataType:'json',
+                success:loadSuggestions(fakedata)
+
+                // function(data){
+                //     for(var i=0,len=data.length; i < len; i++){
+                //         var id =(data[i].id).toString()
+                //         arrayReturn.push({'value':data[i].name,'data':id})
+                //     }
+                //     loadSuggestions(arrayReturn);
+                // }
+            });
+            function loadSuggestions(options){
+                // options.autocompleteOptions.source = false;
+                $('#autocomplete').autocomplete({
+                    source:options,
+                    onselect:function(sugestion){
+                        $('#selected-options').html(sugestion.value)
+                    }
+                })
+            }
+          
+        })
 
         $("#btnenextinvoice").click(function(e) {
             e.preventDefault();
@@ -2216,11 +2267,23 @@ echo '</body>';
                         <input type="radio" name="billing" id="crnotebilling" value="1">Credit Note
                     </td>
                 </tr>
+              
+               
                 <tr>
+                    <script>
+                        $(document).ready(function() {
+                            $('.js-example-basic-single').select2();
+                        });
+                    </script>
+
+                        
                     <td><label for="usergroup">Tenant/Client Name &nbsp;</label></td>
-                    <td><select id='tenantnameinvoice' name='tenantnameinvoice' style="width:100%;">
+                    <td>
+                        <select class="js-example-basic-single" id='tenantnameinvoice' name='tenantnameinvoice' style="width:100%;">
                             <option selected="selected" value="">---</option>
-                            <?php findtenantbypropertyid($_SESSION['propertyid']) ?>
+                            <?php 
+                         
+                            findtenantbypropertyid($_SESSION['propertyid']) ?>
                         </select></td>
                 </tr>
                 <tr>
@@ -2655,7 +2718,7 @@ echo '</body>';
                         <td><label>&nbsp;&nbsp;No Penalty?</label></td>
                     </tr>
                     <tr>
-                        <td><select id='tenantnamereceipt' name='tenantnamereceipt' style="width:250px;">
+                        <td><select id='tenantnamereceipt' class="js-example-basic-single" name='tenantnamereceipt' style="width:250px;">
                                 <option selected="selected" value="">---</option>
                                 <?php findtenantbypropertyid($_SESSION['propertyid']) ?>
                             </select>

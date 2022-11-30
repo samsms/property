@@ -111,7 +111,11 @@ function countPendingPrepayments(){
 }
 function getAllPendingPrepayments(){
     $mysqli = getMysqliConnection();
-    $sql ="SELECT * FROM prepayments WHERE STATUS='pending'";
+    $sql ="SELECT pp.aptid,pp.`status`,p.property_name,p.address,p.owner,p.property_type,p.detailslink
+    FROM prepayments AS pp
+    LEFT JOIN properties AS p
+    ON  pp.propid=p.propertyid
+    WHERE pp.`status`='pending'";
     $count=$mysqli->query($sql) or die(mysqli_error($mysqli));
 
     while($row=$count->fetch_assoc()){
@@ -134,10 +138,11 @@ function AprovePrepayments($id){
 function reportPrepayment($prop_id,$apt_id){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
+   
     if($_SESSION['usergroup'] == 1){
 
-    $sql="insert into prepayments (`propid`,`aptid`,`date`,`status`) values
-    ($prop_id,'$apt_id','$date','Approved') ";
+    $sql="INSERT into prepayments (`propid`,`aptid`,`date`,`status`) 
+    values($prop_id,'$apt_id','$date','pending') ";
     $exits =$mysqli->query("select * from prepayments where propid=$prop_id and aptid='$apt_id'  and date='$date'") or die(mysqli_error($mysqli));
   //  die($sql);
   if(mysqli_num_rows($exits)<1){
@@ -3541,29 +3546,63 @@ function findtenantDetailsbyapt($aptid) {
     mysqli_close($mysqli);
 }
 
-function findtenantbypropertyid($propid) {
+function findtenantbypropertyid($propid=0) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "tenants";
     $tablename1 = "floorplan";
-//update tenants based on floorplan details
-    $floorplan = $db->query("SELECT $tablename1.apt_id,apt_tag from $tablename1 where propertyid='$propid' and tenant_id=0 ") or die($db->error());
-    while ($roww = mysql_fetch_array($floorplan)) {
-        $aptid = $roww['apt_id'];
-        $apttag = $roww['apt_tag'];
-        $db->query("UPDATE $tablename SET apartmentid='$aptid' WHERE Apartment_tag='$apttag' and property_id='$propid' and vacated=0  "); //update tenants
-    }
-//die("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE $tablename.property_id like '$propid' AND $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ");
-    $sql = $db->query("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE $tablename.property_id like '$propid' AND $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ") or die($db->error());
+if($propid!=0){
 
-    while ($row = mysql_fetch_array($sql)) {
-        $tenantid = $row['id'];
-        $houseno = $row['apt_tag'];
-        $monthrent = $row['monthlyincome'];
-        $unitsused = $row['current_water_reading'];
-        $aptid = $row['apartmentid'];
-        echo "<option value='$tenantid' id='" . $row['monthlyincome'] . "' title='$unitsused'class='$aptid' >" . htmlspecialchars($row['tenant_name']) . '&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) . "/-</option>";
+//update tenants based on floorplan details
+$floorplan = $db->query("SELECT $tablename1.apt_id,apt_tag from $tablename1 where propertyid='$propid' and tenant_id=0 ") or die($db->error());
+while ($roww = mysql_fetch_array($floorplan)) {
+    $aptid = $roww['apt_id'];
+    $apttag = $roww['apt_tag'];
+    $db->query("UPDATE $tablename SET apartmentid='$aptid' WHERE Apartment_tag='$apttag' and property_id='$propid' and vacated=0  "); //update tenants
+}
+// die("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE $tablename.property_id like '$propid' AND $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ");
+$sql = $db->query("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE $tablename.property_id like '$propid' AND $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ") or die($db->error());
+$i=0;
+while ($row = mysql_fetch_array($sql)) {
+    $tenantid = $row['id'];
+    $houseno = $row['apt_tag'];
+    $monthrent = $row['monthlyincome'];
+    $unitsused = $row['current_water_reading'];
+    $aptid = $row['apartmentid'];
+   echo "<option value='$tenantid' itd='" . $row['monthlyincome'] . "' title='$unitsused' class='$aptid' >" . htmlspecialchars($row['tenant_name']) . '&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) . "/-</option>";
+// die("dd");
+// $i++;
+
+// echo "<option value='$tenantid' itd='" . $row['monthlyincome'] . "' title='$unitsused' class='$aptid' >".htmlspecialchars($row['tenant_name']).'&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) ."</option>";
+}
+    
+    }else{
+        
+//update tenants based on floorplan details
+$floorplan = $db->query("SELECT $tablename1.apt_id,apt_tag from $tablename1 where propertyid='$propid' and tenant_id=0 ") or die($db->error());
+while ($roww = mysql_fetch_array($floorplan)) {
+    $aptid = $roww['apt_id'];
+    $apttag = $roww['apt_tag'];
+    $db->query("UPDATE $tablename SET apartmentid='$aptid' WHERE Apartment_tag='$apttag' and property_id='$propid' and vacated=0  "); //update tenants
+}
+// die("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE $tablename.property_id like '$propid' AND $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ");
+$sql = $db->query("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE  $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ") or die($db->error());
+$i=0;
+while ($row = mysql_fetch_array($sql)) {
+    $tenantid = $row['id'];
+    $houseno = $row['apt_tag'];
+    $monthrent = $row['monthlyincome'];
+    $unitsused = $row['current_water_reading'];
+    $aptid = $row['apartmentid'];
+   echo "<option value='$tenantid' itd='" . $row['monthlyincome'] . "' title='$unitsused' class='$aptid' >" . htmlspecialchars($row['tenant_name']) . '&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) . "/-</option>";
+// die("dd");
+// $i++;
+
+// echo "<option value='$tenantid' itd='" . $row['monthlyincome'] . "' title='$unitsused' class='$aptid' >".htmlspecialchars($row['tenant_name']).'&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) ."</option>";
+}
+
     }
+
     $db->close_connection();
 }
 
@@ -6398,8 +6437,20 @@ function printreceipt($receiptno, $user) {
             array_push($chargeablesamount,$item_amount);
             array_push($tableitems, '<tr><td></td><td style="color:black;" colspan="2">' . $item_name . '</u></td><td>Ksh:' . number_format($item_amount, 2) . '</td></tr>');
         }
-         //get outstanding balance/pre<tr><td></td><td style="color:black;" colspan="2">'payment
-        
+// here............
+        // $sql5 = $db->query("SELECT deposit_payed,reason FROM recptrans_deposit_refunded WHERE reciept_no='$receiptno'");
+
+    //      get outstanding balance/pre<tr><td></td><td style="color:black;" colspan="2">'payment
+        // while ($row4 =$db->fetch_array($sql5)) {
+        //     $propertyname = $row2['property_name'];
+        //     $deposit_payed = $row4['deposit_payed'];
+        //     $reason = $row4['reason'];
+            
+        //     array_push($payed_amount,$deposit_payed);
+        //     array_push($payed_amount,$reason);
+        // }
+    //    die(print_r($payed_amount));
+
         $balance=  getCorrectBalance($idno,$latestinvoice='0',$invoicedate);
         $settings=getSettings();
         
@@ -6510,6 +6561,7 @@ function printreceiptother($receiptno, $user) {
     $tablename3 = "invoiceitems";
     $invoicetable=  getInvoiceTable();
     $tableitems = [];
+    $payed_amount=[];
     $chargeablesamount=array();
     $sql = $db->query("SELECT * FROM $tablename WHERE `recpno` like '$receiptno'") or die($db->error());
     if ($db->num_rows($sql) > 0) {

@@ -19,19 +19,32 @@ date_default_timezone_set('Africa/Nairobi');
 $user =  getUserById($_SESSION['userid']);
 
 $pendingP=getAllPendingPrepayments();
-echo '    <fieldset style="width: 700px;margin:auto; panding:auto;border:#ffcc99 2px solid"class="myTable"><legend id="myTable"><b><h1>PENDING PREPAYMENTS</h1></b></legend>
+echo '    <fieldset style="width: 900px;margin:auto; panding:auto;border:#ffcc99 2px solid"class="myTable"><legend id="myTable"><b><h1>PENDING PREPAYMENTS</h1></b></legend>
+<table  class="myTable" style="background-color:beige;width: 900px;margin:auto; panding:auto; border-bottom: 1px solid coral;">
+<tr style="background-color:#e7e7e7;font-size: x-small;">
+    <td style="width: 20px;"><b>Apartment</b></td>
+    <td><b>Status</b></td>
+    <td><b>Property Name</b></td>
+    <td><b>Address</b></td>
+    <td><b>Owner</b></td>
+    <td><b>Property Type</b></td>
+    <td><b>Aprove</b></td>
+    </tr>
+    </table>
 ';
 foreach($pendingP as $pendingP){
     echo '
-    <table  class="myTable" style="background-color:beige;width: 700px;margin:auto; panding:auto; border-bottom: 1px solid coral;">
-
+    <table  class="myTable" style="background-color:beige;width: 900px;margin:auto; panding:auto; border-bottom: 1px solid coral;">
+    
     <tr style="background-color:#e7e7e7">
-      <td  id="pid">'.$pendingP['propid'].'</td> 
-      <td style="width: 200px;">'.$pendingP['aptid'].'</td> 
-      <td id="sid">'.$pendingP['status'].'</td> 
-      <td style="display:none">'.$pendingP['id'].'</td>
+      <td style="width: 50px;">'.$pendingP['aptid'].'</td> 
+      <td style="">'.$pendingP['status'].'</td> 
+      <td style="padding:0px 30px 0px 30px; margin:0">'.$pendingP['property_name'].'</td>
+      <td style="padding:0px 30px 0px 40px; margin:0">'.$pendingP['address'].'</td>
+      <td style="padding:0px 30px 0px 0px; margin:0;">'.$pendingP['owner'].'</td>
+      <td style="padding:0px 30px 0px 0px; margin:0;width: 130px;">'.$pendingP['property_type'].'</td>
      
-     <td> <button type="button" style="outline:none;border:none;background-color: #e7e7e7; color: black;" class="btnSelect btn btn-primary">Aprove</button></br></td>
+     <td style="width: 100px;"> <button type="button" style="outline:none;border:none;background-color: #e7e7e7; color: black; cusor:pointer" class="btnSelect btn btn-primary">Aprove</button></br></td>
     </tr>
   </thead>
   </table>
