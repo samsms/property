@@ -31,6 +31,7 @@ echo '    <fieldset style="width: 900px;margin:auto; panding:auto;border:#ffcc99
     <td><b>Aprove</b></td>
     </tr>
     </table>
+    
 ';
 foreach($pendingP as $pendingP){
     echo '
