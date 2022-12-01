@@ -1881,7 +1881,9 @@ $user =  getUserById($_SESSION['userid']);
             if ($("#tenantnamedeposit :selected").val() == "" || $("#tenantdeposits :selected").val() == "" || $('#depositrefunddate').val() == "" || $('#paymoderefund').val() == "") {
                 $("#validatebill").html("<font size='2' color='red'><center>All fields required!</center></font>");
             } else {
-               
+               var reciept_number =$("#tenantdeposits :selected").attr("title") 
+               alert(reciept_number)
+
                 $.ajax({
                         type: "POST",
                         contentType: "application/json; charset=utf-8",
@@ -1904,10 +1906,12 @@ $user =  getUserById($_SESSION['userid']);
 
 
                     .done(function(data) {
+                        console.log(data)
+                        
                         $("#validatebill").html("<font size='2' color='green'><center>Voucher<u>" + data.status + "</u> Created</center></font>");
                         alert("Voucher " + data.status + " Created");
                         if (data.count <= 1) {
-                            window.open("../modules/defaultreports.php?report=printdepositvoucher&voucherno=" + data.status + "&tenant=" + data.tenant + "&propid=" + <?php echo $_SESSION['propertyid'] ?> + "&user=" + <?php echo $_SESSION['userid'] ?>);
+                            window.open("../modules/defaultreports.php?report=printdepositvoucher&voucherno=" + data.status + "&tenant=" + data.tenant + "&propid=" + <?php echo $_SESSION['propertyid'] ?> +"&reciept_no=" + data.reciept_no + "&user=" + <?php echo $_SESSION['userid'] ?>);
                         }
                         $('#depositrefundform')[0].reset();
 
@@ -3799,6 +3803,8 @@ echo '</body>';
         </fieldset>
     </form>
 </div>
+
+
 <!--payments list Commissions-->
 <div id="commissionswindow" class="internalwindow normalwindow displaynone" title="">
     <p class="titletr">Commissions<a href="#" class="closewindow" style="float:right">Close [X]</a></p>

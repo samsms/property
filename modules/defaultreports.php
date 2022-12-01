@@ -884,8 +884,9 @@ elseif ($reportpost == 'penalties') {
     $propid = htmlspecialchars($_REQUEST['propid']);
     $tenant = htmlspecialchars($_REQUEST['tenant']);
     $user = htmlspecialchars($_REQUEST['user']);
-
-    echo printdepositvoucher($payno, $propid, $user, $tenant);
+    $reciept_no=htmlspecialchars($_REQUEST['reciept_no']);
+    
+    echo printdepositvoucher($payno, $propid, $user, $tenant,$reciept_no);
 } elseif ($reportpost == 'paymentslist') {
     $startdate = htmlspecialchars($_REQUEST['startdate']);
     $enddate = htmlspecialchars($_REQUEST['enddate']);

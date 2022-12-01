@@ -8927,6 +8927,7 @@ function pay_refund($billdate, $payamount,$payedRefund,$reasonForPayed, $paymode
     $response_array['tenant'] = $supp_id;
     $response_array['count'] = 0;
     $response_array['status'] = $payno;
+    $response_array['reciept_no'] = $recpno;
 
     echo json_encode($response_array);
 
@@ -9037,7 +9038,10 @@ function getDepositRefundList($startdate, $enddate, $propid) {
 //get payment ledger
 
 
-function printdepositvoucher($payno, $propid, $user, $tenantid) {
+
+
+
+function printdepositvoucher($payno, $propid, $user, $tenantid,$reciept_no) {
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/Nairobi');
     $date = date("d/m/y");
@@ -9046,6 +9050,7 @@ function printdepositvoucher($payno, $propid, $user, $tenantid) {
     $tablename = "paytrans";
     $tablename1 = "bkaccounts";
     $tablename2 = "bills";
+    $tablename3="recptrans_deposit_refunded";
     $tableitems = [];
     $sql = $db->query("SELECT * FROM $tablename WHERE `payno` like '$payno'") or die(mysql_error());
     if (mysql_numrows($sql) > 0) {
@@ -9084,14 +9089,24 @@ function printdepositvoucher($payno, $propid, $user, $tenantid) {
     }
     $settings = getSettings();
     $tenant = getTenantDetails($tenantid);
+
+    $sql4= $db->query("SELECT * FROM $tablename3 where `reciept_no`=$reciept_no ");
+    while($row4= mysql_fetch_array($sql4)){
+        $amount_refunded=$row4['deposit_payed'];
+        $reason_for_amount=$row4['reason'];
+    }
     echo '<center><table class="printable" style="width:800px;"><div id="printheader">
         <tr><td colspan="3" ><span id="copy"></span><center><h2>' . $settings['company_name'] . '</h2></center></td></tr>
         <tr><td colspan="3" ><span id="copy"></span><center><span id="invoice">PAYMENT VOUCHER</span></center></td></tr>
 </div>';
     echo '<tr><td style="width:50%"><span id="invoiceno">PAYMENT NO&nbsp;' . $payno . '</span></td><td colspan="3">Date  ' . date('d-m-Y', strtotime($paydate)) . '</td><td></td></tr>';
     echo '<tr><td colspan="3"><br/><td></tr>';
-    echo '<tr><td style="width:50%"><b>CREDITOR :&nbsp;</b> ' . ucwords($tenant['name']) . '<br/><br/><b>PAYER: </b>' . $settings['company_name'] . '</td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td></tr>';
-    echo '<tr><td colspan="1"></td><td><b>Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
+    echo '<tr><td style="width:50%"><b>CREDITOR :&nbsp;</b> ' . ucwords($tenant['name']) . '<br/><br/><b>PAYER: </b>' . $settings['company_name'] 
+    . '</tr>';
+    echo '<tr></td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td>'
+    . '</td><td><b>PAYED AMOUNT: Kshs ' . number_format($amount_refunded, 2) . '</b></td></tr>';
+    echo '<tr><td colspan="1"></td><td> <b></br>INITIAL DEPOSIT: Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
+    echo '<tr><td colspan="1"></td><td> <b>PAYED DEPOSIT: Ksh&nbsp;' . convert_number_to_words($amount_refunded) . ' only</b></td></tr>';
     echo '<tr><td width="50%" style="font-size:11px;color:grey"><b>being payment for: </b>' . @$rmks . '</td></tr>';
     echo '<tr><td width="80%" style="font-size:11px;color:grey">' . @$chequecash . '&nbsp;|&nbsp;' . @$chequeno1 . '&nbsp;' . @$chequedate1 . '&nbsp;&nbsp;' . @$chqdate . '</td></tr>';
     echo '<tr><td colspan="3"><hr/>Authorised by.......................................................................................</td></tr>';
