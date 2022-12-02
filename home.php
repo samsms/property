@@ -281,7 +281,6 @@ if ($_SESSION['usergroup'] == 1)
 
   </tr>
   ';}
-  // die("..........................................");
 
 
   if ($_SESSION['usergroup'] == 1) {echo'
