@@ -37,8 +37,9 @@ foreach($pendingP as $pendingP){
     <table  class="myTable" style="background-color:beige;width: 900px;margin:auto; panding:auto; border-bottom: 1px solid coral;">
     
     <tr style="background-color:#e7e7e7">
-      <td style="width: 50px;">'.$pendingP['aptid'].'</td> 
-      <td style="">'.$pendingP['status'].'</td> 
+    <td style="display:none">'.$pendingP['id'].'</td> 
+    <td style="width: 50px;">'.$pendingP['aptid'].'</td> 
+    <td style="">'.$pendingP['status'].'</td> 
       <td style="padding:0px 30px 0px 30px; margin:0">'.$pendingP['property_name'].'</td>
       <td style="padding:0px 30px 0px 40px; margin:0">'.$pendingP['address'].'</td>
       <td style="padding:0px 30px 0px 0px; margin:0;">'.$pendingP['owner'].'</td>
@@ -66,8 +67,8 @@ $(".myTable").on('click','.btnSelect',function(){
          
     if(col1){
             
-            var jqxhrpost = $.get("../modules/accountsprocess.php?ApprovethisPrepayment=true&ApprovethisPrep="+col4, function() {
-
+            var jqxhrpost = $.get("../modules/accountsprocess.php?ApprovethisPrepayment=true&ApprovethisPrep="+col1, function() {
+              console.log(col1)
             })
             .done(function(data) {
             // alert(data.msg);

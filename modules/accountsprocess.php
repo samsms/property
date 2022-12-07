@@ -33,6 +33,8 @@ else if($_REQUEST['report_prepayment']){
 else if($_REQUEST['ApprovethisPrepayment']){
     $pid =$_REQUEST['ApprovethisPrep'];
     $msg=AprovePrepayments($pid);
+    // echo "ttttttttttt".$msg;
+    // die();
     echo json_encode(array("success"=>true,"msg"=>$msg));
    
 }

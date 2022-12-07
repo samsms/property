@@ -113,7 +113,7 @@ function countPendingPrepayments(){
 }
 function getAllPendingPrepayments(){
     $mysqli = getMysqliConnection();
-    $sql ="SELECT pp.aptid,pp.`status`,p.property_name,p.address,p.owner,p.property_type,p.detailslink
+    $sql ="SELECT pp.id,pp.aptid,pp.`status`,p.property_name,p.address,p.owner,p.property_type,p.detailslink
     FROM prepayments AS pp
     LEFT JOIN properties AS p
     ON  pp.propid=p.propertyid
@@ -127,6 +127,7 @@ function getAllPendingPrepayments(){
     // return $count->fetch_assoc();
 }
 function AprovePrepayments($id){
+    // die("rrrrrrrr".$id);
     $mysqli = getMysqliConnection();
     $sql ="UPDATE prepayments SET STATUS='Approved'
     WHERE id=$id";
