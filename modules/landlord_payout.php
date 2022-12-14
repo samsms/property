@@ -120,6 +120,7 @@ $(".exportlist").table2excel({
 <?php 
 
 $data=json_decode(payout_list());
+print_r($data);
 foreach ($data as $dt){
    // echo(  die($dt->propertyid));
 ?>

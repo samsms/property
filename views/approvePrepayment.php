@@ -17,6 +17,7 @@ $admin = '' . $_SESSION['username'] . '';
 date_default_timezone_set('Africa/Nairobi');
 
 $user =  getUserById($_SESSION['userid']);
+echo'<h2><a style="color:black;" href="../home.php"><<<< Back Home</a></h2>';
 
 $pendingP=getAllPendingPrepayments();
 echo '    <fieldset style="width: 900px;margin:auto; panding:auto;border:#ffcc99 2px solid"class="myTable"><legend id="myTable"><b><h1>PENDING PREPAYMENTS</h1></b></legend>
@@ -44,8 +45,7 @@ foreach($pendingP as $pendingP){
       <td style="padding:0px 30px 0px 40px; margin:0">'.$pendingP['address'].'</td>
       <td style="padding:0px 30px 0px 0px; margin:0;">'.$pendingP['owner'].'</td>
       <td style="padding:0px 30px 0px 0px; margin:0;width: 130px;">'.$pendingP['property_type'].'</td>
-     
-     <td style="width: 100px;"> <button type="button" style="outline:none;border:none;background-color: #e7e7e7; color: black; cusor:pointer" class="btnSelect btn btn-primary">Aprove</button></br></td>
+     <td style="width: 100px;"> <button type="button" style="outline:none;border:none;background-color: #e7e7e7; color: black; cusor:pointer" class="btnSelect btn btn-primary">Approve</button></br></td>
     </tr>
   </thead>
   </table>

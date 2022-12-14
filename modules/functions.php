@@ -275,6 +275,7 @@ function payout_list(){
 while($ln=$list->fetch_assoc()){
     $lists[]=$ln;
 }
+// die($lists);
    return json_encode($lists);
    
     //$total=$mysqli->query("SELECT sum(monthlyincome) FROM `floorplan` WHERE `propertyid`=339 and isoccupied=0");

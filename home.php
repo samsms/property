@@ -5,6 +5,9 @@ include 'views/display.php';
 
 include  'modules/functions.php';
 // unset($landlord);
+if(!isset($_SESSION['usergroup'])){
+  header('Location:index.php');
+}
 
 $_SESSION['timestamp'] = time();
 echo  $htmlheaders;
@@ -303,7 +306,7 @@ if ($_SESSION['usergroup'] == 1)
     </td>
     <td>' . str_repeat("&nbsp;", 10) . '</td>
     <td width=60%>
-   <a href="modules/landlord_payout_cumulated.php" class="button big green">
+   <a href="modules/landlord_payout_cumilated.php" class="button big green">
    </br>Cummilated Payout   <br>
     ' . (json_decode(total_accumilated())->number) . ' Landlords<br/>
  

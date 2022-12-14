@@ -94,20 +94,24 @@ $(".exportlist").table2excel({
 
 </head>
 <body oncontextmenu="return false">
-<div id="formreport">
-    <a href="#" id="printnow" class="print" rel="reportsdiv">Print</a>
+
+<div style="float: right;" class="navbtns">
+<a href="#" id="printnow" class="print" rel="reportsdiv">Print</a>
     <a href="#" class="addbutton" style="float:right !important" id="export">
 
-</a><a href="../home.php"  >Close</a>
+</a><a  href="../home.php"  >Close</a>
+</div>
+<div id="formreport">
+ 
 <div id="reportsdiv"><u>
 
 </u>
-<table class="treport1 width70">
+<fieldset style="width: 900px;margin:auto; padding:auto;border:#ffcc99 2px solid"class="myTable"><legend id="myTable"><b><h1>PENDING PREPAYMENTS</h1></b></legend>
+<table class="treport1 width70" style=" width: 80%; margin: 0; float: left;">
     <thead>
 <tr>
     <td colspan="14">
         <center><span style="font-size:15px;font-weight:normal;float:left;">
-         <b>Landlord Payment List</b>
         </span>
         <span style="font-size:18px;font-weight:bold">Rivercourt Property Management</span>
         <span style="font-size:18px;font-weight:normal; float:right;"></span>
@@ -115,16 +119,17 @@ $(".exportlist").table2excel({
 <br>
 
 <span style="font-size:16px;font-weight:normal;">
-<centreceiptlier>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Payment List</b></centreceiptlier></span></center></center></td></tr>
+<centreceiptlier>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Payment List</b></centreceiptlier></span></center></center></td></tr>
 <tr><th>Property Name</th><th>Amount</th><th>Pay date</th> </thead><tbody>
 <?php 
 
 $data=json_decode(payout_list_cumilated());
+
 foreach ($data as $dt){
   // echo(  die(print_r($dt)));
 ?>
 <tr>
-        <td><?php echo($dt->property_name); ?></td>
+        <td style=" padding-left:240px;padding-right:0px;"><?php echo($dt->property_name); ?></td>
         
         <td><?php echo $dt->amount; ?></td>
         <td><?php echo $dt->pay_day; ?></td>
