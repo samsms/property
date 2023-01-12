@@ -22,38 +22,45 @@ echo'<h2><a style="color:black;" href="../home.php"><<<< Back Home</a></h2>';
 $pendingP=getAllPendingPrepayments();
 echo '    <fieldset style="width: 900px;margin:auto; panding:auto;border:#ffcc99 2px solid"class="myTable"><legend id="myTable"><b><h1>PENDING PREPAYMENTS</h1></b></legend>
 <table  class="myTable" style="background-color:beige;width: 900px;margin:auto; panding:auto; border-bottom: 1px solid coral;">
-<tr style="background-color:#e7e7e7;font-size: x-small;">
+<tr style="background-color:#e7e7e7;font-size: small;">
+<td style="width: 20px;"><b>Property</b></td>
     <td style="width: 20px;"><b>Apartment</b></td>
-    <td><b>Status</b></td>
-    <td><b>Property Name</b></td>
-    <td><b>Address</b></td>
-    <td><b>Owner</b></td>
+  
+    <td><b>Tenant Name</b></td>
+
+    <td><b>Amount</b></td>
     <td><b>Property Type</b></td>
     <td><b>Aprove</b></td>
     </tr>
-    </table>
-';
-foreach($pendingP as $pendingP){
-    echo '
-    <table  class="myTable" style="background-color:beige;width: 900px;margin:auto; panding:auto; border-bottom: 1px solid coral;">
     
-    <tr style="background-color:#e7e7e7">
+';
+
+foreach($pendingP as $pendingP){
+  $tenant=getTenantDetailsFromRow($pendingP['tenantid']);
+  // echo json_encode($tenant);
+    echo '
+   
+    <tr style="background-color:white;font-size: small;">
+    
     <td style="display:none">'.$pendingP['id'].'</td> 
-    <td style="width: 50px;">'.$pendingP['aptid'].'</td> 
-    <td style="">'.$pendingP['status'].'</td> 
-      <td style="padding:0px 30px 0px 30px; margin:0">'.$pendingP['property_name'].'</td>
-      <td style="padding:0px 30px 0px 40px; margin:0">'.$pendingP['address'].'</td>
-      <td style="padding:0px 30px 0px 0px; margin:0;">'.$pendingP['owner'].'</td>
-      <td style="padding:0px 30px 0px 0px; margin:0;width: 130px;">'.$pendingP['property_type'].'</td>
+    <td >'.($tenant['property_name']).'</td> 
+    <td >'.($tenant['Apartment_tag']).'</td> 
+    <td >'.($tenant['tenant_name']).'</td> 
+
+      <td >'.$pendingP['amount'].'</td>
+      <td >'.$pendingP['property_type'].'</td>
      <td style="width: 100px;"> <button type="button" style="outline:none;border:none;background-color: #e7e7e7; color: black; cusor:pointer" class="btnSelect btn btn-primary">Approve</button></br></td>
-    </tr>
+     <td style="width: 100px;"> <button type="button" style="outline:none;border:none;background-color: #e7e7e7; color: black; cusor:pointer" class="btnSelect btn btn-primary">Cancel</button></br></td>
+   
+     </tr>
   </thead>
-  </table>
+
   ';
 }
 
 
 ?>
+  </table>
 <script>
 
 $(".myTable").on('click','.btnSelect',function(){

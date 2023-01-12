@@ -116,7 +116,20 @@ $(".exportlist").table2excel({
 
 <span style="font-size:16px;font-weight:normal;">
 <centreceiptlier>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pending Receipts</b></centreceiptlier></span></center></center></td></tr>
-<tr><th>Tenant Id</th><th>Name</th><th>Amount</th> <th>Date</th><th>Paymode</th><th>Remarks</th><th>Approve</th><th><Cancel</th></thead><tbody>
+<tr>
+   
+    <th>Plot Name</th>
+    <th>House Number</th>
+  
+    <th> Tenant Name</th>
+    <th>Amount</th> 
+    <th>Date</th>
+    <th>Paymode</th>
+    <th>Remarks</th>
+    <th>Approve</th>
+    <th><Cancel</th>
+</thead>
+<tbody>
 <?php 
 $data=getTempReceipts();
 if($data->count>0){
@@ -154,8 +167,9 @@ $tenant=getTenantDetailsFromRow($entry->tenantid);
     }
 </script> 
 <tr>
-        
-        <td><?php echo($entry->tenantid); ?></td>
+        <td><?php echo propertyname($entry->propid); ?></td>
+        <td><?php echo ($tenant['Apartment_tag']); ?></td>
+        <!-- <td><?php //echo($entry->tenantid); ?></td> -->
         <td><?php echo ($tenant['tenant_name']); ?></td>
         <td><?php echo array_sum(json_decode($entry->recpamountarray)); ?></td>
         <td><?php echo date($entry->receiptdate); ?></td>
@@ -169,4 +183,5 @@ $tenant=getTenantDetailsFromRow($entry->tenantid);
 ?>
     </tbody>
 </table>
-   </body></html>
+   </body>
+   </html>

@@ -25,7 +25,9 @@ else if($_REQUEST['report_prepayment']){
     header("content-type:application/json");
     $propid=$_SESSION['propertyid'] ;
     $apartment= ($_REQUEST['id']);
-    $msg=reportPrepayment($propid,$apartment);
+    $amount= ($_REQUEST['amount']);
+    $tenant=($_REQUEST['amount']);
+    $msg=reportPrepayment($propid,$apartment,$amount);
    echo json_encode(array("success"=>true,"msg"=>$msg));
 }
 // .......pending
