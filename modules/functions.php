@@ -148,7 +148,7 @@ function reportPrepayment($prop_id,$tenantid,$amount){
 
     $sql="INSERT into prepayments (`propid`,`tenantid`,`date`,`status`,amount) 
     values($prop_id,'$tenantid','$date','pending','$amount') ";
-    $exits =$mysqli->query("select * from prepayments where propid=$prop_id and tenantid='$apt_id'  and date='$date'") or die(mysqli_error($mysqli));
+    $exits =$mysqli->query("select * from prepayments where propid=$prop_id and tenantid='$tenantid'  and date='$date'") or die(mysqli_error($mysqli));
   //  die($sql);
   if(mysqli_num_rows($exits)<1){
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
