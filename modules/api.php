@@ -268,7 +268,7 @@ else if($resource=="login"&&isset($_GET['username'])&&isset($_GET['password']))
 	
 	$result= generete_data("SELECT * FROM `accesslevels` WHERE (`username` = '$username' AND `password` = '$password')");
 	if($result['success']){
-		die(print_r($result));
+		//die(print_r($result));
 		$token=base64_encode(json_encode(array("username"=>$username,"password"=>"$password")));
 		echo json_encode(array("success"=>true,"token"=>base64_encode($token)));
 		//array("success"=>true,""=>));
