@@ -2179,6 +2179,17 @@ function deletefloorplan($rows) {
     } return TRUE;
     $db->close_connection();
 }
+function disablefloorplan($rows) {
+    $db = new MySQLDatabase();
+    $db->open_connection();
+    $aptid = $rows['apt_id'];
+    $sql = "update floorplan set status='disabled' WHERE apt_id='$aptid' ";
+
+    if (!$db->query($sql)) {
+        return FALSE;
+    } return TRUE;
+    $db->close_connection();
+}
 
 //load deposits
 function getDeposits($aptid) {
