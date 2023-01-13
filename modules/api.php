@@ -9,7 +9,7 @@ $user=null;
 // ini_set('error_reporting', 1);
 //
 if (!(isset($_GET["resource"]) && $_GET["resource"] == "login")) {
-    $user=authorize();
+    $user=authorize()->data[0];
 }
 
 function error() {
@@ -26,7 +26,7 @@ function authorize() {
         die(json_encode($result));
         //array("success"=>true,""=>));
     } else {
-        return json_decode(json_encode($result[0]));
+        return json_decode(json_encode($result));
     }
 }
 
@@ -74,13 +74,13 @@ function execute($sql) {
 }
 
 if ($resource == "propertie") {
-    die($user->data->agent_id);
+  //die();
     echo json_encode(generete_data("SELECT *,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid ) as  total_houses,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1) as  occupied ,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=0) as  vaccant
 	 from agentproperty a inner join properties p on p.propertyid=a.property_id  
-	where a.agent_id=4"));
+	where a.agent_id="+$user->agent_id));
 } else if ($resource == "properties") {
     $startdate = date("Y-m-01");
     $enddate = date("Y-m-t");
