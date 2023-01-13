@@ -74,13 +74,13 @@ function execute($sql) {
 }
 
 if ($resource == "propertie") {
-  //die();
+
     echo json_encode(generete_data("SELECT *,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid ) as  total_houses,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1) as  occupied ,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=0) as  vaccant
 	 from agentproperty a inner join properties p on p.propertyid=a.property_id  
-	where a.agent_id="+$user->agent_id));
+	where a.agent_id=".$user->agent_id));
 } else if ($resource == "properties") {
     $startdate = date("Y-m-01");
     $enddate = date("Y-m-t");
@@ -92,7 +92,7 @@ if ($resource == "propertie") {
 	 as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans
 	  WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND invoicedate between 
 	  '$startdate' AND '$enddate' )x group by x.idno) prop join agentproperty a on a.property_id=prop.property_id
-	   join properties p on p.propertyid=prop.property_id  group by prop.property_id order by bal desc  "));
+	   join properties p on p.propertyid=prop.property_id where a.agent_id='$user->agent_id'  group by prop.property_id order by bal desc  "));
 } else if ($resource == "tenants" && isset($_GET['property_id'])) {
 
     echo json_encode(generete_data("SELECT * FROM `tenants` WHERE `property_id`=$prop_id"));
