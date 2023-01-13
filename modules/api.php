@@ -74,7 +74,7 @@ function execute($sql) {
 }
 
 if ($resource == "propertie") {
-    die($user);
+    die(json_encode($user));
     echo json_encode(generete_data("SELECT *,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid ) as  total_houses,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1) as  occupied ,
