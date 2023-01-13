@@ -68,7 +68,14 @@ else if($_REQUEST["deletefloorplan"]){
     echo json_encode($responsearray);
 
 }
+else if($_REQUEST["disable"]){
+    $floordetails=array("apt_id"=>strip_tags($_REQUEST["apt_id"]));
+    header('Content-type: application/json');
+    $result=disablefloorplan($floordetails);
+    $responsearray['status']=$result;
+    echo json_encode($responsearray);
 
+}
 else if($_REQUEST["deposits"]){
     $aptid=strip_tags($_REQUEST["apt_id"]);
   $deposits=getDeposits($aptid);

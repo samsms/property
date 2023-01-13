@@ -1,6 +1,8 @@
+
 <?php
+
 if($_SERVER['REMOTE_ADDR']=="::1"&&$_SERVER['REMOTE_ADDR']=="127.0.0.1"){
-die("dd");
+
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 error_reporting(-1);
@@ -88,7 +90,7 @@ function getPrepayment($prop_id){
 //    die('ddk');
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
-    $exits =$mysqli->query("select * from prepayments p  join floorplan f on(p.aptid=f.apt_id) where p.propid=$prop_id   and MONTH(p.date)=MONTH('$date') AND YEAR(p.date)=YEAR('$date') ") or die(mysqli_error($mysqli));
+    $exits =$mysqli->query("select * from prepayments p  join floorplan f on(p.aptid=f.apt_id) where p.status='Approved' and p.propid=$prop_id   and MONTH(p.date)=MONTH('$date') AND YEAR(p.date)=YEAR('$date') ") or die(mysqli_error($mysqli));
   //  die($sql);
   if(mysqli_num_rows($exits)<1){
     //$query =$mysqli->query($sql) or die(mysqli_error($mysqli));
@@ -113,7 +115,7 @@ function countPendingPrepayments(){
 }
 function getAllPendingPrepayments(){
     $mysqli = getMysqliConnection();
-    $sql ="SELECT pp.id,pp.aptid,pp.`status`,p.property_name,p.address,p.owner,p.property_type,p.detailslink
+    $sql ="SELECT *
     FROM prepayments AS pp
     LEFT JOIN properties AS p
     ON  pp.propid=p.propertyid
@@ -138,15 +140,15 @@ function AprovePrepayments($id){
         return 'not updated';
     }
 }
-function reportPrepayment($prop_id,$apt_id){
+function reportPrepayment($prop_id,$tenantid,$amount){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
    
     if($_SESSION['usergroup'] == 1){
 
-    $sql="INSERT into prepayments (`propid`,`aptid`,`date`,`status`) 
-    values($prop_id,'$apt_id','$date','pending') ";
-    $exits =$mysqli->query("select * from prepayments where propid=$prop_id and aptid='$apt_id'  and date='$date'") or die(mysqli_error($mysqli));
+    $sql="INSERT into prepayments (`propid`,`tenantid`,`date`,`status`,amount) 
+    values($prop_id,'$tenantid','$date','pending','$amount') ";
+    $exits =$mysqli->query("select * from prepayments where propid=$prop_id and tenantid='$tenantid'  and date='$date'") or die(mysqli_error($mysqli));
   //  die($sql);
   if(mysqli_num_rows($exits)<1){
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
@@ -158,9 +160,9 @@ function reportPrepayment($prop_id,$apt_id){
 
     }else{
 
-    $sql="insert into prepayments (`propid`,`aptid`,`date`) values
+    $sql="insert into prepayments (`propid`,`tenantid`,`date`) values
     ($prop_id,'$apt_id','$date') ";
-    $exits =$mysqli->query("select * from prepayments where propid=$prop_id and aptid='$apt_id'  and date='$date'") or die(mysqli_error($mysqli));
+    $exits =$mysqli->query("select * from prepayments where propid=$prop_id and tenantid='$tenantid'  and date='$date'") or die(mysqli_error($mysqli));
   //  die($sql);
   if(mysqli_num_rows($exits)<1){
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
@@ -2171,6 +2173,17 @@ function deletefloorplan($rows) {
     $db->open_connection();
     $aptid = $rows['apt_id'];
     $sql = "DELETE FROM floorplan WHERE apt_id='$aptid' ";
+
+    if (!$db->query($sql)) {
+        return FALSE;
+    } return TRUE;
+    $db->close_connection();
+}
+function disablefloorplan($rows) {
+    $db = new MySQLDatabase();
+    $db->open_connection();
+    $aptid = $rows['apt_id'];
+    $sql = "update floorplan set status='disabled' WHERE apt_id='$aptid' ";
 
     if (!$db->query($sql)) {
         return FALSE;

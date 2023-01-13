@@ -1239,7 +1239,7 @@ $user =  getUserById($_SESSION['userid']);
         //     return false
          if($("#prepayment-select option:selected").text()!="Select Apartment"){
             
-            var jqxhrpost = $.get("../modules/accountsprocess.php?report_prepayment=true&id=" + $("#prepayment-select option:selected").text(), function() {
+            var jqxhrpost = $.get("../modules/accountsprocess.php?report_prepayment=true&id=" + $("#prepayment-select option:selected").val()+"&amount="+ $("#preamount").val(), function() {
 
             })
             .done(function(data) {
@@ -3070,20 +3070,25 @@ echo '</body>';
                     <td><select id='prepayment-select' name='prepayment' style="width:250px;">
                             <option selected="selected" value="">Select Apartment</option>
                             <?php //find($_SESSION['propertyid']) 
-                            $apt = getPropertyApartments($_SESSION['propertyid']);
-                            //  print_r($apt);
-                            foreach ($apt as $ap) {
-                                $apt_tag = $ap['apt_tag'];
-                                $apt_id = $ap['apt_id'];
-                                echo "<option value='$apt_id'>$apt_tag</option>";
-                            }
+                        findtenantbypropertyid($_SESSION['propertyid']);
+                            // $apt = getPropertyApartments($_SESSION['propertyid']);
+                            // //  print_r($apt);
+                            // foreach ($apt as $ap) {
+                            //     $apt_tag = $ap['apt_tag'];
+                            //     $apt_id = $ap['apt_id'];
+                            //     echo "<option value='$apt_id'>$apt_tag</option>";
+                            // }
 
                             ?>
-                        </select></td>
+                        </select>
+                    </td>
                 </tr>
-
+                
                 <tr>
                     <td><br></td>
+                </tr>
+                <tr>
+                    <td>Prepayment Amount</td><td colspan="2"><input id="preamount" type="text" name="amount" placeholder="Prepayment Amount"></td>
                 </tr>
                 <tr>
                     <td><br></td>
