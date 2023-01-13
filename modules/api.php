@@ -26,7 +26,7 @@ function authorize() {
         die(json_encode($result));
         //array("success"=>true,""=>));
     } else {
-        return $result;
+        return json_decode(json_encode($result[0]));
     }
 }
 
@@ -74,7 +74,7 @@ function execute($sql) {
 }
 
 if ($resource == "propertie") {
-    die(json_encode($user));
+    die($user->data->agent_id);
     echo json_encode(generete_data("SELECT *,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid ) as  total_houses,
 	(select count(*) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1) as  occupied ,
