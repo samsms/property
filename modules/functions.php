@@ -90,7 +90,7 @@ function getPrepayment($prop_id){
 //    die('ddk');
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
-    $exits =$mysqli->query("select * from prepayments p  join floorplan f on(p.aptid=f.apt_id) where p.propid=$prop_id   and MONTH(p.date)=MONTH('$date') AND YEAR(p.date)=YEAR('$date') ") or die(mysqli_error($mysqli));
+    $exits =$mysqli->query("select * from prepayments p  join floorplan f on(p.aptid=f.apt_id) where p.status='Approved' and p.propid=$prop_id   and MONTH(p.date)=MONTH('$date') AND YEAR(p.date)=YEAR('$date') ") or die(mysqli_error($mysqli));
   //  die($sql);
   if(mysqli_num_rows($exits)<1){
     //$query =$mysqli->query($sql) or die(mysqli_error($mysqli));

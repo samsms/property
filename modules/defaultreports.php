@@ -234,7 +234,7 @@ elseif ($reportpost === 'landlordstatement') {
                 }
             }
             $rent_amount = $plan['monthlyincome'];
-            if ($plan['isoccupied'] == 1) {
+            if ($plan['isoccupied'] == 1&& $plan["status"]!="disabled") {
                 array_push($rent, $plan['monthlyincome']);
                     $tenant_invoice=$expected_rent1["$tenantid"];
                     //die(print_r($tenant_invoice));

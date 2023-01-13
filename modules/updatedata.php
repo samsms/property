@@ -289,7 +289,7 @@ $propertyid = $_SESSION['propertyid'];
                 data: myData,
                 success: function (data) {
                     if (data.status == true) {
-                        alert('disable');
+                        alert('disabled successfully');
                         $("#disablefloor").dialog("close");
                         reload_table();
                     }
