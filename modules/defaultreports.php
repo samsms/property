@@ -245,7 +245,8 @@ elseif ($reportpost === 'landlordstatement') {
                  implode(",", $dates) . '</td><td>' . @implode(",", $recpnos) . '</td>';
             } else {
                 echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>-</td><td>' . implode(",", $dates) . '</td><td>' . @implode(",", $recpnos) . '</td>';
-            }
+           
+                }
             $receipts =  getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']);
             //$invoice=  getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']) ;//
 
