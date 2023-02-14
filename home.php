@@ -5,6 +5,8 @@ include 'views/display.php';
 
 include  'modules/functions.php';
 // unset($landlord);
+
+
 if(!isset($_SESSION['usergroup'])){
   header('Location:index.php');
 }
@@ -316,6 +318,14 @@ if ($_SESSION['usergroup'] == 1)
   </a>
     </td>
     
+ </tr>
+ <tr>
+ <td>
+  <a href="views/approveTenants.php" id="Aprovetenants" class="button big blue "></br>Approve tenants
+ '.json_decode(countPendingtenants()).
+ ' </br> </a>
+    </td>
+    <td>' . str_repeat("&nbsp;", 10) . '</td>
  </tr>
  ';
   } else {

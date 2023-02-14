@@ -2885,6 +2885,47 @@ function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, 
     $leasestart = date('Y-m-d',strtotime($leasestart));
     $leaseend = date('Y-m-d',strtotime($leaseend));
     $photopath = '<img src="../images/tenantphotos/' . $photo . '" width="50" height="50"/>';
+
+    if(isset($_GET['id'])){
+        $id=$_GET['id'];
+        $sql3="UPDATE pending_tenants SET STATUS = 'Approved'WHERE id =$id";
+        if (!$db->query($sql3)) {
+            die($db->error());
+            return FALSE;
+        }
+        else{
+            $db->query($sql3) or die($db->error());
+            echo('done');
+        }
+        if (isset($agentname)) {
+            $queryresult = $db->query("SELECT agentid FROM agents WHERE agentname like '$agentname'"); //set agentid 
+            while ($row = mysql_fetch_array($queryresult)) {
+                $agentid = $row['agentid'];
+            }
+        }
+        
+        $sql0 = "INSERT INTO $table1 (apartmentid,Apartment_tag,property_id,property_name,tenant_name,tenantphone,tenantemail,tenantphoto,tenantpin,workplace,idno,fromdate,todate,leasedoc,agentid,physcaladdress,postaladdress,kins_name,kinstel,kinsemail,regdate)VALUES
+        ('$aptid','$aptname','$propertyid','$propertyname','$name','$phone','$email','$photopath','$pin','$work','$idno','$leasestart','$leaseend','<a href=\"$docpath$leasedoc\" target=\"_blank\">lease Document</a>','$agentid','$physcaddress','$postaddress','$kinsname','$kinstel','$kinsemail','$regdate')";
+            if (!$db->query($sql3)) {
+                die($db->error());
+                return FALSE;
+            }
+            else{
+                $lastid = mysql_insert_id();
+                $sql2 = $db->query("INSERT INTO $table2 (tenantId,propertyid,apt_id,start_date,end_date,comments)VALUES
+                ('$lastid','$propertyid','$aptid','$leasestart','0','comment to be added now')");
+                $status2 = $db->query("update floorplan set isoccupied='1',tenant_id='$lastid' where apt_id='$aptid'") or print "Database Error: " . $db->error();
+                    
+                     $db->query($sql0) or die($db->error());
+                    echo('done');
+                    return true;
+
+            }
+        
+    }
+
+
+
     if (isset($agentname)) {
         $queryresult = $db->query("SELECT agentid FROM agents WHERE agentname like '$agentname'"); //set agentid 
         while ($row = mysql_fetch_array($queryresult)) {
@@ -2892,17 +2933,22 @@ function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, 
         }
     }
     $sql = "INSERT INTO $table1 (apartmentid,Apartment_tag,property_id,property_name,tenant_name,tenantphone,tenantemail,tenantphoto,tenantpin,workplace,idno,fromdate,todate,leasedoc,agentid,physcaladdress,postaladdress,kins_name,kinstel,kinsemail,regdate)VALUES
-('$aptid','$aptname','$propertyid','$propertyname','$name','$phone','$email','$photopath','$pin','$work','$idno','$leasestart','$leaseend','<a href=\"$docpath$leasedoc\" target=\"_blank\">lease Document</a>','$agentid','$physcaddress','$postaddress','$kinsname','$kinstel','$kinsemail','$regdate')";
-
-
+    ('$aptid','$aptname','$propertyid','$propertyname','$name','$phone','$email','$photopath','$pin','$work','$idno','$leasestart','$leaseend','<a href=\"$docpath$leasedoc\" target=\"_blank\">lease Document</a>','$agentid','$physcaddress','$postaddress','$kinsname','$kinstel','$kinsemail','$regdate')";
 
     if (!$db->query($sql)) {
         die($db->error());
         return FALSE;
     } else {
+
+        // $db->query($sql) or die($db->error());
+        // echo('done');
+        // return true;
+
         $lastid = mysql_insert_id();
+
+    
         $sql2 = $db->query("INSERT INTO $table2 (tenantId,propertyid,apt_id,start_date,end_date,comments)VALUES
-('$lastid','$propertyid','$aptid','$leasestart','0','comment to be added')");
+        ('$lastid','$propertyid','$aptid','$leasestart','0','comment to be added')");
         $status2 = $db->query("update floorplan set isoccupied='1',tenant_id='$lastid' where apt_id='$aptid'") or print "Database Error: " . $db->error();
         if($lastid){
         $json = array();
@@ -2966,6 +3012,42 @@ function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, 
         $db->close_connection();
     }
 }
+function addtenant2($tenant_data_obj) 
+{
+    $tenant_data_obj=json_encode($tenant_data_obj);
+    $db = new MySQLDatabase();
+    $db->open_connection();
+    // $status='pending';
+    $sql="INSERT INTO pending_tenants(tenants,status) VALUES($tenant_data_obj,'pending')";
+     echo $sql;
+     $db->query($sql) or die($db->error());
+     echo('done');
+     return true;
+    
+}
+function countPendingtenants(){
+    $mysqli = getMysqliConnection();
+    $sql ="SELECT tenants FROM pending_tenants WHERE STATUS='pending'";
+    $count=$mysqli->query($sql) or die(mysqli_error($mysqli));
+    return mysqli_num_rows($count);
+}
+
+function getAllPendingTenants(){
+    $mysqli = getMysqliConnection();
+    $sql ="SELECT *
+    FROM pending_tenants 
+    WHERE status ='pending'";
+    $count=$mysqli->query($sql) or die(mysqli_error($mysqli));
+
+    while($row=$count->fetch_assoc()){
+        $data[]=$row;
+    }
+    return $data;
+    // return $count->fetch_assoc();
+}
+
+
+
 
 function tenantsApproval($id){
     $conn=getMysqliConnection();
