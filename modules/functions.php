@@ -5612,8 +5612,15 @@ function fetchinvoicedetailsPlain($tenantid) {
     while($row=$res->fetch_assoc()){
         $data[]=$row; 
     }
+
+    if (count($data) == 0) {
+        $res = $mysqli->query("SELECT $tablename.*,$tablename1.tenant_name FROM $tablename  LEFT JOIN $tablename1 ON $tablename.idno=$tablename1.Id WHERE  $tablename.revsd=0 AND $tablename.idno like '$tenantid' order by $tablename.invoicedate DESC LIMIT 1") or die($mysqli->error);
+        $data[] = $res->fetch_assoc();
+    }
+
     return $data;
 }
+
 function fetchinvoicedetails($tenantid) {
     $mysqli = getMysqliConnection();
     $tablename = "invoices";
