@@ -6623,7 +6623,7 @@ border-collapse: collapse;
 ?>
 <tr height="5%"><td colspan="4" align="right" style="font-size:10px" ><?php echo $user.'&nbsp;&nbsp;'.$date.'&nbsp;&nbsp;'.$time?></td></tr>
 <tr height="1%"><td colspan="4" ><center><b><br></b></center></td></tr>
-<tr height="1%"><td  colspan="4" ><img src="../images/cursors/Footer.png"/></td></tr>
+<tr height="1%"><td  colspan="4" ></td></tr>
 </table>
 <?php
        /* echo '<center><table class="printable" style="width:800px;"><div id="printheader"><tr><td colspan="3" style="width:800px"><span id="copy">Copy</span><center><span id="invoice">RECEIPT</span></center></td></tr>
