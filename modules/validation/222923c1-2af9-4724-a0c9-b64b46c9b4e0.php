@@ -16,7 +16,7 @@
     //die(print_r($tenant));
     if (!$tenant){
      
-          $response = array("ResultCode"=> "C2B00011" ,"ResultDesc"=>"Failed the tenant id number not registered");
+          $response = array("ResultCode"=> "C2B00011" ,"ResultDesc"=>"Rejected");
 
         $json_response = json_encode($response);
 
