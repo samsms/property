@@ -1,4 +1,0 @@
-<!-- <FilesMatch "\.(pl|php|cgi|spl|scgi|fcgi)$">
-    Header unset Cache-Control
-</FilesMatch>
- -->
