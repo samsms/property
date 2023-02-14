@@ -4,3 +4,6 @@
 /modules/confirmation
 /modules/validation
 error_log
+/modules/invoice.txt
+*.csv
+*.txt
