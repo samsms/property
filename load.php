@@ -49,7 +49,8 @@ ini_set('display_errors', true);
     
 
     if (trim($row['4']) != "Vacant"&&$tenant!="") {
-     // die( 'te'.var_dump($debit));
+    die('hh');
+    die( 'te'.var_dump($debit));
         if(  trim($tenant->tenant_name) == trim($row['4'])){
         
             $invoiceno= create_invoice(

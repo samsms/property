@@ -1,34 +1,13 @@
 {
-    "InitiatorName": "testapiuser",
-    "SecurityCredential": "***********",
-    "Occassion": "StallOwner",
-    "CommandID": "BusinessPayment",
-    "PartyA": "600000",
-    "PartyB": "254711959143",
-    "Remarks": "Test B2C",
-    "Amount": 100,
-    "QueueTimeOutURL": "https://160f-102-167-73-200.eu.ngrok.io/property-rivercourt/modules/validation/",
-    "ResultURL": "https://160f-102-167-73-200.eu.ngrok.io/property-rivercourt/modules/validation/"
-}{
-    "InitiatorName": "testapiuser",
-    "SecurityCredential": "***********",
-    "Occassion": "StallOwner",
-    "CommandID": "BusinessPayment",
-    "PartyA": "600000",
-    "PartyB": "254711959143",
-    "Remarks": "Test B2C",
-    "Amount": 100,
-    "QueueTimeOutURL": "https://160f-102-167-73-200.eu.ngrok.io/property-rivercourt/modules/validation/",
-    "ResultURL": "https://160f-102-167-73-200.eu.ngrok.io/property-rivercourt/modules/validation/"
-}{
-    "Initiator": "",
-    "SecurityCredential": "",
-    "CommandID": "TransactionStatusQuery",
-    "TransactionID": "",
-    "PartyA": "",
-    "IdentifierType": "",
-    "ResultURL": "",
-    "QueueTimeOutURL": "",
-    "Remarks": "",
-    "Occasion": ""
+   "TransactionType":"Pay Bill",
+   "TransID":"RKTQDM7W6S",
+   "TransTime":"20191122063845",
+   "TransAmount":"10",
+   "BusinessShortCode":"600638",
+   "BillRefNumber":"37015118",
+   "InvoiceNumber":"",
+   "OrgAccountBalance":"49197.00",
+   "ThirdPartyTransID":"",
+   "MSISDN":"2547*****149",
+   "FirstName":"John"
 }

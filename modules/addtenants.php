@@ -9,24 +9,45 @@ if (!($fp = fopen($fname, 'r'))) {
 $db = new MySQLDatabase();
 $db->open_connection();
 $key = fgetcsv($fp,"1024",",");
+$i=0;
 // parse csv rows into array
+$fps = fopen('dummy.csv', 'w');
+set_time_limit (0); 
 $data = array();
 $result=array();
     while ($row = fgetcsv($fp,"1024",",")) {
+        $i++;
     $data= array_combine($key, $row);
         $_POST=$data;
-        $apt_tag=$_POST['AptName'];
+        $prop_name=mysql_real_escape_string($_POST['AptName']);
         $property_id=$_POST['Propertyid'];
+        $apt_tag=$_POST['HouseNo'];
+//die(print_r($data));
 
- $sql="select apt_id,properties.property_name from floorplan inner join properties on properties.propertyid=floorplan.propertyid where apt_tag='$apt_tag' and floorplan.propertyid='$property_id' ";
-$result=$db->query($sql);
-$result=mysql_fetch_assoc($result);
-// die(json_encode($apt_id));
-$apt_id=$result['apt_id'];
-$prop_name=$result['property_name'];
-        echo addtenant($apt_id,$_POST['AptName'],$_POST['Propertyid'],$prop_name,$_POST['TenantName'],$_POST['TenantPhone'],$_POST['TenantEmail'],$_POST['PIN'],$_POST['work'],$_POST['IDNO'],$photo,$_POST['LeaseStart'],$_POST['LeaseEnd'],$_POST['Leasedoc'],$_POST['AgentName'],$_POST['Address'],$_POST['PostAddress'],$_POST['kinsName'],$_POST['KinsTel'],$_POST['kinsEmail'],$_POST['Date']);  
-  
+ $sql="select apt_id,properties.property_name,properties.propertyid from floorplan inner join properties on properties.propertyid=floorplan.propertyid where apt_tag='$apt_tag' and properties.address='$prop_name' ";
+if($i%10==0){
+    sleep(10);
 }
+ $rs=$db->query($sql);
+
+ 
+$result=mysql_fetch_assoc($rs);
+if(mysql_num_rows($rs)<1){
+   
+    fputcsv($fps, $row);
+}
+
+//die(json_encode($apt_id));
+$apt_id=$result['apt_id'];
+$prop_name=mysql_real_escape_string($result['property_name']);
+$propertyid=$result['propertyid'];
+       echo( addtenant($apt_id,$apt_tag,$propertyid,$prop_name,mysql_real_escape_string($_POST['TenantName']),$_POST['TenantPhone'],$_POST['TenantEmail'],$_POST['PIN'],$_POST['work'],$_POST['IDNO'],$photo,$_POST['LeaseStart'],$_POST['LeaseEnd'],$_POST['Leasedoc'],$_POST['AgentName'],$_POST['Address'],$_POST['PostAddress'],$_POST['kinsName'],$_POST['KinsTel'],$_POST['kinsEmail'],$_POST['Date']));  
+       // die($sql);
+
+}
+fclose($fps);
+
+
 }else
 if(isset($_POST['PropertyName']) && isset($_POST['AptId']) && isset($_POST['IDNO'])&& isset($_POST['LeaseStart'])&& isset($_POST['LeaseEnd'])&& isset($_POST['Leasedoc']))
 {

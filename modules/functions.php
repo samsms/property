@@ -6135,15 +6135,17 @@ function getTenantDetailsFromRow($tenantid) {
     $tenantstable = getTenantTable();
     $db = new MySQLDatabase();
     $result = $db->query("SELECT * FROM {$tenantstable} WHERE Id='$tenantid' AND vacated=0 ") or die($db->error());
-     $row = $db->fetch_array($result);  
+     $row = $db->fetch_array();  
     return $row;
 }
 
 function getTenantDetailsFromId($tenantid) {
     $tenantstable = getTenantTable();
-    $db = new MySQLDatabase();
+    $db = getMysqliConnection();
     $result = $db->query("SELECT * FROM {$tenantstable} WHERE idno='$tenantid' AND vacated=0 ") or die($db->error());
-     $row = $db->fetch_array($result);  
+   // die("SELECT * FROM {$tenantstable} WHERE idno='$tenantid' AND vacated=0 "); 
+    $row = $result->fetch_array();  
+   
     return $row;
 }
 
