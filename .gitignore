@@ -1,3 +1,6 @@
 /nbproject/private/
 
 /includes
+/modules/confirmation
+/modules/validation
+error_log
