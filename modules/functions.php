@@ -3504,7 +3504,7 @@ function assignProperties($agentid) {
     $properties = getProperties();
     foreach ($properties as $property) {
         $propid = $property['property_id'];
-        $propname = $property['property_name'];
+        $propname = addslashes($property['property_name']);
         $result = $db->query("SELECT agent_id FROM $tablename WHERE agent_id='$agentid' AND property_id='$propid'") or die($db->error());
         //if existing update
         if (mysql_numrows($result) > 0) {
