@@ -3,9 +3,9 @@
 
 if($_SERVER['REMOTE_ADDR']=="::1"||$_SERVER['REMOTE_ADDR']=="127.0.0.1"){
 
-ini_set('display_errors',1);
-ini_set('display_startup_errors',1);
-error_reporting(-1);
+// ini_set('display_errors',1);
+// ini_set('display_startup_errors',1);
+// error_reporting(-1);
 }
 @session_start();
 @include '../includes/database.php';
@@ -73,13 +73,14 @@ function getTenantfromApt($prop,$apt_tag) {
    
     $apt_tag=ltrim($apt_tag,'0');
     $mysqli = getMysqliConnection();
-    $query =$mysqli->query("SELECT Id FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'") or  die(mysqli_error($mysqli));;
-    return $query->fetch_assoc()['Id'];
+    $query =$mysqli->query("SELECT * FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'") or  die(mysqli_error($mysqli));;
+    return json_decode(json_encode($query->fetch_assoc()));
 }
 
 function getPropByName($name){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
+    $name=addslashes($name);
     $sql="select propertyid as prop from properties where address='$name' ";
     //die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
@@ -243,7 +244,7 @@ function invoiceAmount($propid,$startdate,$enddate){
    // $enddate=date("Y-m-d", strtotime($enddate));
 
    $sql="SELECT ifnull(sum(amount),0) as amount FROM `invoices` WHERE `property_id`=$propid and `invoicedate` between '$startdate' and '$enddate'";
-   //die($sql);
+  // die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
    //die( print_r($query->fetch_array()));
     return $query->fetch_assoc()['amount'];
@@ -4167,21 +4168,21 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
             			CURLOPT_HTTPHEADER => $headers,
             		    ));
             
-            		    $response = curl_exec($curl);
+        //     		    $response = curl_exec($curl);
             	
-            		    curl_close($curl);
+        //     		    curl_close($curl);
                         
-                        $response_data = json_decode($response);
-                        // Further processing ...
-                        foreach($response_data as $itemObj){
-                        	$status = $itemObj->Status;
-                        }
+        //                 $response_data = json_decode($response);
+        //                 // Further processing ...
+        //                 foreach($response_data as $itemObj){
+        //                 	$status = $itemObj->Status;
+        //                 }
             
-                        if ($status == 'ok') { 
-                            $response= array("success" => "1", "message" => "Sale added","data"=>$payments);
-                        } else {
-                            $response= array("success" => "0", "message" => "Sale not added. Erp fail.");
-                        } 
+        //                 if ($status == 'ok') { 
+        //                     $response= array("success" => "1", "message" => "Sale added","data"=>$payments);
+        //                 } else {
+        //                     $response= array("success" => "0", "message" => "Sale not added. Erp fail.");
+        //                 } 
 
         header('Content-Type: application/json');
         $response_array['status'] = 'Invoice/Credit Note ' . $result2 . ' created!';

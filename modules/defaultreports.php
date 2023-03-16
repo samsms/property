@@ -173,13 +173,13 @@ elseif ($reportpost === 'landlordstatement') {
     $rent = array();
     $invoice_amount = array();
     $commissionamounts = array();
-    $chargeables =  getChargeItems($propid);
-    // print_r($chargeables);
+//    $chargeables =  getChargeItems($propid);
+//     print_r($chargeables);
     // die();
-    $chargeablescount = count($chargeables);
+    //$chargeablescount = count($chargeables);
     $landlordchargeitems = array('rent', 'watchman', 'security', 'vat', 'garbage'); //'water','deposit','rent_deposit'
-    //$invoices=getinvoicelistChargeables($startdate,$enddate,$_REQUEST['accid'],$_REQUEST['accname'],$_REQUEST['propid'],$_SESSION['username']);
-
+    $invoices=getinvoicelistChargeables($startdate,$enddate,$_REQUEST['accid'],$_REQUEST['accname'],$_REQUEST['propid'],$_SESSION['username']);
+//die(print_r( $invoices));
     $itemnames = array();
     $additionalCharges=array();
     $expected_rent1=expected_rent($propid,$startdate,$enddate);
@@ -221,9 +221,10 @@ elseif ($reportpost === 'landlordstatement') {
             } else {
                 $vacantrent = "";
             }
-            $tenantid = $tenantdetails['Id'];
+           
 
             $tenantdetails = findtenantDetailsbyapt($plan['apt_id']);
+            $tenantid = $tenantdetails['Id'];
             $depositsfortenant = getTenantDeposit($tenantdetails['Id'], $startdate, $enddate);
             foreach ($depositsfortenant as $deposit) {
                 $amounts[] = $deposit['amount'];
@@ -236,20 +237,21 @@ elseif ($reportpost === 'landlordstatement') {
             $rent_amount = $plan['monthlyincome'];
             if ($plan['isoccupied'] == 1&& $plan["status"]!="disabled") {
                 array_push($rent, $plan['monthlyincome']);
-                    $tenant_invoice=$expected_rent1["$tenantid"];
-                    //die(print_r($tenant_invoice));
+                $tenant_invoice = $expected_rent1["$tenantid"];
+                   // die(($tenant_invoice));
                     $total_invoices+=$tenant_invoice['Tinvoice'];
                     $total_rent+=$tenant_invoice['TAmount'];
                 echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>' . $plan['monthlyincome'] .
                  "</td><td>".number_format($tenant_invoice['Tinvoice'],0)."</td><td>" . 
                  implode(",", $dates) . '</td><td>' . @implode(",", $recpnos) . '</td>';
+                
             } else {
-                echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>-</td><td>' . implode(",", $dates) . '</td><td>' . @implode(",", $recpnos) . '</td>';
+               echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>-</td><td>' . implode(",", $dates) . '</td><td>' . @implode(",", $recpnos) . '</td>';
            
                 }
             $receipts =  getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']);
             //$invoice=  getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']) ;//
-
+//die(print_r($receipts));
           
             //if item in chargeables ==item in chargeitems
 

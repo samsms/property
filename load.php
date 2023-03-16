@@ -1,9 +1,4 @@
 <?php
-
-/** @noinspection ForgottenDebugOutputInspection */
-
-use Shuchkin\SimpleXLSX;
-
 @include 'includes/database.php';
 include  'modules/functions.php';
 include "modules/landlordpay.php";
@@ -11,93 +6,70 @@ include "modules/landlordpay.php";
 ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
 
-// require_once __DIR__ . '/simplexlsx/src/SimpleXLSX.php';
-// // getPropByName()
-// //echo '<h1>Parse books.xslx</h1><pre>';
-// $fileName=$_FILES['import_file']['tmp_name'];
-// if ($xlsx = SimpleXLSX::parse($fileName)) {
-//     $json = ($xlsx->rows());
-// } else {
-//     echo SimpleXLSX::parseError();
-// }
-// foreach ($json as $row) {
-    if(isset($_FILES['import_file'])){
-        $fname=$_FILES['import_file']['tmp_name'];
-        if (!($fp = fopen($fname, 'r'))) {
-            die("Can't open file...");
+if(isset($_FILES['import_file'])){
+    $fname=$_FILES['import_file']['tmp_name'];
+    if (!($fp = fopen($fname, 'r'))) {
+        die("Can't open file...");
+    }
+
+    //read csv headers
+    $key = fgetcsv($fp, 1024, ",");
+
+    // parse csv rows into array
+    $data = array();
+    $result = array();
+
+    while ($row = fgetcsv($fp, 1024, ",")) {
+        $propid = getPropByName(addslashes($row[1]));
+
+        if ($propid == null || getTenantfromApt($propid, $row[2]) == null) {
+            // Property or tenant not found, write row to new CSV file
+            $newfp = fopen("not_found.csv", "a");
+            fputcsv($newfp, $row);
+            fclose($newfp);
+        } else {
+            // Property and tenant found, create invoice
+            $debit = $row[3];
+            $credit = 0;
+            $balance = $row[3];
+            $invoice_date = $row[0];
+            $house = $row[2];
+            $tenant = getTenantfromApt($propid, $house);
+            $number_without_comma = str_replace(",", "",  $debit);
+            $double_number = floatval($number_without_comma);
+            $date = DateTime::createFromFormat('d-M-y', trim($invoice_date));
+            $charges = array($double_number);
+            $chargesname = array("rent");
+            $invoiceno = create_invoice(
+                $tenant->Id,
+                $date->format("d/m/Y"),
+                0,
+                $double_number,
+                0,
+                "import",
+                $propid,
+                "imported",
+                $chargesname,
+                $charges,
+                1,
+                0,
+                $tenant->apartmentid,
+                33,
+                "",
+                0
+            );
+            // die('h');
         }
-        //read csv headers
-      
-        $key = fgetcsv($fp,"1024",",");
-        // parse csv rows into array
-        $data = array();
-        $result=array();
-            while ($row = fgetcsv($fp,"1024",",")){
-    if( getPropByName($row[3])==null){
-       echo json_encode($row)."</br>";
     }
-    else{
-
-    $propid = getPropByName($row[3]);
-    $debit = $row['5'];
-    $credit = $row['6'];
-    $balance = $row['7'];
-    $invoice_date = $row['0'];
-    $house = $row['2'];
-    $tenant=getTenantfromApt($propid, $house);
-    $date = DateTime::createFromFormat('d/m/y', trim( $row['0']));
+    fclose($fp);
     
+    // Download the not_found.csv file
+    ob_start();
+    header('Content-Type: application/csv');
+    header('Content-Disposition: attachment; filename="not_found.csv"');
+    readfile('not_found.csv');
+    ob_end_clean();
 
-    if (trim($row['4']) != "Vacant"&&$tenant!="") {
-    die('hh');
-    die( 'te'.var_dump($debit));
-        if(  trim($tenant->tenant_name) == trim($row['4'])){
-        
-            $invoiceno= create_invoice(
-            $tenant->Id,
-            $date->format("d/m/Y") ,
-            0,
-            $debit,
-            0,
-           "import",
-            $propid,
-            "imported",
-            null,
-            null,
-            null,
-           0,
-            $tenant->apartmentid,
-            33,
-            "",
-            0
-        );
-        // die("invoice no =$rec");
-        update_invoice(
-        $invoiceno, 
-        $credit,
-        $tenant->Id,
-        $date->format("d/m/Y") ,
-        0,
-       0, 
-        null, 
-        null, 
-        null, 
-        null, 
-        "imported", 
-        "imported", 
-        "imported", 
-        1, 
-        $propid, 
-        0, 
-        0, 
-        33, 
-        0,
-        "null");
-        //}die(json_encode($tenant));
-    }
-    }
-        // echo $propid.'-         -'.$house.'-- '. getTenantfromApt($propid,$house)."-    $debit : $credit = $balance  <br>";
-    }
-
-            }
- }
+    // Delete the not_found.csv file
+    //unlink('not_found.csv');
+}

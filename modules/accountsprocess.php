@@ -70,6 +70,7 @@ else if ($_REQUEST['approve_invoice']){
     if($billing=$_REQUEST['billing'] =='1'){
         echo create_crdtnote($id,$entrydate,$incomeacct,$amount,$billing,$_SESSION['username'],$_SESSION['propertyid'],$_REQUEST['remarks'],$chargenames,$charges,$counter,$currentreading,$aptid,$fperiod,$items,$crdtinvce);//change session propertyid later
     }  else {
+      
         echo create_invoice($id,$entrydate,$incomeacct,$amount,$billing,$_SESSION['username'],$_SESSION['propertyid'],$_REQUEST['remarks'],$chargenames,$charges,$counter,$currentreading,$aptid,$fperiod,$items,$invoicebbf);//change session propertyid later
 
     }
@@ -151,6 +152,7 @@ if (isset($_REQUEST['newinvoice'])){
    if($billing=$_REQUEST['billing'] =='1'){
     echo create_crdtnote($id,$entrydate,$incomeacct,$amount,$billing,$_SESSION['username'],$_SESSION['propertyid'],$_REQUEST['remarks'],$chargenames,$charges,$counter,$currentreading,$aptid,$fperiod,$items,$crdtinvce);//change session propertyid later
     }  else {
+       // die(json_encode($charges).''.json_encode($chargenames));
       echo create_invoice($id,$entrydate,$incomeacct,$amount,$billing,$_SESSION['username'],$_SESSION['propertyid'],$_REQUEST['remarks'],$chargenames,$charges,$counter,$currentreading,$aptid,$fperiod,$items,$invoicebbf);//change session propertyid later
   
     }

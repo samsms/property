@@ -7,6 +7,8 @@ function landlord_statement($propid){
     $startdate=$fdate->format("Y-m-d");
      $enddate=$todate->format("Y-m-d");
      $total_invoices=invoiceAmount($propid,$startdate,$enddate);
+     print_r( $total_invoices);
+     die('');
      $watchmantotal=array();
      $paidamounts=array();
      $depositamounts=array();

@@ -11,13 +11,14 @@
 @include 'includes/database.php';
 include  'modules/functions.php';
 include "modules/landlordpay.php";
-$list=json_decode(payout_list());
+//$list=json_decode(payout_list());
 $total_amount=0;
-foreach ($list as $prop){
-    // echo $."<br>";
-    $total_amount+=landlord_statement($prop->propertyid);
+// foreach ($list as $prop){
+//     // echo $."<br>";
+//    // $total_amount+=landlord_statement($prop->propertyid);
     
-}
+// }
 
-    echo $total_amount;
+    // echo $total_amount;
 //echo total_amount();
+echo (landlord_statement(374));
