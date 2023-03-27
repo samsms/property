@@ -9,26 +9,37 @@ if($_REQUEST["editfloorplan"]){
 
 }
 else if($_REQUEST["addfloorplan"]){
-    header('Content-type: application/json');   
+    //header('Content-type: application/json');   
     if($_REQUEST['batch']){
         // $_REQUEST
+        $filename = 'output.csv';
+        $fps = fopen($filename, 'w');
+        
+        // write CSV header row
+     
         $fname=$_FILES['floors']['tmp_name'];
         if (!($fp = fopen($fname, 'r'))) {
             die("Can't open file...");
         }
-        
+      
         //read csv headers
         $key = fgetcsv($fp,"1024",",");
-        
+        //die(print_r($key));
         // parse csv rows into array
         $data = array();
+        fputcsv($fps, $key);
         $result=array();
             while ($row = fgetcsv($fp,"1024",",")) {
             $data= array_combine($key, $row);
             //die(print_r($data));
+           
+           
+            $propname =  $data["prop"];
+            $propid = getPropertyId((strip_tags($propname)));
+        
+           if($propid!=null){
             $floordetails=array(
-            "apt_id"=>strip_tags($_REQUEST["apt_id"]),
-            "propertyid"=>strip_tags($_SESSION['propertyid']),
+            "propertyid"=>$propid,
             "floornumber"=>strip_tags($data["floornumber"]),
             "apt_tag"=>strip_tags($data["apt_tag"]),
             "monthlyincome"=>strip_tags($data["monthlyincome"]),
@@ -39,11 +50,17 @@ else if($_REQUEST["addfloorplan"]){
             "receipt_due"=>strip_tags($data["receipt_due"]));
             $result[]=  addapartments($floordetails);
 
-          //  die(print_r(json_encode($floordetails)));
+        }else{
+            fputcsv($fps, $data);
+        }
+     
+           // die(print_r( $floordetails));
+          
+           // die(print_r(json_encode($floordetails)));
      
         }
      
-
+        fclose($fps);
         $responsearray['status']=$result;
         echo json_encode($responsearray);
         // release file handle

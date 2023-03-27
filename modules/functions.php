@@ -71,18 +71,24 @@ function getfeedbacks(){
 
 function getTenantfromApt($prop,$apt_tag) {
    
-    $apt_tag=ltrim($apt_tag,'0');
+   // $apt_tag=ltrim($apt_tag,'0');
     $mysqli = getMysqliConnection();
-    $query =$mysqli->query("SELECT * FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'") or  die(mysqli_error($mysqli));;
+  //  die("SELECT * FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'");
+  if (is_numeric($apt_tag) && $apt_tag < 10) {
+    $apt_tag = str_pad($apt_tag, 2, "0", STR_PAD_LEFT);
+}
+
+$query = $mysqli->query("SELECT * FROM tenants WHERE Apartment_tag = '$apt_tag' AND vacated = 0 AND property_id = '$prop'") or die(mysqli_error($mysqli));
+
     return json_decode(json_encode($query->fetch_assoc()));
 }
 
 function getPropByName($name){
     $mysqli = getMysqliConnection();
     $date=date("Y-m-d");
-    $name=addslashes($name);
-    $sql="select propertyid as prop from properties where address='$name' ";
-    //die($sql);
+    $name=($name);
+    $sql="select propertyid as prop from properties where address='$name' or property_name=replace('$name',' ','_') ";
+   // die($sql);
     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
     return $query->fetch_assoc()['prop'];
 
@@ -2099,7 +2105,7 @@ function addapartments($rows) {
     $sql0 = "SELECT property_name FROM properties WHERE propertyid='$propertyid'";
     $query0 = $db->query($sql0);
     while ($row0 = mysql_fetch_array($query0)) {
-        $propertyname = $row0['property_name'];
+        $propertyname = addcslashes($row0['property_name']);
     }
     $house_account = incrementnumber('house_account');
 
@@ -2132,19 +2138,20 @@ function addapartments($rows) {
 function editfloorplan($rows) {
     $db = new MySQLDatabase();
     $db->open_connection();
-    $aptid = $rows['apt_id'];
-    $propertyid = $rows['propertyid'];
-    $floornumber = $rows['floornumber'];
-    $apt_tag = $rows['apt_tag'];
-    $monthlyincome = $rows['monthlyincome'];
-    $yearlyincome = 12 * $monthlyincome;
-    $marketvalue = $rows['marketvalue'];
-    $elecmeter = $rows['elecmeter'];
-    $watermeter = $rows['watermeter'];
-    $metereading = $rows['metereading'];
-    $receipt_due = $rows["receipt_due"];
+    $aptid = trim($rows['apt_id']);
+    $propertyid =trim($rows['propertyid']);
+    $floornumber =trim( $rows['floornumber']);
+    $apt_tag =trim( $rows['apt_tag']);
+    $monthlyincome = trim($rows['monthlyincome']);
+    $yearlyincome =trim( 12 * $monthlyincome);
+    $marketvalue = trim($rows['marketvalue']);
+    $elecmeter = trim($rows['elecmeter']);
+    $watermeter =trim( $rows['watermeter']);
+    $metereading =trim( $rows['metereading']);
+    $receipt_due = trim($rows["receipt_due"]);
 //print_r($rows);
     $sql = "UPDATE `floorplan` SET `propertyid`='$propertyid',`floornumber`='$floornumber',`units`='0',`apt_tag`='$apt_tag',`monthlyincome`='$monthlyincome',`yearlyincome`='$yearlyincome',`marketvalue`='$marketvalue',`elec_meter`='$elecmeter',`water_meter`='$watermeter',`current_water_reading`='$metereading',`receipt_due`='$receipt_due' WHERE  apt_id='$aptid' limit 1";
+   //die($sql);
     $result = $db->query($sql) or die($db->error());
 
     if (!$result) {
@@ -2152,7 +2159,26 @@ function editfloorplan($rows) {
     } return TRUE;
     $db->close_connection();
 }
+function getPropertyId($propname) {
+    $mysqli = getMysqliConnection();
+    $prop_id = null;
+    $propname_escaped = mysqli_real_escape_string($mysqli, $propname);
+    $resultset = $mysqli->query("SELECT propertyid FROM properties WHERE property_name ='$propname_escaped'");
 
+    if ($resultset && $resultset->num_rows > 0) {
+        while ($row = $resultset->fetch_assoc()) {
+            $prop_id = $row['propertyid'];
+        }
+    }
+
+    if ($prop_id === null) {
+        // handle the case when no rows were found
+        // throw an exception or return a default value
+       // die("SELECT propertyid FROM properties WHERE property_name ='$propname_escaped'");
+    }
+
+    return $prop_id;
+}
 //get apartments of a property
 function getPropertyApartments($propertyid) {
     $mysqli = getMysqliConnection();
@@ -2951,66 +2977,67 @@ function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, 
         $sql2 = $db->query("INSERT INTO $table2 (tenantId,propertyid,apt_id,start_date,end_date,comments)VALUES
         ('$lastid','$propertyid','$aptid','$leasestart','0','comment to be added')");
         $status2 = $db->query("update floorplan set isoccupied='1',tenant_id='$lastid' where apt_id='$aptid'") or print "Database Error: " . $db->error();
-        if($lastid){
-        $json = array();
+        // if($lastid){
+        // $json = array();
     			
-    			$data = array('CustName' => $name,
-                            'CustId' => $lastid,
-                            'Address' => $physcaddress,
-                            'TaxId' => '',
-                            'CurrencyCode' => 'KS',
-                            'SalesType' => '1',
-                            'CreditStatus' => '0',
-    						'PaymentTerms' => '7',
-    						'Discount' => '0',
-    						'paymentDiscount' => '0',
-    						'CreditLimit' => '0',
-    						'Notes' => '');
+    	// 		$data = array('CustName' => $name,
+        //                     'CustId' => $lastid,
+        //                     'Address' => $physcaddress,
+        //                     'TaxId' => '',
+        //                     'CurrencyCode' => 'KS',
+        //                     'SalesType' => '1',
+        //                     'CreditStatus' => '0',
+    	// 					'PaymentTerms' => '7',
+    	// 					'Discount' => '0',
+    	// 					'paymentDiscount' => '0',
+    	// 					'CreditLimit' => '0',
+    	// 					'Notes' => '');
     			
-    			$json[] = $data;
-                $json_data = json_encode($json);
-                $username = "api-user";
-                $password = "admin";
-                $headers = array(
-                    'Authorization: Basic '. base64_encode($username.':'.$password),
-                );
+    	// 		$json[] = $data;
+        //         $json_data = json_encode($json);
+        //         $username = "api-user";
+        //         $password = "admin";
+        //         $headers = array(
+        //             'Authorization: Basic '. base64_encode($username.':'.$password),
+        //         );
     
-                //Perform curl post request to add item to the accounts erp
-                $curl = curl_init();
+        //         //Perform curl post request to add item to the accounts erp
+        //         $curl = curl_init();
     
-                curl_setopt_array($curl, array(
-    			CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/customers.php?action=add-customer&company-id=RIVER",
-    			CURLOPT_RETURNTRANSFER => true,
-    			CURLOPT_ENCODING => "",
-    			CURLOPT_MAXREDIRS => 10,
-    			CURLOPT_TIMEOUT => 0,
-    			CURLOPT_FOLLOWLOCATION => true,
-    			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    			CURLOPT_CUSTOMREQUEST => "POST",
-    			CURLOPT_POSTFIELDS => $json_data,
-    			CURLOPT_HTTPHEADER => $headers,
-    		    ));
+        //         curl_setopt_array($curl, array(
+    	// 		CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/customers.php?action=add-customer&company-id=RIVER",
+    	// 		CURLOPT_RETURNTRANSFER => true,
+    	// 		CURLOPT_ENCODING => "",
+    	// 		CURLOPT_MAXREDIRS => 10,
+    	// 		CURLOPT_TIMEOUT => 0,
+    	// 		CURLOPT_FOLLOWLOCATION => true,
+    	// 		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    	// 		CURLOPT_CUSTOMREQUEST => "POST",
+    	// 		CURLOPT_POSTFIELDS => $json_data,
+    	// 		CURLOPT_HTTPHEADER => $headers,
+    	// 	    ));
     
-    		    $response = curl_exec($curl);
+    	// 	    $response = curl_exec($curl);
     	
-    		    curl_close($curl);
+    	// 	    curl_close($curl);
                 
-                $response_data = json_decode($response);
-                // Further processing ...
-                foreach($response_data as $itemObj){
-                	$status = $itemObj->Status;
-                }
+        //         $response_data = json_decode($response);
+        //         // Further processing ...
+        //         foreach($response_data as $itemObj){
+        //         	$status = $itemObj->Status;
+        //         }
     
-                if ($status == 'ok') { 
-                    return "Tenant Added and posted to erp";;
-                } else {
-                    return "Tenant Added but erp failed";;
-                }
+        //         if ($status == 'ok') { 
+        //             return "Tenant Added and posted to erp";;
+        //         } else {
+        //             return "Tenant Added but erp failed";;
+        //         }
             
-        }else{
-                    return "Tenant Added";
-                }
-        $db->close_connection();
+        // }else{
+        //             return "Tenant Added";
+        //         }
+        //return "added"
+       // $db->close_connection();
     }
 }
 function addtenant2($tenant_data_obj) 
@@ -3927,6 +3954,7 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
     if (!$queryresult) {
         die("could not create invoice");
     } else {
+       
         //loop through chargeable items and separate based on characteristics
 //        $commissionnotcharged=0;
 //        $chargeitems=  explode(",",$items);
@@ -3968,6 +3996,7 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
             $query1 = "INSERT into $tablename2 (`invoiceno`,`item_name`,`amount`,`priority`) VALUES ('$result2','$chargename','$charges[$i]','$priority')";
             $db->query($query1) or die($db->error());
         }
+        return "created";
         //empty counter,charge items,charges
         unset($counter);
         unset($chargenames);
