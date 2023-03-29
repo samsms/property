@@ -93,11 +93,12 @@ $sidebar='<div style="border:1px solid #ccc;border-radius:10px;padding:10px">
 	
             <a class="nodecoration" href="'.$baseurl.'views/template.php?page=repairs">'.$repairs.'<span>&nbsp;&nbsp;</span>Ledgers/Settings</a><hr/>
 			<a class="nodecoration" href="'.$baseurl.'views/template.php?page=closeperiods">'.$close.'<span>&nbsp;&nbsp;</span>Close Period/Settings</a><hr/>
-
+			<a class="nodecoration" href="'.$baseurl.'upload_receipt.php?'.'">'.$close.'<span>&nbsp;&nbsp;</span> Upload Receipts </a></hr>
+	
 	<a class="nodecoration" href="'.$baseurl.'views/accounts.php">'.$accounts.'<span>&nbsp;&nbsp;</span>Accounts...</a><hr/>
             	<a class="nodecoration" href="'.$baseurl.'logout.php">'.$logout.'<span>&nbsp;&nbsp;</span>Logout</a><hr/>
             <a class="nodecoration" href="'.$baseurl.'home.php?propertyid='.$_SESSION['propertyid'].'">'.$home.'<span>&nbsp;</span>`</a>
-	
+		
 
 </div>';
 } else{
