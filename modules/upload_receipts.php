@@ -24,7 +24,7 @@ if (isset($_FILES['receipt_file'])) {
            
         if (!$tenant|| $date==false) {
             // Property or tenant not found, write row to new CSV file
-            $newfp = fopen("not_found.csv", "a");
+            $newfp = fopen("receipts_errors.csv", "a");
             fputcsv($newfp, $row);
             fclose($newfp);
         } else {
@@ -40,11 +40,11 @@ if (isset($_FILES['receipt_file'])) {
     // Download the not_found.csv file
     ob_end_clean();
     header('Content-Type: application/csv');
-    header('Content-Disposition: attachment; filename="not_found.csv"');
-    readfile('not_found.csv');
+    header('Content-Disposition: attachment; filename="receipts_errors.csv"');
+    readfile('receipts_errors.csv');
 
     // Delete the not_found.csv file
-    unlink('not_found.csv');
+    unlink('receipts_errors.csv');
 }
 
 function create_mpesa_receipt($date,$id , $paid_amount, $reference) {

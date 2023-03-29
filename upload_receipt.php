@@ -53,7 +53,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Upload Invoices and Receipts</h1>
+        <h1>Upload Receipts</h1>
         <form method="post" action="modules/upload_receipts.php" enctype="multipart/form-data">
             <label for="receipt_file">Upload Receipt CSV file:</label>
             <input type="file" id="receipt_file" name="receipt_file" accept=".csv">
