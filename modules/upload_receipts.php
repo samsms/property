@@ -20,7 +20,9 @@ if (isset($_FILES['receipt_file'])) {
     while ($row = fgetcsv($fp, 1024, ",")) {
         $tenant = getTenantfromApt(getPropertyId($row[1]), $row[2]);
      // die(print_r($row));
-        if (!$tenant) {
+     $date = DateTime::createFromFormat('d/m/y', trim($row[0]));
+           
+        if (!$tenant|| $date==false) {
             // Property or tenant not found, write row to new CSV file
             $newfp = fopen("not_found.csv", "a");
             fputcsv($newfp, $row);
