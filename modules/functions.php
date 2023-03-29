@@ -77,13 +77,17 @@ function getTenantfromApt($prop,$apt_tag) {
   if (is_numeric($apt_tag) && $apt_tag < 10) {
     $apttag=$apt_tag;
     $apt_tag = str_pad($apt_tag, 2, "0", STR_PAD_LEFT);
-    $apt_tag="$apt_tag or $apttag "
+   
+    $query = $mysqli->query("SELECT * FROM tenants WHERE (Apartment_tag = '$apt_tag' or Apartment_tag ='$apttag') AND vacated = 0 AND property_id = '$prop'") or die(mysqli_error($mysqli));
+    return json_decode(json_encode($query->fetch_assoc()));
 }
+else{
+
 
 $query = $mysqli->query("SELECT * FROM tenants WHERE Apartment_tag = '$apt_tag' AND vacated = 0 AND property_id = '$prop'") or die(mysqli_error($mysqli));
 
     return json_decode(json_encode($query->fetch_assoc()));
-}
+}}
 
 function getPropByName($name){
     $mysqli = getMysqliConnection();
