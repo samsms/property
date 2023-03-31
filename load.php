@@ -12,8 +12,6 @@ if(isset($_FILES['import_file'])){
         die("Can't open file...");
     }
 
-    //read csv headers
-    $key = fgetcsv($fp, 1024, ",");
 
     // parse csv rows into array
     $data = array();

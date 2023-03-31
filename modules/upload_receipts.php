@@ -10,19 +10,23 @@ if (isset($_FILES['receipt_file'])) {
         die("Can't open file...");
     }
 
-    //read csv headers
-    $key = fgetcsv($fp, 1024, ",");
-
+   
     // parse csv rows into array
     $data = array();
     $result = array();
 
     while ($row = fgetcsv($fp, 1024, ",")) {
         $tenant = getTenantfromApt(getPropertyId($row[1]), $row[2]);
-     // die(print_r($row));
+     
      $date = DateTime::createFromFormat('d/m/y', trim($row[0]));
-           
-        if (!$tenant|| $date==false) {
+         //  die(print_r($row));
+     $invoices =false;
+     if($tenant!==null){
+       $invoices=  fetchinvoicedetailsPlain($tenant->Id);
+
+     }
+             
+        if (!$tenant|| $date==false||$invoices==false) {
             // Property or tenant not found, write row to new CSV file
             $newfp = fopen("receipts_errors.csv", "a");
             fputcsv($newfp, $row);
@@ -30,6 +34,7 @@ if (isset($_FILES['receipt_file'])) {
         } else {
             // Property and tenant found, create receipt
         //    die(print_r( $tenant));
+           
             $amount_paid = floatval(str_replace(",", "", $row[3]));
             create_mpesa_receipt($row[0],$tenant->Id, $amount_paid, "imported");
         }
@@ -71,7 +76,7 @@ function create_mpesa_receipt($date,$id , $paid_amount, $reference) {
 
 function pay($date,$id, $invoice, $amount, $reference) {
     //die("$id, $invoice, $amount, $reference");
-    $date = DateTime::createFromFormat('m/d/y', trim($date));
+    $date = DateTime::createFromFormat('d/m/y', trim($date));
     $invoicenos = $invoice['invoiceno'];
     $fperiod = $fperiod;
     $penalty = null;

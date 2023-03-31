@@ -5746,6 +5746,7 @@ function update_invoice($invoiceno, $recpamount, $idno, $receiptdate, $paymode, 
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "invoices";
+   // die("SELECT paidamount FROM $tablename WHERE invoiceno='$invoiceno'");
     $resultset = $db->query("SELECT paidamount FROM $tablename WHERE invoiceno='$invoiceno'");
     while ($row = $db->fetch_array($resultset)) {
         $paid = $row['paidamount'];
