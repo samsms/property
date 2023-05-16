@@ -1,375 +1,17 @@
 <?php
-
-if ($_SERVER['REMOTE_ADDR'] == "::1" || $_SERVER['REMOTE_ADDR'] == "127.0.0.1") {
-
-// ini_set('display_errors',1);
-// ini_set('display_startup_errors',1);
-// error_reporting(-1);
-}
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
 @session_start();
 @include '../includes/database.php';
 @header("Access-Control-Allow-Origin: *");
-function loanPaid($propid, $startdate, $enddate)
-{
-    $mysqli = getMysqliConnection();
-    $sql = "SELECT sum(payments.amount) as amount FROM `loan_list` inner  join payments on payments.loan_id=loan_list.id  WHERE `borrower_id`=$propid and (payments.date_created between '$startdate' and '$enddate')";
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    return round($query->fetch_assoc()['amount'], 2);
-}
 
-function getTenantApt($tenant_id)
-{
-    $mysqli = getMysqliConnection();
-    $date = date("Y-m-d");
-    $sql = "select * from tenants where id=$tenant_id ";
-    //die($sql);
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    return $query;
-
-
-}
-
-function gettenants_temp()
-{
-    $mysqli = getMysqliConnection();
-    $date = date("Y-m-d");
-    $sql = "select * from tenants_temp join properties on tenants_temp.propid=properties.propertyid WHERE tenants_temp.status='0'";
-    //die($sql);
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    $data = [];
-    while ($row = mysqli_fetch_assoc($query)) {
-        $data[] = $row;
-    }
-    return json_encode($data);
-}
-
-
-function getfeedbacks()
-{
-    $mysqli = getMysqliConnection();
-    $date = date("Y-m-d");
-    $sql = "select * from feedback join properties on feedback.propid=properties.propertyid 
-    WHERE feedback.date BETWEEN (CURDATE() - INTERVAL 30 DAY) AND CURDATE()";
-    //die($sql);
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    $data = [];
-    while ($row = mysqli_fetch_assoc($query)) {
-        $data[] = $row;
-    }
-    return json_encode($data);
-}
-
-// function getfeedbacks(){
-//     $mysqli = getMysqliConnection();
-//     $date=date("Y-m-d");
-//     $sql="select * from feedback join properties on feedback.propid=properties.propertyid";
-//     //die($sql);
-//     $query =$mysqli->query($sql) or die(mysqli_error($mysqli));
-//     $data=[];
-//     while($row=mysqli_fetch_assoc($query)){
-//         $data[]=$row;
-//     }
-//     return json_encode($data);
-// }
-
-function getTenantfromApt($prop, $apt_tag)
-{
-
-    // $apt_tag=ltrim($apt_tag,'0');
-    $mysqli = getMysqliConnection();
-    //  die("SELECT * FROM tenants WHERE Apartment_tag='$apt_tag' AND vacated=0 and property_id='$prop'");
-    if (is_numeric($apt_tag) && $apt_tag < 10) {
-        $apttag = $apt_tag;
-        $apt_tag = str_pad($apt_tag, 2, "0", STR_PAD_LEFT);
-
-        $query = $mysqli->query("SELECT * FROM tenants WHERE (Apartment_tag = '$apt_tag' or Apartment_tag ='$apttag') AND vacated = 0 AND property_id = '$prop'") or die(mysqli_error($mysqli));
-        return json_decode(json_encode($query->fetch_assoc()));
-    } else {
-
-
-        $query = $mysqli->query("SELECT * FROM tenants WHERE Apartment_tag = '$apt_tag' AND vacated = 0 AND property_id = '$prop'") or die(mysqli_error($mysqli));
-
-        return json_decode(json_encode($query->fetch_assoc()));
-    }
-}
-
-function getPropByName($name)
-{
-    $mysqli = getMysqliConnection();
-    $date = date("Y-m-d");
-    $name = ($name);
-    $sql = "select propertyid as prop from properties where address='$name' or property_name=replace('$name',' ','_') ";
-    // die($sql);
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    return $query->fetch_assoc()['prop'];
-
-}
-
-function getPrepayment($prop_id)
-{
-//    die('ddk');
-    $mysqli = getMysqliConnection();
-    $date = date("Y-m-d");
-    $exits = $mysqli->query("select * from prepayments p  join floorplan f on(p.aptid=f.apt_id) where p.status='Approved' and p.propid=$prop_id   and MONTH(p.date)=MONTH('$date') AND YEAR(p.date)=YEAR('$date') ") or die(mysqli_error($mysqli));
-    //  die($sql);
-    if (mysqli_num_rows($exits) < 1) {
-        //$query =$mysqli->query($sql) or die(mysqli_error($mysqli));
-
-        return "Reported Successifully";
-    } else {
-        $data = [];
-        while ($row = mysqli_fetch_assoc($exits)) {
-            $data[] = $row;
-            //die(print_r($row));
-        }
-
-        return json_encode($data);
-    }
-
-}
-
-function countPendingPrepayments()
-{
-    $mysqli = getMysqliConnection();
-    $sql = "SELECT propid FROM prepayments WHERE STATUS='pending'";
-    $count = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    return mysqli_num_rows($count);
-}
-
-function getAllPendingPrepayments()
-{
-    $mysqli = getMysqliConnection();
-    $sql = "SELECT *
-    FROM prepayments AS pp
-    LEFT JOIN properties AS p
-    ON  pp.propid=p.propertyid
-    WHERE pp.`status`='pending'";
-    $count = $mysqli->query($sql) or die(mysqli_error($mysqli));
-
-    while ($row = $count->fetch_assoc()) {
-        $data[] = $row;
-    }
-    return $data;
-    // return $count->fetch_assoc();
-}
-
-function AprovePrepayments($id)
-{
-    // die("rrrrrrrr".$id);
-    $mysqli = getMysqliConnection();
-    $sql = "UPDATE prepayments SET STATUS='Approved'
-    WHERE id=$id";
-    $count = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    $updated = $mysqli->query("select * from prepayments where id=$id and status='Approved'") or die(mysqli_error($mysqli));
-    if (mysqli_num_rows($updated) == 1) {
-        return 'updated successfully';
-    } else {
-        return 'not updated';
-    }
-}
-
-function reportPrepayment($prop_id, $tenantid, $amount)
-{
-    $mysqli = getMysqliConnection();
-    $date = date("Y-m-d");
-
-    if ($_SESSION['usergroup'] == 1) {
-
-        $sql = "INSERT into prepayments (`propid`,`tenantid`,`date`,`status`,amount) 
-    values($prop_id,'$tenantid','$date','pending','$amount') ";
-        $exits = $mysqli->query("select * from prepayments where propid=$prop_id and tenantid='$tenantid'  and date='$date'") or die(mysqli_error($mysqli));
-        //  die($sql);
-        if (mysqli_num_rows($exits) < 1) {
-            $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-
-            return "Reported Successifully";
-        } else {
-            return "Already Reported";
-        }
-
-    } else {
-
-        $sql = "insert into prepayments (`propid`,`tenantid`,`date`) values
-    ($prop_id,'$apt_id','$date') ";
-        $exits = $mysqli->query("select * from prepayments where propid=$prop_id and tenantid='$tenantid'  and date='$date'") or die(mysqli_error($mysqli));
-        //  die($sql);
-        if (mysqli_num_rows($exits) < 1) {
-            $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-
-            return "Reported Successifully";
-        } else {
-            return "Already Reported";
-        }
-    }
-
-}
-
-function tobepaid($propid, $amount)
-{
-    $mysqli = getMysqliConnection();
-    $date = date("Y-m-d");
-    $sql = "select * from landlord_peddingpay where propid=$propid and pay_date='$date'";
-    //die($sql);
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    $number = mysqli_num_rows($query);
-    if ($number < 1) {
-        $query = $mysqli->query("INSERT INTO `landlord_peddingpay` (`propid`, `amount`, `pay_date`) VALUES ( '$propid', '$amount', '$date');");
-    }
-
-}
-
-function total_accumilated()
-{
-    $mysqli = getMysqliConnection();
-    $sql = "select * from landlord_peddingpay where status='pedding' and amount>0";
-
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    $number = mysqli_num_rows($query);
-    $sql = "select sum(amount) as amount from landlord_peddingpay where status='pedding' and amount>0";
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    $amount = $query->fetch_assoc()['amount'];
-    return json_encode(array("number" => $number, "amount" => $amount));
-
-}
-
-function expected_rent($propid, $startdate, $enddate)
-{
-    $mysqli = getMysqliConnection();
-    $sql = "SELECT
-    idno,
-    SUM(invoices.amount) AS TAmount,
-    SUM(CASE WHEN invoiceitems.item_name = 'RENT' THEN invoiceitems.amount ELSE 0 END) AS Tinvoice,
-    SUM(invoices.amount) - SUM(CASE WHEN invoiceitems.item_name = 'RENT' THEN invoiceitems.amount ELSE 0 END) AS Tchargables
-FROM invoices
-LEFT JOIN invoiceitems ON invoices.invoiceno = invoiceitems.invoiceno AND invoiceitems.item_name = 'RENT'
-WHERE
-    invoices.property_id = $propid AND
-    invoices.invoicedate BETWEEN '$startdate' AND '$enddate'
-GROUP BY idno;
-
-";
-
-     //die($sql);
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    $data = [];
-
-    while ($row = $query->fetch_assoc()) {
-        $data[$row['idno']] = $row;
-    }
-    return $data;
-
-}
-
-
-function invoiceAmount($propid, $startdate, $enddate)
-{
-    $mysqli = getMysqliConnection();
-    // $date = date('d');
-    //  $startdate = $_GET[''];
-    // $startdate=date("Y-m-d", strtotime($startdate));
-
-    // $enddate = $_GET[''];
-    // $enddate=date("Y-m-d", strtotime($enddate));
-
-    $sql = "SELECT ifnull(sum(amount),0) as amount FROM `invoices` WHERE `property_id`=$propid and `invoicedate` between '$startdate' and '$enddate'";
-    // die($sql);
-    $query = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    //die( print_r($query->fetch_array()));
-    return $query->fetch_assoc()['amount'];
-
-}
-
-function getSiteRoot()
-{
-    if ($_SERVER['REMOTE_ADDR'] != "127.0.0.1" && $_SERVER['REMOTE_ADDR'] != "::1") {
-
-        $parent = $_SERVER["DOCUMENT_ROOT"];//. '/property-rivercourt';
-    } else {
-        $parent = $_SERVER["DOCUMENT_ROOT"] . '/property-rivercourt';
-    }
+function getSiteRoot() {
+    $parent =  $_SERVER["DOCUMENT_ROOT"] . '/property-rivercourt';
     return $parent;
 }
 
-function landlord_tobepaid()
-{
-    $mysqli = getMysqliConnection();
-    $date = date('d');
-    $query = $mysqli->query("SELECT * FROM properties WHERE pay_day='$date'") or die(mysqli_error($mysqli));
-    return mysqli_num_rows($query);
-}
-
-function payout_list()
-{
-    $mysqli = getMysqliConnection();
-    $date = date('d');
-
-    //$list=$mysqli->query(" select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid,p.* from properties p where pay_day=DAY(now())");
-    $list = $mysqli->query("select *,propertyid from properties  where pay_day=DAY(now())");
-
-    // $total=$mysqli->query("select sum(l.amount) as total from (select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())) l ");
-    $lists = array();
-    while ($ln = $list->fetch_assoc()) {
-        $lists[] = $ln;
-    }
-// die($lists);
-    return json_encode($lists);
-
-    //$total=$mysqli->query("SELECT sum(monthlyincome) FROM `floorplan` WHERE `propertyid`=339 and isoccupied=0");
-    //$
-    // die("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND month(invoicedate)=  MONTH(now())  )x group by x.idno) prop");
-    //$total=$mysqli->query("select sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND month(invoicedate)= MONTH(now()) and property_id in(SELECT property_id from properties where pay_day=DAY(now())) )x group by x.idno) prop");
-    // die(print_r($total->fetch_array()));
-    //$query =$mysqli->query("SELECT * FROM properties WHERE pay_day='$date'") or die(mysqli_error($mysqli));
-
-    // return  mysqli_num_rows($query);
-}
-
-function payout_list_cumilated()
-{
-
-    $mysqli = getMysqliConnection();
-    $date = date('d');
-
-    //$list=$mysqli->query(" select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid,p.* from properties p where pay_day=DAY(now())");
-    $list = $mysqli->query("select *,p.propertyid from landlord_peddingpay lp join properties p on lp.propid=p.propertyid ");
-
-    // $total=$mysqli->query("select sum(l.amount) as total from (select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())) l ");
-    $lists = array();
-    while ($ln = $list->fetch_assoc()) {
-        $lists[] = $ln;
-    }
-    return json_encode($lists);
-
-    //$total=$mysqli->query("SELECT sum(monthlyincome) FROM `floorplan` WHERE `propertyid`=339 and isoccupied=0");
-    //$
-    // die("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND month(invoicedate)=  MONTH(now())  )x group by x.idno) prop");
-    //$total=$mysqli->query("select sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND month(invoicedate)= MONTH(now()) and property_id in(SELECT property_id from properties where pay_day=DAY(now())) )x group by x.idno) prop");
-    // die(print_r($total->fetch_array()));
-    //$query =$mysqli->query("SELECT * FROM properties WHERE pay_day='$date'") or die(mysqli_error($mysqli));
-
-    // return  mysqli_num_rows($query);
-}
-
-function total_payout()
-{
-    $mysqli = getMysqliConnection();
-    $date = date('d');
-    $list = $mysqli->query(" select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())");
-    $total = $mysqli->query("select sum(l.amount) as total from (select ifnull((SELECT sum(monthlyincome) FROM `floorplan` f WHERE f.`propertyid`=p.propertyid and isoccupied=1),0)as amount ,p.propertyid from properties p where pay_day=DAY(now())) l ");
-    return ($total->fetch_assoc()['total']);
-
-    //$total=$mysqli->query("SELECT sum(monthlyincome) FROM `floorplan` WHERE `propertyid`=339 and isoccupied=0");
-    //$
-    // die("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND month(invoicedate)=  MONTH(now())  )x group by x.idno) prop");
-    //$total=$mysqli->query("select sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND month(invoicedate)= MONTH(now()) and property_id in(SELECT property_id from properties where pay_day=DAY(now())) )x group by x.idno) prop");
-    // die(print_r($total->fetch_array()));
-    //$query =$mysqli->query("SELECT * FROM properties WHERE pay_day='$date'") or die(mysqli_error($mysqli));
-
-    // return  mysqli_num_rows($query);
-}
-
-function getSettings()
-{
+function getSettings() {
     $mysqli = getMysqliConnection();
     $settings = array();
     $settingstable = getSettingsTable();
@@ -392,8 +34,7 @@ function getSettings()
 }
 
 //save settings
-function saveSettings($settings, $mode)
-{
+function saveSettings($settings, $mode) {
     $mysqli = getMysqliConnection();
     $settingstable = getSettingsTable();
     $id = $settings['id'];
@@ -424,38 +65,26 @@ function saveSettings($settings, $mode)
 $settings = getSettings();
 $_SESSION['clientname'] = $settings['company_name'];
 
-function getAccountsOpeningDate()
-{
+function getAccountsOpeningDate() {
     $settings = getSettings();
     return $settings['accounts_opening'];
 }
 
-function getAdminEmail()
-{
+function getAdminEmail() {
     $settings = getSettings();
     return array('from' => $settings['from_email'], 'cc' => $settings['cc_email']);
 }
 
-function getAbsoluteUrl()
-{
+function getAbsoluteUrl() {
     $settings = getSettings();
     return $settings['siteroot'];
 }
 
-function getIP()
-{
-    if ($_SERVER['REMOTE_ADDR'] != "127.0.0.1") {
-        return "https://" . $_SERVER["HTTP_HOST"];
-
-    } else {
-        return "http://" . $_SERVER["HTTP_HOST"] . "/property-rivercourt";
-
-    }
-
+function getIP() {
+    return "http://" .  $_SERVER["DOCUMENT_ROOT"] . '/property-rivercourt';
 }
 
-function checkIfLoggedInProperty()
-{
+function checkIfLoggedInProperty() {
     $homeurl = getIP() . "/home.php?error=Property Not Selected!";
     if (!$_SESSION['propertyid']) {
         header('Location: ' . $homeurl);
@@ -463,100 +92,81 @@ function checkIfLoggedInProperty()
 }
 
 //tables
-function getChargeItemsTable()
-{
+function getChargeItemsTable() {
     return "chargeitems";
 }
 
-function getSettingsTable()
-{
+function getSettingsTable() {
     return "settings";
 }
 
-function getInvoiceTable()
-{
+function getInvoiceTable() {
     return "invoices";
 }
 
-function getReceiptsTable()
-{
+function getReceiptsTable() {
     return "recptrans";
 }
 
-function getPropertiesTable()
-{
+function getPropertiesTable() {
     return "properties";
 }
 
-function delaypenaltiesTable()
-{
+function delaypenaltiesTable() {
     return 'delaypenalties';
 }
 
-function invoiceitemsTable()
-{
+function invoiceitemsTable() {
     return 'invoiceitems';
 }
 
-function gettenantsTable()
-{
+function gettenantsTable() {
     return 'tenants';
 }
 
-function getSupplierListTable()
-{
+function getSupplierListTable() {
     return 'supplierexpenselist';
 }
 
-function getPaymentsListTable()
-{
+function getPaymentsListTable() {
     return 'paytrans';
 }
 
-function getUsersTable()
-{
+function getUsersTable() {
     $tablename = "accesslevels";
     return $tablename;
 }
 
-function getAccountsTable()
-{
+function getAccountsTable() {
     return 'bkaccounts';
 }
 
-function getFinancialYearTable()
-{
+function getFinancialYearTable() {
     return 'financial_years';
 }
 
-function getClosePeriodsTable()
-{
+function getClosePeriodsTable() {
     return 'close_periods';
 }
 
-function getAccountTypesTable()
-{
+function getAccountTypesTable() {
     return 'acct_types';
 }
 
-function getAccountCategoriesTable()
-{
+function getAccountCategoriesTable() {
     return 'accounttype_categories';
 }
 
-function getJournalsTable()
-{
+function getJournalsTable() {
     return 'journal_entries';
 }
 
-function getBankTransactionsTable()
-{
+function getBankTransactionsTable() {
     return 'bank_trans';
 }
 
 //save gl
-function saveGL($gl, $mode)
-{
+function saveGL($gl, $mode) {
     $mysqli = getMysqliConnection();
     $glaccountstable = getAccountsTable();
     $accountype = $gl['idaccount_type'];
@@ -590,8 +200,7 @@ function saveGL($gl, $mode)
 }
 
 //delete gl
-function deleteGL($id)
-{
+function deleteGL($id) {
     $mysqli = getMysqliConnection();
     $fytable = getAccountsTable();
     $result = $mysqli->query("DELETE FROM {$fytable} WHERE `acno`='$id' ") or die($mysqli->error);
@@ -604,8 +213,7 @@ function deleteGL($id)
 }
 
 //get gl for property
-function getLandlordGls($propertyid)
-{
+function getLandlordGls($propertyid) {
 
     $mysqli = getMysqliConnection();
     $accountdetails = array();
@@ -621,8 +229,7 @@ function getLandlordGls($propertyid)
 
 //get penalty gl
 
-function getPenaltyGl()
-{
+function getPenaltyGl() {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $accountstable = getAccountsTable();
@@ -639,8 +246,7 @@ function getPenaltyGl()
     return $accountdetails;
 }
 
-function getBanksGls()
-{
+function getBanksGls() {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $accountstable = getAccountsTable();
@@ -654,8 +260,7 @@ function getBanksGls()
 }
 
 //deposit penalty
-function getDepositPenaltyGls()
-{
+function getDepositPenaltyGls() {
 
     $mysqli = getMysqliConnection();
     $accountdetails = array();
@@ -670,8 +275,7 @@ function getDepositPenaltyGls()
 }
 
 //get penalty amounts between dates
-function getDepositPenaltyAmounts($startdate, $enddate)
-{
+function getDepositPenaltyAmounts($startdate, $enddate) {
     $mysqli = getMysqliConnection();
 
     $accountstable = getJournalsTable();
@@ -684,8 +288,7 @@ function getDepositPenaltyAmounts($startdate, $enddate)
     return $totalcredit;
 }
 
-function getAgentIncomeGls()
-{
+function getAgentIncomeGls() {
 
     $mysqli = getMysqliConnection();
     $accountdetails = array();
@@ -699,8 +302,7 @@ function getAgentIncomeGls()
     return $accountdetails;
 }
 
-function getAgentBankGls()
-{
+function getAgentBankGls() {
 
     $mysqli = getMysqliConnection();
     $accountdetails = array();
@@ -714,8 +316,7 @@ function getAgentBankGls()
     return $accountdetails;
 }
 
-function getGLCodeForAccount($params)
-{
+function getGLCodeForAccount($params) {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $accountstable = getAccountsTable();
@@ -805,8 +406,7 @@ function getGLCodeForAccount($params)
 
 //update GL balance
 //landlord expense
-function getLandlordExpenseAccounts($params)
-{
+function getLandlordExpenseAccounts($params) {
     $mysqli = getMysqliConnection();
     $accountstable = getAccountsTable();
     $propid = $params['property_id'];
@@ -832,8 +432,7 @@ function getLandlordExpenseAccounts($params)
 }
 
 //agent expense
-function getAgentExpenseAccount()
-{
+function getAgentExpenseAccount() {
     $mysqli = getMysqliConnection();
     $accountstable = getAccountsTable();
     $expenseaccts = array();
@@ -856,9 +455,7 @@ function getAgentExpenseAccount()
     return $expenseaccts;
 }
 
-function updateGLBalance($glcode, $amount)
-{
-
+function updateGLBalance($glcode, $amount) {
     $mysqli = getMysqliConnection();
     $glstable = getAccountsTable();
     $res = $mysqli->query("SELECT * FROM {$glstable} WHERE `glcode` = '$glcode' ") or die($mysqli->error);
@@ -867,9 +464,7 @@ function updateGLBalance($glcode, $amount)
         $balance = $row['bal'];
     }
     $newbal = $balance + $amount;
-    //echo("UPDATE {$glstable} SET `bal` = '$newbal' WHERE `glcode`='$glcode'<br/>");
     $resultset = $mysqli->query("UPDATE {$glstable} SET `bal` = '$newbal' WHERE `glcode`='$glcode' ") or die($mysqli->error);
-
     $mysqli->close();
     if ($resultset) {
         return TRUE;
@@ -879,8 +474,7 @@ function updateGLBalance($glcode, $amount)
 }
 
 //get income type
-function getIncomeType($code)
-{
+function getIncomeType($code) {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $incomestable = "incometypes";
@@ -894,8 +488,7 @@ function getIncomeType($code)
 }
 
 //journals
-function createJournalEntry($params)
-{
+function createJournalEntry($params) {
     $mysqli = getMysqliConnection();
     $jentrytable = getJournalsTable();
     $jvno = incrementnumber('jvno');
@@ -924,8 +517,7 @@ function createJournalEntry($params)
 }
 
 //reverse journal
-function reverseJournal($params)
-{
+function reverseJournal($params) {
     $mysqli = getMysqliConnection();
     $docref = $params['document_ref'];
     $ttype = strtoupper($params['ttype']);
@@ -948,8 +540,7 @@ function reverseJournal($params)
 }
 
 //get journal from glcode
-function getGLJournals($glcode, $filter = 0, $period = 0)
-{
+function getGLJournals($glcode, $filter = 0, $period = 0) {
     $mysqli = getMysqliConnection();
     $journaldetails = array();
     $journalstable = getJournalsTable();
@@ -969,8 +560,7 @@ function getGLJournals($glcode, $filter = 0, $period = 0)
     return $journaldetails;
 }
 
-function getGLJournalsForDates($glcode, $startdate, $enddate)
-{
+function getGLJournalsForDates($glcode, $startdate, $enddate) {
     $mysqli = getMysqliConnection();
     $journaldetails = array();
     $journalstable = getJournalsTable();
@@ -987,8 +577,7 @@ function getGLJournalsForDates($glcode, $startdate, $enddate)
     return $journaldetails;
 }
 
-function getTotalForJournalPeriod($glcode, $idcloseperiod)
-{
+function getTotalForJournalPeriod($glcode, $idcloseperiod) {
     $mysqli = getMysqliConnection();
     $journaldetails = array();
     $journalrefs = "";
@@ -1019,8 +608,7 @@ function getTotalForJournalPeriod($glcode, $idcloseperiod)
 }
 
 //update journals
-function updateJournals($journalrefsarray)
-{
+function updateJournals($journalrefsarray) {
     $mysqli = getMysqliConnection();
     $journalstable = getJournalsTable();
     if (is_array($journalrefsarray)) {
@@ -1034,8 +622,7 @@ function updateJournals($journalrefsarray)
 }
 
 //save financial year
-function saveFY($fy, $mode)
-{
+function saveFY($fy, $mode) {
     $mysqli = getMysqliConnection();
     $glaccountstable = getFinancialYearTable();
     $start_date = date("Y-m-d", strtotime($fy['start_date']));
@@ -1057,8 +644,7 @@ function saveFY($fy, $mode)
 }
 
 //delete FY
-function deleteFY($id)
-{
+function deleteFY($id) {
     $mysqli = getMysqliConnection();
     $fytable = getFinancialYearTable();
     $result = $mysqli->query("UPDATE {$fytable} SET `status`=0 WHERE `idfinancial_year` ='$id' ") or die($mysqli->error);
@@ -1070,8 +656,7 @@ function deleteFY($id)
     $mysqli->close();
 }
 
-function getFinancialYears()
-{
+function getFinancialYears() {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $accountstable = getFinancialYearTable();
@@ -1085,8 +670,7 @@ function getFinancialYears()
 }
 
 //save financial year
-function saveClosePeriod($cp, $mode)
-{
+function saveClosePeriod($cp, $mode) {
     $mysqli = getMysqliConnection();
     $glaccountstable = getClosePeriodsTable();
     $idyear = $cp['idfinancial_year'];
@@ -1107,50 +691,8 @@ function saveClosePeriod($cp, $mode)
     }
 }
 
-function getPeriodByDate1($date)
-{
-
-
-    $mysqli = getMysqliConnection();
-    $closeperiodtable = getClosePeriodsTable();
-    //get close period in which month falls
-    $date1 = DateTime::createFromFormat("d/m/Y", $date);
-    // die($date); //$date;
-//    //get the current month (tested-ok)
-//$date1=DateTime::createFromFormat("Y-m-d", $date);
-    $thisday = $date1->format("d");
-    $thismonth = $date1->format("m");
-    $thisyear = $date1->format("Y");
-    $currentdate = $date1->format("Y-m-d");
-
-    // $res = $mysqli->query
-    // return "SELECT * FROM $closeperiodtable WHERE `start_date` <= '$currentdate' AND `end_date` >= '$currentdate' AND is_active=1 ";// or die($mysqli->error);
-//echo($res);
-    // $rows = null;
-    // while ($row = $res->fetch_assoc()) {
-    //     $startdate = new DateTime($row['start_date']);
-    //     $enddate = new DateTime($row['end_date']);
-    //     $startdatemonth = $startdate->format("m");
-    //     $enddatemonth = $enddate->format("m");
-    //     $enddateday = $enddate->format("d");
-    //     $startdateyear = $startdate->format("Y");
-    //     if ($thismonth <= $enddatemonth && $thismonth >= $startdatemonth && $thisyear <= $startdateyear) {
-    //         //if($enddatemonth>$thismonth=>$startdatemonth && $thisyear==$startdateyear){
-    //         $rows = $row;
-    //     }
-    //     $mysqli->close();
-    //     if ($rows) {
-    //         return $rows;
-    //     } else {
-    //         return false;
-    //     }
-    // }
-}
-
 //get period by date
-function getPeriodByDate($date)
-{
-
+function getPeriodByDate($date) {
     $mysqli = getMysqliConnection();
     $closeperiodtable = getClosePeriodsTable();
     //get close period in which month falls
@@ -1162,7 +704,6 @@ function getPeriodByDate($date)
     $currentdate = $date1->format("Y-m-d");
 
     $res = $mysqli->query("SELECT * FROM $closeperiodtable WHERE `start_date` <= '$currentdate' AND `end_date` >= '$currentdate' AND is_active=1 ") or die($mysqli->error);
-//    echo($res);
     $rows = null;
     while ($row = $res->fetch_assoc()) {
         $startdate = new DateTime($row['start_date']);
@@ -1185,8 +726,7 @@ function getPeriodByDate($date)
 }
 
 //get period by id
-function getClosePeriod($id)
-{
+function getClosePeriod($id) {
     $mysqli = getMysqliConnection();
     $closeperiod = array();
     $closeperiodtable = getClosePeriodsTable();
@@ -1200,9 +740,8 @@ function getClosePeriod($id)
     return $closeperiod;
 }
 
-//get close periods
-function getClosePeriods($fy)
-{
+//get close periods 
+function getClosePeriods($fy) {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $accountstable = getClosePeriodsTable();
@@ -1215,8 +754,7 @@ function getClosePeriods($fy)
     return $accountdetails;
 }
 
-function changePeriodStatus($id, $status)
-{
+function changePeriodStatus($id, $status) {
     $mysqli = getMysqliConnection();
     $accountstable = getClosePeriodsTable();
     $res = $mysqli->query("UPDATE {$accountstable} SET `is_active`='$status' WHERE `idclose_periods`='$id'") or die($mysqli->error);
@@ -1229,8 +767,7 @@ function changePeriodStatus($id, $status)
 }
 
 //delete periods
-function deleteClosePeriod($id)
-{
+function deleteClosePeriod($id) {
     $mysqli = getMysqliConnection();
     $accountstable = getClosePeriodsTable();
     $res = $mysqli->query("DELETE FROM  {$accountstable}  WHERE `idclose_periods`='$id'") or die($mysqli->error);
@@ -1243,8 +780,7 @@ function deleteClosePeriod($id)
 }
 
 //tenant email
-function getTenantDetails($id)
-{
+function getTenantDetails($id) {
     $mysqli = getMysqliConnection();
     $tenantstable = gettenantsTable();
     $detailsarray = array();
@@ -1259,14 +795,14 @@ function getTenantDetails($id)
     return $detailsarray;
 }
 
-//mysqli connection
-function getMysqliConnection()
-{
+//mysqli connection 
+function getMysqliConnection() {
     require_once getSiteRoot() . '/includes/config.php';
     $file = @include_once '../includes/config.php';
     if (!file_exists($file)) {
         $file = @include_once '../../includes/config.php';
     }
+
 
 
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
@@ -1276,9 +812,7 @@ function getMysqliConnection()
         return $mysqli;
     }
 }
-
-function tenantseditdetails($id)
-{
+function tenantseditdetails($id) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT * FROM tenants WHERE Id ='$id'") or die(mysql_error());
@@ -1292,9 +826,7 @@ function tenantseditdetails($id)
 
     $db->close_connection();
 }
-
-function populatejsArray()
-{
+function populatejsArray() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT property_name FROM properties") or die(mysql_error());
@@ -1308,8 +840,7 @@ function populatejsArray()
     $db->close_connection();
 }
 
-function populatemohalla()
-{
+function populatemohalla() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT mohalla FROM mohalla") or die(mysql_error());
@@ -1324,8 +855,7 @@ function populatemohalla()
 }
 
 //populate legal form on select
-function populateLegal($propertyid)
-{
+function populateLegal($propertyid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $propertyid = $propertyid;
@@ -1346,8 +876,7 @@ function populateLegal($propertyid)
 }
 
 //populate agents
-function populateagents()
-{
+function populateagents() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT agentname FROM agents") or die(mysql_error());
@@ -1363,8 +892,7 @@ function populateagents()
 
 //upload legal details
 
-function uploadlegal()
-{
+function uploadlegal() {
     $db = new MySQLDatabase();
     $db->open_connection();
     if (isset($_POST) and $_SERVER['REQUEST_METHOD'] == "POST") {
@@ -1446,8 +974,7 @@ window.location = "updatedata.php"</script>';
 }
 
 //upload property docs
-function uploaddocs()
-{
+function uploaddocs() {
 
     $db = new MySQLDatabase();
     $db->open_connection();
@@ -1525,47 +1052,9 @@ function uploaddocs()
         echo "data not received from form!";
     }
 }
-function addPropertyFromCSV($filename) {
-    
-    $db = new MySQLDatabase();
-    $db->open_connection();
-
-    if (($handle = fopen($filename, "r")) !== FALSE) {
-        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-            $proptype = mysql_real_escape_string($data[0]);
-            $category = mysql_real_escape_string($data[1]);
-            $propname = mysql_real_escape_string($data[2]);
-            // Add more property fields as necessary
-
-            // Perform validation and necessary transformations on the data
-
-            // Construct the SQL query
-            $sql = "INSERT INTO properties (property_type, category, property_name) VALUES (" .
-                    PrepSQL($proptype) . ", " .
-                    PrepSQL($category) . ", " .
-                    PrepSQL($propname) . ")";
-            // Execute the query
-            $result = $db->query($sql) or die(mysql_error());
-            
-            // Add additional logic for handling other fields and post-processing
-            
-            if (!$result) {
-                echo 'Database update failed!'; /* This may be logged or handled differently */
-            } else {
-                echo "Successfully added property: " . $propname . "<br>";
-            }
-        }
-        fclose($handle);
-    } else {
-        echo "Error opening file: " . $filename;
-    }
-
-    $db->close_connection();
-}
 
 //add property
-function addproperty1()
-{
+function addproperty1() {
 
     $category = '';
     $db = new MySQLDatabase();
@@ -1601,20 +1090,17 @@ function addproperty1()
     $water_rate = mysql_real_escape_string($_POST["watercharge"]);
     $agentcomm = mysql_real_escape_string($_POST["agentcommission"]);
     $vat = mysql_real_escape_string($_POST["vat"]);
-    $payday = mysql_real_escape_string($_POST["pay_day"]);
-
     $agentid = 1;
 
 
 //print_r($_POST);
 
-    if ($payday == "" || $proptype == '' || $propname == '' || $buyown == '' || $plotno == '' || $titleno == '' || $acres == '' || $mohalla == '' || $occupants == '' || $structstatus == '' || $condition == '' || $address == '' || $propurl == '' || $water_rate == '') {
+    if ($proptype == '' || $propname == '' || $buyown == '' || $plotno == '' || $titleno == '' || $acres == '' || $mohalla == '' || $occupants == '' || $structstatus == '' || $condition == '' || $address == '' || $propurl == '' || $water_rate == '') {
         echo "Enter all Required Fields";
         print_r($_POST);
     } else {
 
-        function PrepSQL($value)
-        {
+        function PrepSQL($value) {
 // Stripslashes
             if (get_magic_quotes_gpc()) {
                 $value = stripslashes($value);
@@ -1623,37 +1109,37 @@ function addproperty1()
 // Quote
             $value = "'" . mysql_real_escape_string($value) . "'";
 
-            return ($value);
+            return($value);
         }
 
-        $sql = "INSERT INTO properties (pay_day,property_name,plotno,property_type,address,mapurl,category,categoryremarks,status,statusremarks,owner,mohalla,occupants,propcondition,conditiondescr,numfloors,area,areasq,areasqft,titledeed,agent_commission,water_rate,has_vat,agentid) VALUES (" .
-            PrepSQL($payday) . ", " .
-            PrepSQL($propname) . ", " .
-            PrepSQL($plotno) . ", " .
-            PrepSQL($proptype) . ", " .
-            PrepSQL($address) . ", " .
-            PrepSQL($propurl) . ", " .
-            PrepSQL($category) . ", " .
-            PrepSQL('<br/>') . ", " .
-            PrepSQL($structstatus) . ", " .
-            PrepSQL('<br/>') . ", " .
-            PrepSQL($buyown) . ", " .
-            PrepSQL($mohalla) . ", " .
-            PrepSQL($occupants) . ", " .
-            PrepSQL($condition) . ", " .
-            PrepSQL($desc) . ", " .
-            PrepSQL($floors) . ", " .
-            PrepSQL($acres) . ", " .
-            PrepSQL($sqmetres) . ", " .
-            PrepSQL($sqft) . ", " .
-            PrepSQL($titleno) . ", " .
-            PrepSQL($agentcomm) . ", " .
-            PrepSQL($water_rate) . ", " .
-            PrepSQL($vat) . ", " .
-            PrepSQL($agentid) . ")";
+        $sql = "INSERT INTO properties (property_name,plotno,property_type,address,mapurl,category,categoryremarks,status,statusremarks,owner,mohalla,occupants,propcondition,conditiondescr,numfloors,area,areasq,areasqft,titledeed,agent_commission,water_rate,has_vat,agentid) VALUES (" .
+                PrepSQL($propname) . ", " .
+                PrepSQL($plotno) . ", " .
+                PrepSQL($proptype) . ", " .
+                PrepSQL($address) . ", " .
+                PrepSQL($propurl) . ", " .
+                PrepSQL($category) . ", " .
+                PrepSQL('<br/>') . ", " .
+                PrepSQL($structstatus) . ", " .
+                PrepSQL('<br/>') . ", " .
+                PrepSQL($buyown) . ", " .
+                PrepSQL($mohalla) . ", " .
+                PrepSQL($occupants) . ", " .
+                PrepSQL($condition) . ", " .
+                PrepSQL($desc) . ", " .
+                PrepSQL($floors) . ", " .
+                PrepSQL($acres) . ", " .
+                PrepSQL($sqmetres) . ", " .
+                PrepSQL($sqft) . ", " .
+                PrepSQL($titleno) . ", " .
+                PrepSQL($agentcomm) . ", " .
+                PrepSQL($water_rate) . ", " .
+                PrepSQL($vat) . ", " .
+                PrepSQL($agentid) . ")";
 
 
-//die($sql);
+
+
         $result = $db->query($sql) or die(mysql_error());
         $lastid = mysql_insert_id();
         if (!$result) {
@@ -1672,7 +1158,7 @@ function addproperty1()
             }
             echo @addfloors($propertyid, $propertyname, $numfloors);
         }
-        //create rent gl account for landlord on landlord side
+        //create rent gl account for landlord on landlord side 
         $gl = array();
         $gl['username'] = $_SESSION['username'];
         $gl['account_name'] = $propertyname . '(Rent)';
@@ -1685,7 +1171,7 @@ function addproperty1()
         $gl['is_landlord'] = 1; //is landlord
         $gl['property_id'] = $lastid;
         $saved = saveGL($gl, 'insert');
-        //create agent gl account for Agent of type Asset (we expect money from him)
+        //create agent gl account for Agent of type Asset (we expect money from him)  
         $glnew = array();
         $glnew['username'] = $_SESSION['username'];
         $glnew['account_name'] = 'Agent Account' . '(' . $propertyname . ')';
@@ -1695,7 +1181,7 @@ function addproperty1()
         $glnew['balance'] = 0;
         $glnew['property_id'] = $lastid;
         $saved = saveGL($glnew, 'insert');
-        //create main gl account for landlord
+        //create main gl account for landlord  
         $gl1 = array();
         $gl1['username'] = $_SESSION['username'];
         $gl1['account_name'] = $propertyname . '(Main)';
@@ -1766,8 +1252,7 @@ function addproperty1()
     }
 }
 
-function addfloors($propertyid, $propertyname, $numfloors)
-{
+function addfloors($propertyid, $propertyname, $numfloors) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tag = substr($propertyname, 0, 3); //apartment prefix
@@ -1782,8 +1267,7 @@ function addfloors($propertyid, $propertyname, $numfloors)
 }
 
 //get apartment details
-function getApartmentDetails($aptid)
-{
+function getApartmentDetails($aptid) {
     $rows = array();
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     if ($mysqli->connect_errno) {
@@ -1800,8 +1284,7 @@ function getApartmentDetails($aptid)
 }
 
 //get floorplan
-function getfloorplan()
-{
+function getfloorplan() {
 
     $propid = $_REQUEST['propid'];
     $db = new MySQLDatabase();
@@ -1836,8 +1319,7 @@ function getfloorplan()
     echo '</table>';
 }
 
-function dropdown()
-{
+function dropdown() {
 
     $sql = $db->query("SELECT * FROM properties") or die(mysql_error());
     while ($row = mysql_fetch_array($sql)) {
@@ -1845,14 +1327,13 @@ function dropdown()
     }
 }
 
-function availabledocs()
-{
+function availabledocs() {
     echo '<link rel="stylesheet" href="../css/update.css" />';
     $db = new MySQLDatabase();
     $db->open_connection();
     $id = $_REQUEST['propid'];
 
-    echo '<U><b>Legal Documents available</b></U>';
+    echo'<U><b>Legal Documents available</b></U>';
     echo '<table id="floorplan">
 <tr>
 <th>Propertyid</th>
@@ -1872,7 +1353,7 @@ function availabledocs()
     echo '</table>';
 
 //propertydocs available
-    echo '<U><b>Property Documents available</b></U>';
+    echo'<U><b>Property Documents available</b></U>';
     echo '<table id="floorplan">
 <tr>
 <th>Propertyid</th>
@@ -1893,8 +1374,7 @@ function availabledocs()
     echo '</table>';
 }
 
-function availabledocslegal()
-{
+function availabledocslegal() {
 
     $db = new MySQLDatabase();
     $db->open_connection();
@@ -1923,8 +1403,7 @@ function availabledocslegal()
     $db->close_connection();
 }
 
-function availabledocsproperty()
-{
+function availabledocsproperty() {
 
     $db = new MySQLDatabase();
     $db->open_connection();
@@ -1954,8 +1433,7 @@ function availabledocsproperty()
 
 //upload photos
 
-function uploadpictorials($propertyid, $photocategory)
-{
+function uploadpictorials($propertyid, $photocategory) {
     $db = new MySQLDatabase();
     $db->open_connection();
 //// Php photo uploader
@@ -2008,8 +1486,7 @@ window.location = "updatedata.php#tabs-4"</script>';
 
 //function insert/update photos ends here
 
-function lookupphotos($propid, $photocat)
-{
+function lookupphotos($propid, $photocat) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $images = array();
@@ -2018,11 +1495,11 @@ function lookupphotos($propid, $photocat)
         echo '<center><h3>select property first!</h3></center>';
         exit();
     } else
-        if ($photocat == 'ALL') {
-            $sql = $db->query("SELECT * FROM pictorials WHERE propertyid='$propid'") or die(mysql_error());
-        } else {
-            $sql = $db->query("SELECT * FROM pictorials WHERE propertyid='$propid' AND photocategory like '$photocat'") or die(mysql_error());
-        }
+    if ($photocat == 'ALL') {
+        $sql = $db->query("SELECT * FROM pictorials WHERE propertyid='$propid'") or die(mysql_error());
+    } else {
+        $sql = $db->query("SELECT * FROM pictorials WHERE propertyid='$propid' AND photocategory like '$photocat'") or die(mysql_error());
+    }
     $numrows = mysql_num_rows($sql);
     if ($numrows != 0) {
         while ($row = mysql_fetch_array($sql)) {
@@ -2038,8 +1515,7 @@ function lookupphotos($propid, $photocat)
     $db->close_connection();
 }
 
-function deletephotos($photoid)
-{
+function deletephotos($photoid) {
     $db = new MySQLDatabase();
     $db->open_connection();
 
@@ -2070,8 +1546,7 @@ window.location = "updatedata.php#tabs-4"</script>';
 }
 
 //move photo
-function movephotos($photoid, $target)
-{
+function movephotos($photoid, $target) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $db->query("UPDATE `pictorials` SET `photocategory`='$target' WHERE id='$photoid'") or die(mysql_error());
@@ -2080,8 +1555,7 @@ function movephotos($photoid, $target)
 
 //page content on return properties
 
-function paginate()
-{
+function paginate() {
     $db = new MySQLDatabase();
     $db->open_connection();
 
@@ -2099,8 +1573,7 @@ function paginate()
     $db->close_connection();
 }
 
-function loadpropertydetails($id)
-{
+function loadpropertydetails($id) {
 
     $photos = array();
     $db = new MySQLDatabase();
@@ -2108,7 +1581,7 @@ function loadpropertydetails($id)
     $id = $id;
     $sql = "SELECT * FROM properties WHERE propertyid='$id' ";
     $sql2 = "SELECT * FROM pictorials WHERE propertyid='$id'";
-    $query = $db->query($sql) or die(mysql_error()); //$nr = mysql_num_rows( $query);
+    $query = $db->query($sql) or die(mysql_error()); //$nr = mysql_num_rows( $query); 
     while ($row = mysql_fetch_array($query)) {
         $resultname = $row['property_name'];
         $resultplotno = $row['plotno'];
@@ -2123,7 +1596,7 @@ function loadpropertydetails($id)
         $resultareasq = $row['areasq'];
         $resultitle = $row['titledeed'];
     }
-    $query2 = $db->query($sql2) or die(mysql_error());  //$nr2 = mysql_num_rows( $query2);
+    $query2 = $db->query($sql2) or die(mysql_error());  //$nr2 = mysql_num_rows( $query2); 
     while ($row2 = mysql_fetch_array($query2)) {
         array_push($photos, $row2['path']); /* push paths into photos array */
     }
@@ -2132,8 +1605,7 @@ function loadpropertydetails($id)
 }
 
 //retreive floor plan details for a property
-function floorplan($id)
-{
+function floorplan($id) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $floordetail = array();
@@ -2177,9 +1649,7 @@ function floorplan($id)
 
 //chargeitems
 //retreive floor plan details
-function getChargeItems($propid)
-{
-
+function getChargeItems($propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $chargedetail = array();
@@ -2204,8 +1674,7 @@ function getChargeItems($propid)
 
 //chargeable item xristics
 
-function getChargeItem($id)
-{
+function getChargeItem($id) {
     $chargeitemstable = getChargeItemsTable();
     $chargeitemdetails = array();
     $mysqli = getMysqliConnection();
@@ -2223,8 +1692,7 @@ function getChargeItem($id)
 }
 
 //get charge item from name
-function getChargeItemByName($name, $propid)
-{
+function getChargeItemByName($name, $propid) {
     $chargeitemstable = getChargeItemsTable();
     $chargeitemdetails = array();
     $mysqli = getMysqliConnection();
@@ -2242,8 +1710,7 @@ function getChargeItemByName($name, $propid)
 }
 
 //add apartment to building
-function addapartments($rows)
-{
+function addapartments($rows) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $propertyid = $rows['propertyid'];
@@ -2259,7 +1726,7 @@ function addapartments($rows)
     $sql0 = "SELECT property_name FROM properties WHERE propertyid='$propertyid'";
     $query0 = $db->query($sql0);
     while ($row0 = mysql_fetch_array($query0)) {
-        $propertyname = addcslashes($row0['property_name']);
+        $propertyname = $row0['property_name'];
     }
     $house_account = incrementnumber('house_account');
 
@@ -2289,58 +1756,32 @@ function addapartments($rows)
 }
 
 //edit the floorplan details
-function editfloorplan($rows)
-{
+function editfloorplan($rows) {
     $db = new MySQLDatabase();
     $db->open_connection();
-    $aptid = trim($rows['apt_id']);
-    $propertyid = trim($rows['propertyid']);
-    $floornumber = trim($rows['floornumber']);
-    $apt_tag = trim($rows['apt_tag']);
-    $monthlyincome = trim($rows['monthlyincome']);
-    $yearlyincome = trim(12 * $monthlyincome);
-    $marketvalue = trim($rows['marketvalue']);
-    $elecmeter = trim($rows['elecmeter']);
-    $watermeter = trim($rows['watermeter']);
-    $metereading = trim($rows['metereading']);
-    $receipt_due = trim($rows["receipt_due"]);
+    $aptid = $rows['apt_id'];
+    $propertyid = $rows['propertyid'];
+    $floornumber = $rows['floornumber'];
+    $apt_tag = $rows['apt_tag'];
+    $monthlyincome = $rows['monthlyincome'];
+    $yearlyincome = 12 * $monthlyincome;
+    $marketvalue = $rows['marketvalue'];
+    $elecmeter = $rows['elecmeter'];
+    $watermeter = $rows['watermeter'];
+    $metereading = $rows['metereading'];
+    $receipt_due = $rows["receipt_due"];
 //print_r($rows);
     $sql = "UPDATE `floorplan` SET `propertyid`='$propertyid',`floornumber`='$floornumber',`units`='0',`apt_tag`='$apt_tag',`monthlyincome`='$monthlyincome',`yearlyincome`='$yearlyincome',`marketvalue`='$marketvalue',`elec_meter`='$elecmeter',`water_meter`='$watermeter',`current_water_reading`='$metereading',`receipt_due`='$receipt_due' WHERE  apt_id='$aptid' limit 1";
-    //die($sql);
     $result = $db->query($sql) or die($db->error());
 
     if (!$result) {
         return FALSE;
-    }
-    return TRUE;
+    } return TRUE;
     $db->close_connection();
 }
 
-function getPropertyId($propname)
-{
-    $mysqli = getMysqliConnection();
-    $prop_id = null;
-    $propname_escaped = mysqli_real_escape_string($mysqli, $propname);
-    $resultset = $mysqli->query("SELECT propertyid FROM properties WHERE property_name ='$propname_escaped'");
-
-    if ($resultset && $resultset->num_rows > 0) {
-        while ($row = $resultset->fetch_assoc()) {
-            $prop_id = $row['propertyid'];
-        }
-    }
-
-    if ($prop_id === null) {
-        // handle the case when no rows were found
-        // throw an exception or return a default value
-        // die("SELECT propertyid FROM properties WHERE property_name ='$propname_escaped'");
-    }
-
-    return $prop_id;
-}
-
 //get apartments of a property
-function getPropertyApartments($propertyid)
-{
+function getPropertyApartments($propertyid) {
     $mysqli = getMysqliConnection();
     $floorplantable = 'floorplan';
     $apartmentdetails = array();
@@ -2355,8 +1796,7 @@ function getPropertyApartments($propertyid)
 }
 
 //delete house
-function deletefloorplan($rows)
-{
+function deletefloorplan($rows) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $aptid = $rows['apt_id'];
@@ -2364,28 +1804,12 @@ function deletefloorplan($rows)
 
     if (!$db->query($sql)) {
         return FALSE;
-    }
-    return TRUE;
-    $db->close_connection();
-}
-
-function disablefloorplan($rows)
-{
-    $db = new MySQLDatabase();
-    $db->open_connection();
-    $aptid = $rows['apt_id'];
-    $sql = "update floorplan set status='disabled' WHERE apt_id='$aptid' ";
-
-    if (!$db->query($sql)) {
-        return FALSE;
-    }
-    return TRUE;
+    } return TRUE;
     $db->close_connection();
 }
 
 //load deposits
-function getDeposits($aptid)
-{
+function getDeposits($aptid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $apartmentdeposits = array();
@@ -2399,8 +1823,7 @@ function getDeposits($aptid)
 }
 
 //save deposit
-function saveDeposits($aptid, $deposit, $value)
-{
+function saveDeposits($aptid, $deposit, $value) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $apartmentdeposits = array();
@@ -2414,8 +1837,7 @@ function saveDeposits($aptid, $deposit, $value)
 }
 
 //delete deposit
-function deleteDeposits($dep_id)
-{
+function deleteDeposits($dep_id) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("DELETE FROM deposits WHERE dep_id='$dep_id' ") or die(mysql_error());
@@ -2428,8 +1850,7 @@ function deleteDeposits($dep_id)
 }
 
 //save charge items
-function saveChargeItem($propid, $itemid, $item, $amount, $vat, $commission, $isdeposit)
-{
+function saveChargeItem($propid, $itemid, $item, $amount, $vat, $commission, $isdeposit) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $chargeitemstable = getChargeItemsTable();
@@ -2447,8 +1868,7 @@ function saveChargeItem($propid, $itemid, $item, $amount, $vat, $commission, $is
 }
 
 //delete deposit
-function deleteChargeItem($itemid)
-{
+function deleteChargeItem($itemid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $chargeitemstable = getChargeItemsTable();
@@ -2462,8 +1882,7 @@ function deleteChargeItem($itemid)
     $db->close_connection();
 }
 
-function populateproperties()
-{
+function populateproperties() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT propertyid,property_name FROM properties ORDER BY property_name ASC") or die(mysql_error());
@@ -2476,8 +1895,7 @@ function populateproperties()
     $db->close_connection();
 }
 
-function populateapartments($propertyid = 31)
-{
+function populateapartments($propertyid = 31) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT apt_id,apt_tag FROM floorplan WHERE propertyid='$propertyid'") or die(mysql_error());
@@ -2490,8 +1908,7 @@ function populateapartments($propertyid = 31)
     $db->close_connection();
 }
 
-function populateapartmentselect($propertyid)
-{
+function populateapartmentselect($propertyid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT apt_id,apt_tag FROM floorplan WHERE propertyid='$propertyid'") or die(mysql_error());
@@ -2505,8 +1922,7 @@ function populateapartmentselect($propertyid)
     $db->close_connection();
 }
 
-function populatecommercialproperties()
-{
+function populatecommercialproperties() {
     include 'includes/database.php';
     $db = new MySQLDatabase();
     $db->open_connection();
@@ -2520,8 +1936,7 @@ function populatecommercialproperties()
     $db->close_connection();
 }
 
-function populatelegaldocs()
-{
+function populatelegaldocs() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT document_id,document_name FROM propertydocuments WHERE doc_type='legaldocument'") or die(mysql_error());
@@ -2533,8 +1948,7 @@ function populatelegaldocs()
     $db->close_connection();
 }
 
-function populatepropdocs()
-{
+function populatepropdocs() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT document_id,document_name FROM propertydocuments WHERE doc_type='propertydocument'") or die(mysql_error());
@@ -2548,8 +1962,7 @@ function populatepropdocs()
 }
 
 //for populating tenants on relocation
-function populatetenants()
-{
+function populatetenants() {
     $db = new MySQLDatabase();
     $db->open_connection();
 //    if ($_SESSION['usergroup'] == 1) {
@@ -2565,8 +1978,7 @@ function populatetenants()
     $db->close_connection();
 }
 
-function getlegdocuments($propid)
-{
+function getlegdocuments($propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $myarray = array();
@@ -2582,8 +1994,7 @@ function getlegdocuments($propid)
     $db->close_connection();
 }
 
-function getpropdocuments($propid)
-{
+function getpropdocuments($propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $proparray = array();
@@ -2599,15 +2010,14 @@ function getpropdocuments($propid)
     $db->close_connection();
 }
 
-function prepare_legal_documents($propid, $stringdocs)
-{
+function prepare_legal_documents($propid, $stringdocs) {
     $db = new MySQLDatabase();
     $db->open_connection();
 
     $arraydocs = preg_split("/[\s$]+/", $stringdocs);
     $query1 = '';
     for ($i = 1; $i < (count($arraydocs) - 1); $i++) {
-        $query1 .= "OR document_id = '$arraydocs[$i]'";
+        $query1.="OR document_id = '$arraydocs[$i]'";
     }
     if (count($arraydocs) > 1) {
         $q = "SELECT * FROM `legaldocs` WHERE propertyid='$propid' AND (document_id = '$arraydocs[0]'  $query1 )";
@@ -2628,8 +2038,7 @@ function prepare_legal_documents($propid, $stringdocs)
     $db->close_connection();
 }
 
-function prepare_property_documents($propid, $stringdocs)
-{
+function prepare_property_documents($propid, $stringdocs) {
     $db = new MySQLDatabase();
     $db->open_connection();
 
@@ -2637,7 +2046,7 @@ function prepare_property_documents($propid, $stringdocs)
     $arraydocs1 = preg_split("/[\s$]+/", $stringdocs);
     $query2 = '';
     for ($i = 1; $i < (count($arraydocs1) - 1); $i++) {
-        $query2 .= " OR document_id = '$arraydocs1[$i]'";
+        $query2.=" OR document_id = '$arraydocs1[$i]'";
     }
 
     if (count($arraydocs1) > 1) {
@@ -2661,8 +2070,7 @@ function prepare_property_documents($propid, $stringdocs)
     $db->close_connection();
 }
 
-function propertyname($propid)
-{
+function propertyname($propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $q = "SELECT property_name FROM properties WHERE propertyid like '$propid'";
@@ -2674,43 +2082,39 @@ function propertyname($propid)
     return $array;
 }
 
-function propertyinfo($propid)
-{
+function propertyinfo($propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $res = mysql_query("SELECT * FROM properties WHERE propertyid = '$propid' ") or die (mysql_error());
-    $response_array = array();
-    $db->close_connection();
-    while ($row = mysql_fetch_assoc($res)) {
-        //$aptid = $row['apt_id'];
-        $response_array[] = $row;
-
-
+	$response_array=array();
+	 $db->close_connection();
+    while ($row = mysql_fetch_assoc($res)){
+		//$aptid = $row['apt_id'];
+		 $response_array[] =$row; 
+      
+        
     }
     header('Content-type: application/json');
-    //$response_array['address']=$address; $response_array['email']=$email; $response_array['phone']=$phone;  $response_array['city']=$city;
-    return json_encode($response_array);
+    //$response_array['address']=$address; $response_array['email']=$email; $response_array['phone']=$phone;  $response_array['city']=$city;      
+    return json_encode($response_array); 
 }
 
-function update_prop($propid, $url, $plot_no, $propname, $titledeed_no)
-{
-    $db = new MySQLDatabase();
-    $tablename = "properties";
+function update_prop($propid,$url,$plot_no,$propname,$titledeed_no){
+   $db=new MySQLDatabase();        $tablename="properties";
     $db->open_connection();
+	
 
-
-    $res = mysql_query("UPDATE $tablename SET `property_name`='$propname',mapurl='$url',titledeed='$titledeed_no',plotno =' $plot_no' WHERE propertyid ='$propid'") or die ($mysql_error());
-    if ($res) {
-        echo '1';
-    } else {
-        echo '2';
-    }
-    $db->close_connection();
+    $res = mysql_query("UPDATE $tablename SET `property_name`='$propname',mapurl='$url',titledeed='$titledeed_no',plotno =' $plot_no' WHERE propertyid ='$propid'")or die ($mysql_error());
+    if($res){
+	echo '1'; 
+	}else{
+	echo '2'; 	
+	}	
+    $db->close_connection();  
 }
 
 
-function intPart($float)
-{
+function intPart($float) {
     if ($float < -0.0000001)
         return ceil($float - 0.0000001);
     else
@@ -2718,11 +2122,10 @@ function intPart($float)
 }
 
 //calculate hirji dates from gregorian calender
-function Hijri2Greg($day, $month, $year, $string = false)
-{
-    $day = (int)$day;
-    $month = (int)$month;
-    $year = (int)$year;
+function Hijri2Greg($day, $month, $year, $string = false) {
+    $day = (int) $day;
+    $month = (int) $month;
+    $year = (int) $year;
 
     $jd = intPart((11 * $year + 3) / 30) + 354 * $year + 30 * $month - intPart(($month - 1) / 2) + $day + 1948440 - 385;
 
@@ -2761,15 +2164,14 @@ function Hijri2Greg($day, $month, $year, $string = false)
         return "{$year}-{$month}-{$day}";
 }
 
-function Greg2Hijri($day, $month, $year, $string = false)
-{
-    $day = (int)$day;
-    $month = (int)$month;
-    $year = (int)$year;
+function Greg2Hijri($day, $month, $year, $string = false) {
+    $day = (int) $day;
+    $month = (int) $month;
+    $year = (int) $year;
 
-    if (($year > 1582) or (($year == 1582) and ($month > 10)) or (($year == 1582) and ($month == 10) and ($day > 14))) {
+    if (($year > 1582) or ( ($year == 1582) and ( $month > 10)) or ( ($year == 1582) and ( $month == 10) and ( $day > 14))) {
         $jd = intPart((1461 * ($year + 4800 + intPart(($month - 14) / 12))) / 4) + intPart((367 * ($month - 2 - 12 * (intPart(($month - 14) / 12)))) / 12) -
-            intPart((3 * (intPart(($year + 4900 + intPart(($month - 14) / 12)) / 100))) / 4) + $day - 32075;
+                intPart((3 * (intPart(($year + 4900 + intPart(($month - 14) / 12) ) / 100) ) ) / 4) + $day - 32075;
     } else {
         $jd = 367 * $year - intPart((7 * ($year + 5001 + intPart(($month - 9) / 7))) / 4) + intPart((275 * $month) / 9) + $day + 1729777;
     }
@@ -2797,8 +2199,7 @@ function Greg2Hijri($day, $month, $year, $string = false)
 
 //hirji calendar
 
-function gettenants()
-{
+function gettenants() {
 //    if ($_SESSION['usergroup'] == 1) {
 //        $propid = '%';
 //    } else {
@@ -2808,7 +2209,7 @@ function gettenants()
     $db = new MySQLDatabase();
     $db->open_connection();
 //$path='<a href="">Path</a>';
-    $aColumns = array('Id', 'tenant_name', 'tenantphone', 'tenantemail', 'workplace', 'idno', 'Apartment_tag', 'property_name', 'fromdate', 'todate', 'leasedoc', 'property_id', 'kins_name', 'kinstel', 'kinsemail'); //Change Column Headings
+    $aColumns = array('Id', 'tenant_name', 'tenantphone', 'tenantemail', 'workplace', 'idno', 'Apartment_tag', 'property_name', 'fromdate', 'todate', 'leasedoc', 'property_id','kins_name','kinstel','kinsemail'); //Change Column Headings
 
     /* Indexed column (used for fast and accurate table cardinality) */
     $sIndexColumn = "Id"; //CHANGE THE INDEX COLUMN
@@ -2817,13 +2218,14 @@ function gettenants()
     $sTable = "tenants";  //CHANGE THE TABLE
 
 
+
     /*
      * Paging
      */
     $sLimit = "";
     if (isset($_GET['iDisplayStart']) && $_GET['iDisplayLength'] != '-1') {
         $sLimit = "LIMIT " . mysql_real_escape_string($_GET['iDisplayStart']) . ", " .
-            mysql_real_escape_string($_GET['iDisplayLength']);
+                mysql_real_escape_string($_GET['iDisplayLength']);
     }
 
 
@@ -2836,7 +2238,7 @@ function gettenants()
         for ($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
             if ($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == "true") {
                 $sOrder .= "`" . $aColumns[intval($_GET['iSortCol_' . $i])] . "` " .
-                    mysql_real_escape_string($_GET['sSortDir_' . $i]) . ", ";
+                        mysql_real_escape_string($_GET['sSortDir_' . $i]) . ", ";
             }
         }
 
@@ -2935,8 +2337,7 @@ FROM   $sTable $oWhere
     $db->close_connection();
 }
 
-function update_tenant_info()
-{
+function update_tenant_info() {
     $db = new MySQLDatabase();
     $db->open_connection();
 
@@ -2954,78 +2355,87 @@ function update_tenant_info()
             echo "OK,Succesfuly updated name.";
         } else
             echo "Failed to update Name, try again";
-    } elseif ($colID == 2) {
+    }
+    elseif ($colID == 2) {
 
         $status = $db->query("update $tablename set tenantphone='$bal' where Id='$id'") or print "Database Error: " . $db->error();
         if ($status == 1) {
             echo "OK,Succesfuly updated Phone. ";
         } else
             echo "Failed to update Phone, try again";
-    } elseif ($colID == 3) {
+    }
+    elseif ($colID == 3) {
 
         $status = $db->query("update $tablename set tenantemail='$bal' where Id='$id'") or print "Database Error: " . $db->error();
         if ($status == 1) {
             echo "OK,Succesfuly updated email.";
         } else
             echo "Failed to update email, try again";
-    } elseif ($colID == 4) {
+    }
+    elseif ($colID == 4) {
 
         $status = $db->query("update $tablename set workplace='$bal' where Id='$id'") or print "Database Error: " . $db->error();
         if ($status == 1) {
             echo "OK,Succesfuly updated workplace.";
         } else
             echo "Failed to update workplace no, try again";
-    } elseif ($colID == 5) {
+    }
+    elseif ($colID == 5) {
 
         $status = $db->query("update $tablename set idno='$bal' where Id='$id'") or print "Database Error: " . $db->error();
         if ($status == 1) {
             echo "OK,Succesfuly updated Id.";
         } else
             echo "Failed to update Id no, try again";
-    } elseif ($colID == 8) {
+    }
+    elseif ($colID == 8) {
 
         $status = $db->query("update $tablename set fromdate='$bal' where Id='$id'") or print "Database Error: " . $db->error();
         if ($status == 1) {
             echo "OK,Succesfuly updated lease Start date.";
         } else
             echo "Failed to update , try again";
-    } elseif ($colID == 9) {
+    }
+    elseif ($colID == 9) {
 
         $status = $db->query("update $tablename set todate='$bal' where Id='$id'") or print "Database Error: " . $db->error();
         if ($status == 1) {
             echo "OK,Succesfuly updated Lease end date.";
         } else
             echo "Failed to update, try again";
-    } elseif ($colID == 10) {
+    }
+    elseif ($colID == 10) {
 
         $status = $db->query("update $tablename set duedate='$bal' where Id='$id'") or print "Database Error: " . $db->error();
         if ($status == 1) {
             echo "OK,Succesfuly updated Billing date.";
         } else
             echo "Failed to update, try again";
-    } elseif ($colID == 12) {
+    }
+elseif ($colID == 12) {
 
         $status = $db->query("update $tablename set kins_name='$bal' where Id='$id'") or print "Database Error: " . $db->error();
         if ($status == 1) {
             echo "OK,Succesfuly updated kin name.";
         } else
             echo "Failed to update, try again";
-    } elseif ($colID == 13) {
+    }
+	elseif ($colID == 13) {
 
         $status = $db->query("update $tablename set kinstel='$bal' where Id='$id'") or print "Database Error: " . $db->error();
         if ($status == 1) {
             echo "OK,Succesfuly updated kin telephone.";
         } else
             echo "Failed to update, try again";
-    } else {
+    }
+    else {
         echo "Server Error!";
     }
 
     $db->close_connection();
 }
 
-function vacate_apartment()
-{
+function vacate_apartment() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $id = mysql_real_escape_string($_POST['id']);
@@ -3045,8 +2455,7 @@ function vacate_apartment()
     $db->close_connection();
 }
 
-function vacant_apartments($propid)
-{
+function vacant_apartments($propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT apt_id,apt_tag FROM floorplan WHERE propertyid='$propid' AND isoccupied='0'") or die($db->error()); //vacant houses/apartments
@@ -3060,8 +2469,7 @@ function vacant_apartments($propid)
     $db->close_connection();
 }
 
-function vacant_apartments_list($propid)
-{
+function vacant_apartments_list($propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT apt_id,apt_tag,monthlyincome FROM floorplan WHERE propertyid='$propid' AND isoccupied='0'") or die($db->error()); //vacant houses/apartments
@@ -3072,238 +2480,63 @@ function vacant_apartments_list($propid)
     return $rows;
     $db->close_connection();
 }
-
-function property_tenants($propid)
-{
+function property_tenants($propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT  Id,tenant_name FROM tenants WHERE  property_id='$propid' AND vacated='0'") or die($db->error()); //vacant houses/apartments
-    //  echo '<select id=\'tenantname\' name=\'tenantname\'  style="width:300px;">';
+  //  echo '<select id=\'tenantname\' name=\'tenantname\'  style="width:300px;">';
     echo '<option selected="selected" value="">---</option>';
     while ($row = mysql_fetch_array($sql)) {
         $Id = $row['Id'];
         echo "<option value='$Id' >" . htmlspecialchars($row['tenant_name']) . "</option>";
     }
-    // echo ' </select> ';
+   // echo ' </select> ';
     $db->close_connection();
 }
-
-function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, $email, $pin, $work, $idno, $photo, $leasestart, $leaseend, $leasedoc, $agentname, $physcaddress, $postaddress, $kinsname, $kinstel, $kinsemail, $regdate)
-{
+function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, $email, $pin, $work, $idno, $photo, $leasestart, $leaseend, $leasedoc, $agentname, $physcaddress, $postaddress, $kinsname, $kinstel, $kinsemail, $regdate) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $docpath = "../leasedoc/";
     $table1 = 'tenants';
     $table2 = 'occupancy';
-    $leasestart = date('Y-m-d', strtotime($leasestart));
-    $leaseend = date('Y-m-d', strtotime($leaseend));
+    $leasestart = date('Y-m-d',strtotime($leasestart));
+    $leaseend = date('Y-m-d',strtotime($leaseend));
     $photopath = '<img src="../images/tenantphotos/' . $photo . '" width="50" height="50"/>';
-
-    if (isset($_GET['id'])) {
-        $id = $_GET['id'];
-        $sql3 = "UPDATE pending_tenants SET STATUS = 'Approved'WHERE id =$id";
-        if (!$db->query($sql3)) {
-            die($db->error());
-            return FALSE;
-        } else {
-            $db->query($sql3) or die($db->error());
-            echo('done');
-        }
-        if (isset($agentname)) {
-            $queryresult = $db->query("SELECT agentid FROM agents WHERE agentname like '$agentname'"); //set agentid
-            while ($row = mysql_fetch_array($queryresult)) {
-                $agentid = $row['agentid'];
-            }
-        }
-
-        $sql0 = "INSERT INTO $table1 (apartmentid,Apartment_tag,property_id,property_name,tenant_name,tenantphone,tenantemail,tenantphoto,tenantpin,workplace,idno,fromdate,todate,leasedoc,agentid,physcaladdress,postaladdress,kins_name,kinstel,kinsemail,regdate)VALUES
-        ('$aptid','$aptname','$propertyid','$propertyname','$name','$phone','$email','$photopath','$pin','$work','$idno','$leasestart','$leaseend','<a href=\"$docpath$leasedoc\" target=\"_blank\">lease Document</a>','$agentid','$physcaddress','$postaddress','$kinsname','$kinstel','$kinsemail','$regdate')";
-        if (!$db->query($sql3)) {
-            die($db->error());
-            return FALSE;
-        } else {
-            $lastid = mysql_insert_id();
-            $sql2 = $db->query("INSERT INTO $table2 (tenantId,propertyid,apt_id,start_date,end_date,comments)VALUES
-                ('$lastid','$propertyid','$aptid','$leasestart','0','comment to be added now')");
-            $status2 = $db->query("update floorplan set isoccupied='1',tenant_id='$lastid' where apt_id='$aptid'") or print "Database Error: " . $db->error();
-
-            $db->query($sql0) or die($db->error());
-            echo('done');
-            return true;
-
-        }
-
-    }
-
-
     if (isset($agentname)) {
-        $queryresult = $db->query("SELECT agentid FROM agents WHERE agentname like '$agentname'"); //set agentid
+        $queryresult = $db->query("SELECT agentid FROM agents WHERE agentname like '$agentname'"); //set agentid 
         while ($row = mysql_fetch_array($queryresult)) {
             $agentid = $row['agentid'];
         }
     }
     $sql = "INSERT INTO $table1 (apartmentid,Apartment_tag,property_id,property_name,tenant_name,tenantphone,tenantemail,tenantphoto,tenantpin,workplace,idno,fromdate,todate,leasedoc,agentid,physcaladdress,postaladdress,kins_name,kinstel,kinsemail,regdate)VALUES
-    ('$aptid','$aptname','$propertyid','$propertyname','$name','$phone','$email','$photopath','$pin','$work','$idno','$leasestart','$leaseend','<a href=\"$docpath$leasedoc\" target=\"_blank\">lease Document</a>','$agentid','$physcaddress','$postaddress','$kinsname','$kinstel','$kinsemail','$regdate')";
+('$aptid','$aptname','$propertyid','$propertyname','$name','$phone','$email','$photopath','$pin','$work','$idno','$leasestart','$leaseend','<a href=\"$docpath$leasedoc\" target=\"_blank\">lease Document</a>','$agentid','$physcaddress','$postaddress','$kinsname','$kinstel','$kinsemail','$regdate')";
+
+
 
     if (!$db->query($sql)) {
         die($db->error());
         return FALSE;
     } else {
-
-        // $db->query($sql) or die($db->error());
-        // echo('done');
-        // return true;
-
         $lastid = mysql_insert_id();
-
-
         $sql2 = $db->query("INSERT INTO $table2 (tenantId,propertyid,apt_id,start_date,end_date,comments)VALUES
-        ('$lastid','$propertyid','$aptid','$leasestart','0','comment to be added')");
+('$lastid','$propertyid','$aptid','$leasestart','0','comment to be added')");
         $status2 = $db->query("update floorplan set isoccupied='1',tenant_id='$lastid' where apt_id='$aptid'") or print "Database Error: " . $db->error();
-        // if($lastid){
-        // $json = array();
-
-        // 		$data = array('CustName' => $name,
-        //                     'CustId' => $lastid,
-        //                     'Address' => $physcaddress,
-        //                     'TaxId' => '',
-        //                     'CurrencyCode' => 'KS',
-        //                     'SalesType' => '1',
-        //                     'CreditStatus' => '0',
-        // 					'PaymentTerms' => '7',
-        // 					'Discount' => '0',
-        // 					'paymentDiscount' => '0',
-        // 					'CreditLimit' => '0',
-        // 					'Notes' => '');
-
-        // 		$json[] = $data;
-        //         $json_data = json_encode($json);
-        //         $username = "api-user";
-        //         $password = "admin";
-        //         $headers = array(
-        //             'Authorization: Basic '. base64_encode($username.':'.$password),
-        //         );
-
-        //         //Perform curl post request to add item to the accounts erp
-        //         $curl = curl_init();
-
-        //         curl_setopt_array($curl, array(
-        // 		CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/customers.php?action=add-customer&company-id=RIVER",
-        // 		CURLOPT_RETURNTRANSFER => true,
-        // 		CURLOPT_ENCODING => "",
-        // 		CURLOPT_MAXREDIRS => 10,
-        // 		CURLOPT_TIMEOUT => 0,
-        // 		CURLOPT_FOLLOWLOCATION => true,
-        // 		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        // 		CURLOPT_CUSTOMREQUEST => "POST",
-        // 		CURLOPT_POSTFIELDS => $json_data,
-        // 		CURLOPT_HTTPHEADER => $headers,
-        // 	    ));
-
-        // 	    $response = curl_exec($curl);
-
-        // 	    curl_close($curl);
-
-        //         $response_data = json_decode($response);
-        //         // Further processing ...
-        //         foreach($response_data as $itemObj){
-        //         	$status = $itemObj->Status;
-        //         }
-
-        //         if ($status == 'ok') {
-        //             return "Tenant Added and posted to erp";;
-        //         } else {
-        //             return "Tenant Added but erp failed";;
-        //         }
-
-        // }else{
-        //             return "Tenant Added";
-        //         }
-        //return "added"
-        // $db->close_connection();
+        return "Tenant Added";
+        $db->close_connection();
     }
 }
-
-function addtenant2($tenant_data_obj)
-{
-    $tenant_data_obj = json_encode($tenant_data_obj);
-    $db = new MySQLDatabase();
-    $db->open_connection();
-    // $status='pending';
-    $sql = "INSERT INTO pending_tenants(tenants,status) VALUES($tenant_data_obj,'pending')";
-    echo $sql;
-    $db->query($sql) or die($db->error());
-    echo('done');
-    return true;
-
-}
-
-function countPendingtenants()
-{
-    $mysqli = getMysqliConnection();
-    $sql = "SELECT tenants FROM pending_tenants WHERE STATUS='pending'";
-    $count = $mysqli->query($sql) or die(mysqli_error($mysqli));
-    return mysqli_num_rows($count);
-}
-
-function getAllPendingTenants()
-{
-    $mysqli = getMysqliConnection();
-    $sql = "SELECT *
-    FROM pending_tenants 
-    WHERE status ='pending'";
-    $count = $mysqli->query($sql) or die(mysqli_error($mysqli));
-
-    while ($row = $count->fetch_assoc()) {
-        $data[] = $row;
-    }
-    return $data;
-    // return $count->fetch_assoc();
-}
-
-
-function tenantsApproval($id)
-{
-    $conn = getMysqliConnection();
-    $sql = "SELECT* FROM tenants_temp WHERE id='$id'";
-    $response = mysqli_query($conn, $sql);
-    $rows = mysqli_num_rows($response);
-    if ($rows > 0) {
-        $record = mysqli_fetch_assoc($response);
-    } else {
-        echo "Failed";
-    }
-    return $record;
-}
-
-function tenantApprovalUpdate($id)
-{
-    $conn = getMysqliConnection();
-    $sql = "UPDATE tenants_temp SET status='1' WHERE id='$id'";
-    $result = mysqli_query($conn, $sql);
-}
-
-function tenantDisapprovalUpdate($id)
-{
-    $conn = getMysqliConnection();
-    $sql = "UPDATE tenants_temp SET status='2' WHERE id='$id'";
-    $result = mysqli_query($conn, $sql);
-}
-
-
-function update_tenant($aptname, $propertyid, $propertyname, $name, $phone, $email, $pin, $work, $idno, $photo, $leasestart, $leaseend, $leasedoc, $agentname, $physcaddress, $postaddress, $kinsname, $kinstel, $kinsemail, $regdate, $bankcct)
-{
+function update_tenant($aptname, $propertyid, $propertyname, $name, $phone, $email, $pin, $work, $idno, $photo, $leasestart, $leaseend, $leasedoc, $agentname, $physcaddress, $postaddress, $kinsname, $kinstel, $kinsemail, $regdate,$bankcct) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $docpath = "../leasedoc/";
     $table1 = 'tenants';
     $table2 = 'occupancy';
-    $leasestart = date('Y-m-d', strtotime($leasestart));
-    $leaseend = date('Y-m-d', strtotime($leaseend));
+    $leasestart = date('Y-m-d',strtotime($leasestart));
+    $leaseend = date('Y-m-d',strtotime($leaseend));
     $photopath = '<img src="../images/tenantphotos/' . $photo . '" width="50" height="50"/>';
-
+    
     if (isset($agentname)) {
-        $queryresult = $db->query("SELECT agentid FROM agents WHERE agentname like '$agentname'"); //set agentid
+        $queryresult = $db->query("SELECT agentid FROM agents WHERE agentname like '$agentname'"); //set agentid 
         while ($row = mysql_fetch_array($queryresult)) {
             $agentid = $row['agentid'];
         }
@@ -3319,14 +2552,13 @@ function update_tenant($aptname, $propertyid, $propertyname, $name, $phone, $ema
         die($db->error());
         return FALSE;
     } else {
-        return "Tenant Updated";
+                return "Tenant Updated";
         $db->close_connection();
     }
 }
 
 
-function getExpiredLeases()
-{
+function getExpiredLeases() {
     $mysqli = getMysqliConnection();
 
 
@@ -3338,8 +2570,7 @@ function getExpiredLeases()
     return $rows;
 }
 
-function get_agent_id_from_username($username)
-{
+function get_agent_id_from_username($username) {
     include_once './includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $result = array();
@@ -3354,35 +2585,23 @@ function get_agent_id_from_username($username)
     return @$id;
 }
 
-function user_group()
-{
-    return $_SESSION['usergroup'];
-}
-
-function get_agent_property($agentid)
-{
+function get_agent_property($agentid) {
     include './includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $result = array();
     if ($mysqli->connect_errno) {
         echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
     }
-    if (user_group() == "4" || user_group() == "2") {
-        $res = $mysqli->query("SELECT agentproperty.* FROM agentproperty JOIN properties on agentproperty.property_id=properties.propertyid WHERE  properties.active=1 ORDER BY agentproperty.propertyname ") or die($mysqli->error);
 
-    } else {
-        $res = $mysqli->query("SELECT agentproperty.* FROM agentproperty JOIN properties on agentproperty.property_id=properties.propertyid WHERE agentproperty.agent_id='$agentid' and properties.active=1 ORDER BY agentproperty.propertyname ") or die($mysqli->error);
-
-    }
+    $res = $mysqli->query("SELECT agentproperty.* FROM agentproperty JOIN properties on agentproperty.property_id=properties.propertyid WHERE agentproperty.agent_id='$agentid' and properties.active=1 ORDER BY agentproperty.propertyname ") or die($mysqli->error);
     while ($row = $res->fetch_assoc()) {
         array_push($result, $row['property_id'] . '#' . $row['propertyname'] . '#' . $row['commission']);
     }
-    return array_unique($result);
+    return $result;
     mysqli_close($mysqli);
 }
 
-function getallproperties($true, $parameter, $asc_desc, $user)
-{
+function getallproperties($true, $parameter, $asc_desc, $user) {
     $db = new MySQLDatabase();
     $db->open_connection();
     date_default_timezone_set('Africa/Nairobi');
@@ -3434,7 +2653,7 @@ function getallproperties($true, $parameter, $asc_desc, $user)
         $resultitle = $row['titledeed'];
 
 //echo '<div id="valuerow">'.$array ["apartmentid"].'<span id="values"></span>'.$array ["apartmenttag"].'<span id="values"></span>'.$array ["propertyname"].'<span id="values"></span>'.str_repeat('&nbsp;',15).$array ["tenantname"].'</div><br/>';
-        echo '<tr><td>' . $resultname . '</td><td>' . $resultplotno . '</td><td>' . $resulttype . '</td><td><center>' . $resultaddress . '</center></td><td>' . $category . '</td><td>' . $status . '</td><td>' . $owner . '</td><td>' . $resultmohalla . '</td><td>' . $occupants . '</td><td>' . $propcondition . '</td><td>' . $resultacres . '</td><td>' . $resultareasq . '</td><td>' . $resultitle . '</td><td><a href="defaultreports.php?report=tenantlist&propertyid=' . $propertyid . '&id=tenant_name&sort=DESC">Tenants</a></td></tr>';
+        echo'<tr><td>' . $resultname . '</td><td>' . $resultplotno . '</td><td>' . $resulttype . '</td><td><center>' . $resultaddress . '</center></td><td>' . $category . '</td><td>' . $status . '</td><td>' . $owner . '</td><td>' . $resultmohalla . '</td><td>' . $occupants . '</td><td>' . $propcondition . '</td><td>' . $resultacres . '</td><td>' . $resultareasq . '</td><td>' . $resultitle . '</td><td><a href="defaultreports.php?report=tenantlist&propertyid=' . $propertyid . '&id=tenant_name&sort=DESC">Tenants</a></td></tr>';
     }
     echo '</tr></table>';
     echo '<hr/>';
@@ -3443,8 +2662,7 @@ function getallproperties($true, $parameter, $asc_desc, $user)
 }
 
 //get a properties tenants
-function getPropertyTenants($propertyid)
-{
+function getPropertyTenants($propertyid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     date_default_timezone_set('Africa/Nairobi');
@@ -3476,8 +2694,7 @@ function getPropertyTenants($propertyid)
 }
 
 //return all tenants
-function getallSystemtenants($propertyid, $parameter, $asc_desc, $user = "")
-{
+function getallSystemtenants($propertyid, $parameter, $asc_desc, $user = "") {
     $db = new MySQLDatabase();
     $db->open_connection();
     $alltenants = array();
@@ -3498,8 +2715,7 @@ function getallSystemtenants($propertyid, $parameter, $asc_desc, $user = "")
     return $alltenants;
 }
 
-function getalltenants($propertyid, $parameter, $asc_desc, $user, $options)
-{
+function getalltenants($propertyid, $parameter, $asc_desc, $user, $options) {
     $db = new MySQLDatabase();
     $db->open_connection();
     date_default_timezone_set('Africa/Nairobi');
@@ -3568,17 +2784,16 @@ function getalltenants($propertyid, $parameter, $asc_desc, $user, $options)
         $array = array("apartmentid" => "$apartmentid", "apartmenttag" => "$apartmenttag", "propertyname" => "$propertyname", "tenantname" => "$tenantname", "tenantphone" => "$tenantphone", "tenantemail" => "$tenantemail", "tenantphoto" => "$tenantphoto", "tenantpin" => "$tenantpin", "id" => "$id", "leasestart" => "$leasestart", "leaseend" => "$leaseend");
 
 //echo '<div id="valuerow">'.$array ["apartmentid"].'<span id="values"></span>'.$array ["apartmenttag"].'<span id="values"></span>'.$array ["propertyname"].'<span id="values"></span>'.str_repeat('&nbsp;',15).$array ["tenantname"].'</div><br/>';
-        echo '<tr><td>' . $array ["apartmentid"] . '</td><td>' . $array ["apartmenttag"] . '</td><td>' . $array ["propertyname"] . '</td><td>|</td><td><center>' . $array ["tenantphoto"] . '</center></td><td>' . $array ["tenantname"] . '</td><td>' . $array ["tenantphone"] . '</td><td>' . $array ["tenantemail"] . '</td><td>' . $array ["tenantpin"] . '</td>' . '<td>' . $array ["id"] . '</td><td>' . $address . '</td><td>' . $kinsname . '</td><td>' . $kinstel . '</td><td>' . $array ["leasestart"] . '</td><td>' . $array ["leaseend"] . '</td></tr>';
+        echo'<tr><td>' . $array ["apartmentid"] . '</td><td>' . $array ["apartmenttag"] . '</td><td>' . $array ["propertyname"] . '</td><td>|</td><td><center>' . $array ["tenantphoto"] . '</center></td><td>' . $array ["tenantname"] . '</td><td>' . $array ["tenantphone"] . '</td><td>' . $array ["tenantemail"] . '</td><td>' . $array ["tenantpin"] . '</td>' . '<td>' . $array ["id"] . '</td><td>' . $address . '</td><td>' . $kinsname . '</td><td>' . $kinstel . '</td><td>' . $array ["leasestart"] . '</td><td>' . $array ["leaseend"] . '</td></tr>';
     }
     echo '</table>';
     echo '<hr/>';
     echo '<i>Printed by:</i> ' . $user . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
-    //  echo '<button class="sexybutton sexymedium sexyyellow excel_tb" id="tbtoexcel"><span><span><span class="cancel">Export To Excel</span></span></span></button>';
-    echo '<a href="#" id="tbtoexcel" class="export" style="float:right">Export Table data into Excel</a>  ';
+  //  echo '<button class="sexybutton sexymedium sexyyellow excel_tb" id="tbtoexcel"><span><span><span class="cancel">Export To Excel</span></span></span></button>';
+	echo '<a href="#" id="tbtoexcel" class="export" style="float:right">Export Table data into Excel</a>  ';
 }
 
-function searchparameterstenant()
-{
+function searchparameterstenant() {
     $db = new MySQLDatabase();
     $db->open_connection();
 
@@ -3608,8 +2823,7 @@ function searchparameterstenant()
     $db->close_connection();
 }
 
-function searchparametersproperty()
-{
+function searchparametersproperty() {
     $db = new MySQLDatabase();
     $db->open_connection();
 
@@ -3637,11 +2851,11 @@ function searchparametersproperty()
     echo "<option value='$area' >" . $area . "</option>";
 
 
+
     $db->close_connection();
 }
 
-function relocatetenant($tenantid, $propid, $propname, $aptid, $apttag, $leasestart, $leaseend, $leasedoc)
-{
+function relocatetenant($tenantid, $propid, $propname, $aptid, $apttag, $leasestart, $leaseend, $leasedoc) {
     $db = new MySQLDatabase();
     $db->open_connection();
     date_default_timezone_set('Africa/Nairobi');
@@ -3658,7 +2872,7 @@ function relocatetenant($tenantid, $propid, $propname, $aptid, $apttag, $leasest
 ('$tenantid','$propid','$aptid','$leasestart','0','comment to be added')") or die($db->error());
 
     $db->query("update floorplan set isoccupied='1',tenant_id='$tenantid' WHERE apt_id='$aptid'") or print "Database Error: " . $db->error();
-
+   
     $db->query("update tenants set apartmentid='$aptid',Apartment_tag='$apttag',property_id='$propid',property_name='$propname',fromdate='$leasestart',todate='$leaseend',leasedoc='$leasedoc' where Id='$tenantid'") or print "Database Error: " . $db->error();
 
     echo 'sucess';
@@ -3666,8 +2880,7 @@ function relocatetenant($tenantid, $propid, $propname, $aptid, $apttag, $leasest
 }
 
 //agent registration
-function registeragent($agentname, $agentpassword, $agentphone, $group, $agentaddress)
-{
+function registeragent($agentname, $agentpassword, $agentphone, $group, $agentaddress) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "agents";
@@ -3683,8 +2896,7 @@ function registeragent($agentname, $agentpassword, $agentphone, $group, $agentad
     $db->close_connection();
 }
 
-function registeruser($username, $usergroup, $password)
-{
+function registeruser($username, $usergroup, $password) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "accesslevels";
@@ -3698,8 +2910,7 @@ function registeruser($username, $usergroup, $password)
     $db->close_connection();
 }
 
-function assignproperty($agentid, $propid, $propname, $commission = 0)
-{
+function assignproperty($agentid, $propid, $propname, $commission = 0) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "agentproperty";
@@ -3726,8 +2937,7 @@ function assignproperty($agentid, $propid, $propname, $commission = 0)
 }
 
 //assign all properties to an agent
-function assignProperties($agentid)
-{
+function assignProperties($agentid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "agentproperty";
@@ -3735,12 +2945,13 @@ function assignProperties($agentid)
     $properties = getProperties();
     foreach ($properties as $property) {
         $propid = $property['property_id'];
-        $propname = addslashes($property['property_name']);
+        $propname = $property['property_name'];
         $result = $db->query("SELECT agent_id FROM $tablename WHERE agent_id='$agentid' AND property_id='$propid'") or die($db->error());
         //if existing update
         if (mysql_numrows($result) > 0) {
             $query = $db->query("UPDATE $tablename SET agent_id='$agentid' WHERE property_id='$propid' AND agent_id='$agentid'") or die($db->error());
-        } //else insert
+        }
+        //else insert
         else {
             $query1 = "INSERT into $tablename(`agent_id`,`property_id`,`propertyname`,`commission`) VALUES ('$agentid','$propid','$propname','$commission') ";
             if (!$db->query($query1)) {
@@ -3755,8 +2966,7 @@ function assignProperties($agentid)
     $db->close_connection();
 }
 
-function populateallagents()
-{
+function populateallagents() {
     include 'includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     if ($mysqli->connect_errno) {
@@ -3772,24 +2982,21 @@ function populateallagents()
 }
 
 //get property using id
-function findpropertybyid($id)
-{
+function findpropertybyid($id) {
     include_once '../includes/config.php';
     $mysqli = getMysqliConnection();
     $res = $mysqli->query("SELECT property_name FROM properties WHERE propertyid like '$id' ") or die($mysqli->error);
 
     while ($row = $res->fetch_assoc()) {
         $pname = $row['property_name'];
-    }
-    if (@!$pname) {
+    }if (@!$pname) {
         $pname = 'Office';
     }
     return $pname;
 }
 
 //fetchall properties
-function getProperties()
-{
+function getProperties() {
     $mysqli = getMysqliConnection();
     $propertiestable = getPropertiesTable();
     $allpropertydetails = array();
@@ -3805,8 +3012,7 @@ function getProperties()
     return $allpropertydetails;
 }
 
-function getallagentProperties($agentid)
-{
+function getallagentProperties($agentid) {
     $mysqli = getMysqliConnection();
     $propertiestable = getPropertiesTable();
     $allagentpropertydetails = array();
@@ -3821,9 +3027,7 @@ function getallagentProperties($agentid)
     }
     return $allagentpropertydetails;
 }
-
-function findtenantbyid($id)
-{
+function findtenantbyid($id) {
     include_once '../includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     if ($mysqli->connect_errno) {
@@ -3838,23 +3042,7 @@ function findtenantbyid($id)
     mysqli_close($mysqli);
 }
 
-// function findtenantaptbyid($id) {
-//     include_once '../includes/config.php';
-//     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
-//     if ($mysqli->connect_errno) {
-//         echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-//     }
-//     $res = $mysqli->query("SELECT tenant_name FROM tenants WHERE Id='$id' ") or die($mysqli->error);
-
-//     while ($row = $res->fetch_assoc()) {
-//         $name = $row['tenant_name'];
-//     }
-//     return @$name;
-//     mysqli_close($mysqli);
-// }
-
-function findtenantbyapt($aptid)
-{
+function findtenantbyapt($aptid) {
     include_once '../includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     if ($mysqli->connect_errno) {
@@ -3870,8 +3058,7 @@ function findtenantbyapt($aptid)
 }
 
 //al tenant details from apt_id
-function findtenantDetailsbyapt($aptid)
-{
+function findtenantDetailsbyapt($aptid) {
     include_once '../includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     if ($mysqli->connect_errno) {
@@ -3886,73 +3073,36 @@ function findtenantDetailsbyapt($aptid)
     mysqli_close($mysqli);
 }
 
-function findtenantbypropertyid($propid = 0)
-{
+function findtenantbypropertyid($propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "tenants";
     $tablename1 = "floorplan";
-    if ($propid != 0) {
-
 //update tenants based on floorplan details
-        $floorplan = $db->query("SELECT $tablename1.apt_id,apt_tag from $tablename1 where propertyid='$propid' and tenant_id=0 ") or die($db->error());
-        while ($roww = mysql_fetch_array($floorplan)) {
-            $aptid = $roww['apt_id'];
-            $apttag = $roww['apt_tag'];
-            $db->query("UPDATE $tablename SET apartmentid='$aptid' WHERE Apartment_tag='$apttag' and property_id='$propid' and vacated=0  "); //update tenants
-        }
-// die("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE $tablename.property_id like '$propid' AND $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ");
-        $sql = $db->query("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE $tablename.property_id like '$propid' AND $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ") or die($db->error());
-        $i = 0;
-        while ($row = mysql_fetch_array($sql)) {
-            $tenantid = $row['id'];
-            $houseno = $row['apt_tag'];
-            $monthrent = $row['monthlyincome'];
-            $unitsused = $row['current_water_reading'];
-            $aptid = $row['apartmentid'];
-            echo "<option value='$tenantid' itd='" . $row['monthlyincome'] . "' title='$unitsused' class='$aptid' >" . htmlspecialchars($row['tenant_name']) . '&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) . "/-</option>";
-// die("dd");
-// $i++;
-
-// echo "<option value='$tenantid' itd='" . $row['monthlyincome'] . "' title='$unitsused' class='$aptid' >".htmlspecialchars($row['tenant_name']).'&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) ."</option>";
-        }
-
-    } else {
-
-//update tenants based on floorplan details
-        $floorplan = $db->query("SELECT $tablename1.apt_id,apt_tag from $tablename1 where propertyid='$propid' and tenant_id=0 ") or die($db->error());
-        while ($roww = mysql_fetch_array($floorplan)) {
-            $aptid = $roww['apt_id'];
-            $apttag = $roww['apt_tag'];
-            $db->query("UPDATE $tablename SET apartmentid='$aptid' WHERE Apartment_tag='$apttag' and property_id='$propid' and vacated=0  "); //update tenants
-        }
-// die("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE $tablename.property_id like '$propid' AND $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ");
-        $sql = $db->query("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE  $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ") or die($db->error());
-        $i = 0;
-        while ($row = mysql_fetch_array($sql)) {
-            $tenantid = $row['id'];
-            $houseno = $row['apt_tag'];
-            $monthrent = $row['monthlyincome'];
-            $unitsused = $row['current_water_reading'];
-            $aptid = $row['apartmentid'];
-            echo "<option value='$tenantid' itd='" . $row['monthlyincome'] . "' title='$unitsused' class='$aptid' >" . htmlspecialchars($row['tenant_name']) . '&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) . "/-</option>";
-// die("dd");
-// $i++;
-
-// echo "<option value='$tenantid' itd='" . $row['monthlyincome'] . "' title='$unitsused' class='$aptid' >".htmlspecialchars($row['tenant_name']).'&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) ."</option>";
-        }
-
+    $floorplan = $db->query("SELECT $tablename1.apt_id,apt_tag from $tablename1 where propertyid='$propid' and tenant_id=0 ") or die($db->error());
+    while ($roww = mysql_fetch_array($floorplan)) {
+        $aptid = $roww['apt_id'];
+        $apttag = $roww['apt_tag'];
+        $db->query("UPDATE $tablename SET apartmentid='$aptid' WHERE Apartment_tag='$apttag' and property_id='$propid' and vacated=0  "); //update tenants
     }
 
+    $sql = $db->query("SELECT $tablename.id,$tablename.idno,$tablename.tenant_name,$tablename1.apt_tag,$tablename.apartmentid,$tablename1.current_water_reading,$tablename1.current_water_reading,$tablename1.monthlyincome FROM $tablename LEFT JOIN $tablename1 ON $tablename.apartmentid=$tablename1.apt_id WHERE $tablename.property_id like '$propid' AND $tablename.vacated='0' ORDER BY $tablename1.apt_id ASC ") or die($db->error());
+    while ($row = mysql_fetch_array($sql)) {
+        $tenantid = $row['id'];
+        $houseno = $row['apt_tag'];
+        $monthrent = $row['monthlyincome'];
+        $unitsused = $row['current_water_reading'];
+        $aptid = $row['apartmentid'];
+        echo "<option value='$tenantid' id='" . $row['monthlyincome'] . "' title='$unitsused'class='$aptid' >" . htmlspecialchars($row['tenant_name']) . '&nbsp;&nbsp[' . $houseno . ']&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent-Ksh ' . number_format($monthrent) . "/-</option>";
+    }
     $db->close_connection();
 }
 
 //unit functions
-function getunithistory($propertyid, $aptid, $sort)
-{
+function getunithistory($propertyid, $aptid, $sort) {
 //die("SELECT tenants.tenant_name,tenants.tenantphone,tenants.tenantemail,tenants.tenantphoto,tenants.idno,tenants.fromdate,tenants.todate,floorplan.property_name,floorplan.apt_tag,floorplan.monthlyincome,floorplan.yearlyincome FROM tenants LEFT JOIN occupancy ON occupancy.tenantId = tenants.Id  LEFT JOIN floorplan ON tenants.apartmentid=floorplan.apt_id WHERE occupancy.apt_id='$aptid' ORDER BY tenants.fromdate $sort");
     $res = mysqli_connect_db()->query("SELECT tenants.tenant_name,tenants.tenantphone,tenants.tenantemail,tenants.tenantphoto,tenants.idno,IF(tenants.fromdate='0000-00-00',occupancy.start_date,tenants.fromdate)as fromdate,IF(tenants.todate ='0000-00-00',occupancy.end_date,tenants.todate) as todate,floorplan.property_name,floorplan.apt_tag,floorplan.monthlyincome,floorplan.yearlyincome FROM tenants LEFT JOIN occupancy ON occupancy.tenantId = tenants.Id  LEFT JOIN floorplan ON tenants.apartmentid=floorplan.apt_id WHERE occupancy.apt_id='$aptid' ORDER BY tenants.fromdate $sort") or die(mysqli_connect_db()->error);
-
+    
     echo '<table class="treport" >
 <tr><td colspan="11"><center><span style="font-size:16px;font-weight:normal;float:left;"> <b>UNIT HISTORY REPORT</b></span><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;">' . findpropertybyid($propertyid) . '</span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><center>' . str_repeat('&nbsp;', 25) . 'Unit history as of <b> ' . @date('d-m-Y') . '</b></center></span></td></tr>';
@@ -3977,8 +3127,7 @@ function getunithistory($propertyid, $aptid, $sort)
 }
 
 //mysqli connect
-function mysqli_connect_db()
-{
+function mysqli_connect_db() {
     include_once '../includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     if ($mysqli->connect_errno) {
@@ -3987,15 +3136,14 @@ function mysqli_connect_db()
     return $mysqli;
 }
 
-/* * *accounting processess
+/* * *accounting processess 
  * functions here
- *
- *
- *
+ * 
+ * 
+ * 
  * *** */
 
-function getincomeaccount($propertyid)
-{
+function getincomeaccount($propertyid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT id,accname FROM chargeitems WHERE propertyid='$propertyid'") or die($db->error());
@@ -4006,8 +3154,7 @@ function getincomeaccount($propertyid)
     $db->close_connection();
 }
 
-function set_charge_items($propertyid)
-{
+function set_charge_items($propertyid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $chargeitems = array();
@@ -4019,15 +3166,14 @@ function set_charge_items($propertyid)
         $amount = $row['amount'];
         if ($amount) { //if charge item is associated with an amount
             echo '<tr><td><img src="../images/cursors/available.png"></td><td>' . htmlspecialchars($row['accname']) . '</td><td><input type="text" id="chargeitem' . $id . '" class="chargeitem" value="' . $amount . '" title="' . $row['accname'] . '"/></td></tr>';
-            $total12 = $total12 + $row['amount'];
-
+         $total12 = $total12 + $row['amount'];
+            
         } else {
             echo '<tr><td><img src="../images/cursors/available.png"></td><td>' . htmlspecialchars($row['accname']) . '</td><td><input type="text" id="chargeitem' . $id . '" class="chargeitem" title="' . $row['accname'] . '"/></td></tr>';
         }
-
+       
         array_push($chargeitems, $id . '&');
-    }
-    $chargeitems_string = implode($chargeitems);
+    } $chargeitems_string = implode($chargeitems);
     echo '<input type="hidden" id="chargeitemsarray" value="' . $chargeitems_string . '"/>';
     echo '</table>';
     //echo'<tr><td><label for="amount">Amount </label></td>
@@ -4037,8 +3183,7 @@ function set_charge_items($propertyid)
 }
 
 //get account type by id
-function getAccountType($id)
-{
+function getAccountType($id) {
     $accountstable = getAccountTypesTable();
     $mysqli = getMysqliConnection();
     $accountdetails = array();
@@ -4051,8 +3196,7 @@ function getAccountType($id)
 }
 
 //get account types
-function getAccountTypes()
-{
+function getAccountTypes() {
     $accounttypestable = getAccountTypesTable();
     $mysqli = getMysqliConnection();
     $accountdetails = array();
@@ -4068,8 +3212,7 @@ function getAccountTypes()
 }
 
 //account categories
-function getAccountCategories()
-{
+function getAccountCategories() {
     $accountcategories = getAccountCategoriesTable();
     $mysqli = getMysqliConnection();
     $accountdetails = array();
@@ -4085,8 +3228,7 @@ function getAccountCategories()
     return $alltypes;
 }
 
-function getAccountCategory($id)
-{
+function getAccountCategory($id) {
 
     $mysqli = getMysqliConnection();
     $accountdetails = array();
@@ -4100,8 +3242,7 @@ function getAccountCategory($id)
     return $accountdetails;
 }
 
-function getbankaccount()
-{
+function getbankaccount() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT acno,acname FROM bkaccounts WHERE idacct_types like '1'") or die($db->error());
@@ -4112,8 +3253,7 @@ function getbankaccount()
     $db->close_connection();
 }
 
-function getexpenseaccount()
-{
+function getexpenseaccount() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT acno,acname FROM bkaccounts WHERE idacct_types=2") or die($db->error());
@@ -4124,8 +3264,7 @@ function getexpenseaccount()
     $db->close_connection();
 }
 
-function getcashaccount()
-{
+function getcashaccount() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT acno,acname FROM bkaccounts WHERE idacct_types=1") or die($db->error());
@@ -4136,8 +3275,7 @@ function getcashaccount()
     $db->close_connection();
 }
 
-function getpaymentmode()
-{
+function getpaymentmode() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $sql = $db->query("SELECT id,paymode FROM paymodes") or die($db->error());
@@ -4150,11 +3288,7 @@ function getpaymentmode()
 
 //create invoice
 //chargenames:array,charges:array
-function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges, $counter, $currentreading, $aptid, $fperiod, $items, $invoicebbf)
-{
-
-
-    //print_r($_REQUEST);
+function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges, $counter, $currentreading, $aptid, $fperiod, $items,$invoicebbf) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "invoices";
@@ -4162,7 +3296,7 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
     // $entrydate=date('Y-m-d',$entrydate);
     $myDateTime = DateTime::createFromFormat('d/m/Y', trim($entrydate));
     $entrydate = $myDateTime->format('Y-m-d');
-    $currentdate = date('Y-m-d h:i:s');
+   $currentdate = date('Y-m-d h:i:s');
     if ($billing == "0") {
         $result2 = incrementnumber("invno");
     } else {
@@ -4171,9 +3305,7 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
     }
     //invoice amount is now gotten from sum of charges
     $invoiceamount = array_sum($charges);
-
-    $query = "INSERT into $tablename(`invoiceno`,`paidamount`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2',$invoicebbf,'$entrydate','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
-//   die($query);
+    $query = "INSERT into $tablename(`invoiceno`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2','$entrydate','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
     $resultquery = $db->query("SELECT current_water_reading FROM floorplan WHERE apt_id='$aptid'") or die($db->error());
     while ($row = mysql_fetch_array($resultquery)) {
         $lastreading = $row['current_water_reading'];
@@ -4182,306 +3314,6 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
     if (!$queryresult) {
         die("could not create invoice");
     } else {
-        //  die("he");
-        // loop through chargeable items and separate based on characteristics
-//        $commissionnotcharged=0;
-//        $chargeitems=  explode(",",$items);
-//        foreach ($chargeitems as $value) {
-//            $item=getChargeItem($value);
-//            //if item is n0t charge commission add to total
-//          if($item['charged_commission']==0){
-//
-//          }
-//           // print_r($item);
-//        }
-        //if theres a water reading
-        if ($currentreading) {
-            $db->query("UPDATE floorplan SET last_water_reading='$lastreading',current_water_reading='$currentreading' WHERE apt_id='$aptid' ") or die($db->error());
-        }
-        $priority = 'Z';
-        $commissionnotcharged = 0;
-        //die();
-        for ($i = 0; $i <= ($counter - 1); $i++) {
-            $chargename = $chargenames[$i];
-            $priority = setChargeItemPriority($chargename);
-            $chargeitemdetails = getChargeItemByName($chargename, $propid);
-            //if the charge item doesnt attract commission,reduce the credit amount below by the commission previously charged on the item
-            if ($chargeitemdetails['charged_commission'] == 0) {
-                $commissionnotcharged = $commissionnotcharged + $charges[$i];
-            }
-            if ($chargeitemdetails['is_deposit'] == 1) {
-                //create an invoice and return
-//                header('Content-Type: application/json');
-//                $response_array['status'] = 'Invoice/Credit Note ' . $result2 . ' created!';
-//                $response_array['invoiceno'] = $result2;
-                $query1 = "INSERT into $tablename2 (`invoiceno`,`item_name`,`amount`,`priority`) VALUES ('$result2','$chargename','$charges[$i]','$priority')";
-                $db->query($query1) or die($db->error());
-                //echo json_encode($response_array);
-             //  return;
-            }else{
-
-
-            $query1 = "INSERT into $tablename2 (`invoiceno`,`item_name`,`amount`,`priority`) VALUES ('$result2','$chargename','$charges[$i]','$priority')";
-            $db->query($query1) or die($db->error());}
-        }
-        return "created";
-        //empty counter,charge items,charges
-        unset($counter);
-        unset($chargenames);
-        unset($charges);
-
-        //get relevant ledger accounts
-        // debit entry for apartment gl
-        $glaccount = getGLCodeForAccount(array('gl' => 'HouseGL', 'apt_id' => $aptid));
-        $glcode = $glaccount['glcode'];
-        $entry = createJournalEntry(array('glcode' => $glcode, 'document_ref' => $result2, 'debit' => $invoiceamount, 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-
-//credit commission income acct for agent
-        $glaccount1 = getGLCodeForAccount(array('gl' => 'Commissions', 'property_id' => $propid));
-        $glcode1 = $glaccount1['glcode'];
-        $commission = getPropertyCommissionRate($propid);
-        $creditamount = ((($commission * $invoiceamount) / 100) - (($commission * $commissionnotcharged) / 100));
-        if (empty($creditamount)) {
-            $creditamount = 0;
-        }
-        $commissionentry = createJournalEntry(array('glcode' => $glcode1, 'document_ref' => $result2, 'credit' => round($creditamount, 2), 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-        //credit entry for landlord account on agent side
-        $glaccountal = getGLCodeForAccount(array('gl' => 'AgentLandlord', 'property_id' => $propid));
-        $glcode1 = $glaccountal['glcode'];
-        $entry = createJournalEntry(array('glcode' => $glcode1, 'document_ref' => $result2, 'credit' => ($invoiceamount - $creditamount), 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-//create debit entry for Agent on Landlord Side
-        $landlordagent = getGLCodeForAccount(array('gl' => 'LandlordAgent', 'property_id' => $propid));
-        $landlordagentgl = $landlordagent['glcode'];
-        $entry = createJournalEntry(array('glcode' => $landlordagentgl, 'document_ref' => $result2, 'debit' => ($invoiceamount - $creditamount), 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-
-        //create credit entry for rent on  landlord (whole amount)
-        $landlordrent = getGLCodeForAccount(array('gl' => 'LandlordRent', 'property_id' => $propid));
-        $landlordrentgl = $landlordrent['glcode'];
-        $entry1 = createJournalEntry(array('glcode' => $landlordrentgl, 'document_ref' => $result2, 'credit' => $invoiceamount, 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-
-        //create debit entry for commission account on landlord side (expense)
-        $landlordcomm = getGLCodeForAccount(array('gl' => 'LandlordCommission', 'property_id' => $propid));
-        $landlordrentgl = $landlordcomm['glcode'];
-        $entry1 = createJournalEntry(array('glcode' => $landlordrentgl, 'document_ref' => $result2, 'debit' => $creditamount, 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-        $tablenam = "tenants";
-
-        $queryy = $db->query("SELECT tenant_name FROM $tablenam WHERE id='$id' ") or die($db->error());
-        $rowtenant = mysql_fetch_array($queryy);
-        $tnt = $rowtenant['tenant_name'];
-        
-         if($creditamount > 0){
-         $items = array(
-         array(
-         'account_code'=> 30000001,
-         'amount'=> $invoiceamount-$creditamount,
-         'memo'=> $id
-         ),
-         array(
-         'account_code'=> 40000001,
-         'amount'=>$creditamount,
-         'memo'=> $remarks
-         ),
-         array(
-         'account_code'=> 20000001,
-         'amount'=> $invoiceamount,
-         'memo'=> $remarks
-         )
-         ); } else{
-        
-         $items = array(
-         array(
-         'account_code'=> 30000001,
-         'amount'=> $invoiceamount,
-         'memo'=> $remarks
-         ),
-         array(
-         'account_code'=> 20000001,
-         'amount'=> $invoiceamount,
-         'memo'=> $remarks
-         )
-         );
-         }
-         $json2=array(
-         'currency'=> 'KS',
-         'source_ref'=> 30000001,
-         'reference'=> 30000001,
-         'memo'=> "Rent invoice",
-         'amount'=> $invoiceamount,
-         'bank_act'=>20000001,
-         'items'=> $items
-         );
-         $json_data2 = json_encode($json2);
-         $myfile = fopen("invoice.txt", "a");
-         fwrite($myfile, $json_data2);
-         fclose($myfile);
-        
-         //Perform curl post request to add gl to the accounts erp
-         $curl2 = curl_init();
-        
-         curl_setopt_array($curl2, array(
-         CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/journal.php?action=add-journal&company-id=RIVER",
-         CURLOPT_RETURNTRANSFER => true,
-         CURLOPT_ENCODING => "",
-         CURLOPT_MAXREDIRS => 10,
-         CURLOPT_TIMEOUT => 0,
-         CURLOPT_FOLLOWLOCATION => true,
-         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-         CURLOPT_CUSTOMREQUEST => "POST",
-         CURLOPT_POSTFIELDS => $json_data2,
-         CURLOPT_HTTPHEADER => $headers,
-         ));
-        
-         $response2 = curl_exec($curl2);
-        
-         curl_close($curl2);
-        
-         $new_id2 = json_decode($response2)->id;
-        
-         if ($new_id2) {
-         $response= array("success" => "1", "message" => "Success");
-         //$response = array("success" => "1", "message" => "Short detected and added total_short = " . $total_short. " total_comments = ". $total_comments);
-         } else {
-         $response= array("success" => "0", "message" => "Failed to add invoice  to ERP");
-         } 
-                         $itms[] = array(
-                             'product_id' => 1,
-                             'product_code' => 1000,
-                             'product_name' => "Landlord amount and Chargables",
-                             'unit_price' => $invoiceamount - $creditamount,
-                             'quantity' => 1
-                         );
-                 $items2[] = array(
-                     'product_id' => 2,
-                     'product_code' => 1005,
-                     'product_name' => "Agent Commission",
-                     'unit_price' => $creditamount,
-                     'quantity' => 1
-                 );
-                 array_push($itms, $items2);
-
-                  /** foreach($itms as $item){
-                   * $itm[] = array(
-                   * 'product_id' =>$item['product_id'],
-                   * 'product_code' => $item['product_code'],
-                   * 'product_name' => $item['product_name'],
-                   * 'unit_price' =>$item['unit_price'],
-                   * 'quantity' =>$item['quantity']
-                   * ); } **/
-               $itm = array(array(
-                   'product_id' => 1,
-                   'product_code' => 1000,
-                   'product_name' => "Landlord amount and Chargables",
-                   'unit_price' => $invoiceamount - $creditamount,
-                   'quantity' => 1
-               ),
-                   array(
-                       'product_id' => 2,
-                       'product_code' => 1005,
-                       'product_name' => "Agent Commission",
-                       'unit_price' => $creditamount,
-                       'quantity' => 1
-                   )
-               );
-
-
-                        $json = array();
-
-            			$data2 = array('InvoiceNo' => $result2,
-                            'CustId' => $id,
-                            'RefNo' => $result2,
-                            'comments' => 'some comment',
-                            'OrderDate' => $entrydate,
-                            'DeliverTo' => $tnt,
-                            'DeliveryAddress' => "River",
-                            'DeliveryCost' => '0',
-                            'DeliveryDate' => $entrydate,
-                            'InvoiceTotal' => $invoiceamount,
-                            'agentamount' => $creditamount,
-                            'DueDate' => $entrydate,
-                            'items' => $itm);
-
-            			$json[] = $data2;
-                        $json_data = json_encode($json);
-                        $myfile = fopen("invoice.txt", "a");
-                        fwrite($myfile, $json_data);
-                        fclose($myfile);
-                        $username = "api-user";
-                        $password = "admin";
-                        $headers = array(
-                            'Authorization: Basic ' . base64_encode($username . ':' . $password),
-                        );
-
-                        //Perform curl post request to add item to the accounts erp
-                        $curl = curl_init();
-
-                        curl_setopt_array($curl, array(
-                            CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/invoice.php?action=add-invoice&company-id=RIVER",
-                            CURLOPT_RETURNTRANSFER => true,
-                            CURLOPT_ENCODING => "",
-                            CURLOPT_MAXREDIRS => 10,
-                            CURLOPT_TIMEOUT => 0,
-                            CURLOPT_FOLLOWLOCATION => true,
-                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                            CURLOPT_CUSTOMREQUEST => "POST",
-                            CURLOPT_POSTFIELDS => $json_data,
-                            CURLOPT_HTTPHEADER => $headers,
-                        ));
-
-            		    $response = curl_exec($curl);
-
-            		    curl_close($curl);
-
-                        $response_data = json_decode($response);
-                        // Further processing ...
-                        foreach($response_data as $itemObj){
-                        	$status = $itemObj->Status;
-                        }
-
-                        if ($status == 'ok') {
-                            $response= array("success" => "1", "message" => "Sale added","data"=>$payments);
-                        } else {
-                            $response= array("success" => "0", "message" => "Sale not added. Erp fail.");
-                        }
-
-        header('Content-Type: application/json');
-        $response_array['status'] = 'Invoice/Credit Note ' . $result2 . ' created!';
-        $response_array['invoiceno'] = $result2;
-        echo json_encode($response_array);
-    }
-
-    $db->close_connection();
-}
-
-function create_crdtnote($id, $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges, $counter, $currentreading, $aptid, $fperiod, $items, $crdtinvce)
-{
-    $db = new MySQLDatabase();
-    $db->open_connection();
-    $tablename = "invoices";
-    $tablename2 = 'invoiceitems';
-    // $entrydate=date('Y-m-d',$entrydate);
-    $myDateTime = DateTime::createFromFormat('d/m/Y', trim($entrydate));
-    $entrydate = $myDateTime->format('Y-m-d');
-    $currentdate = date('Y-m-d h:i:s');
-
-    if ($billing == "0") {
-        $result2 = incrementnumber("invno");
-    } else {
-        $result2 = incrementnumber("invno");
-        // $result2 = incrementnumber("credno");
-    }
-    //invoice amount is now gotten from sum of charges
-    $invoiceamount = array_sum($charges);
-    $query = "INSERT into $tablename(`invoiceno`,`invoicedate`,`amount`,paidamount,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`) VALUES ('$result2','$entrydate','$invoiceamount','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate') ";
-
-    $resultquery = $db->query("SELECT current_water_reading FROM floorplan WHERE apt_id='$aptid'") or die($db->error());
-    while ($row = mysql_fetch_array($resultquery)) {
-        $lastreading = $row['current_water_reading'];
-    }
-    $queryresult = $db->query($query) or die($db->error());
-    if (!$queryresult) {
-        die("could not create Credit Note");
-    } else {
-        $db->query("UPDATE $tablename SET paidamount = paidamount + $invoiceamount WHERE invoiceno ='$crdtinvce' ");
         //loop through chargeable items and separate based on characteristics
 //        $commissionnotcharged=0;
 //        $chargeitems=  explode(",",$items);
@@ -4489,13 +3321,13 @@ function create_crdtnote($id, $entrydate, $incomeacct, $amount, $billing, $user,
 //            $item=getChargeItem($value);
 //            //if item is n0t charge commission add to total
 //          if($item['charged_commission']==0){
-//
+//              
 //          }
 //           // print_r($item);
 //        }
         //if theres a water reading
         if ($currentreading) {
-            // $db->query("UPDATE floorplan SET last_water_reading='$lastreading',current_water_reading='$currentreading' WHERE apt_id='$aptid' ") or die($db->error());
+            $db->query("UPDATE floorplan SET last_water_reading='$lastreading',current_water_reading='$currentreading' WHERE apt_id='$aptid' ") or die($db->error());
         }
         $priority = 'Z';
         $commissionnotcharged = 0;
@@ -4534,7 +3366,122 @@ function create_crdtnote($id, $entrydate, $incomeacct, $amount, $billing, $user,
         $glcode = $glaccount['glcode'];
         $entry = createJournalEntry(array('glcode' => $glcode, 'document_ref' => $result2, 'debit' => $invoiceamount, 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
 
-//credit commission income acct for agent
+//credit commission income acct for agent 
+        $glaccount1 = getGLCodeForAccount(array('gl' => 'Commissions', 'property_id' => $propid));
+        $glcode1 = $glaccount1['glcode'];
+        $commission = getPropertyCommissionRate($propid);
+        $creditamount = ((($commission * $invoiceamount) / 100) - (($commission * $commissionnotcharged) / 100));
+        $commissionentry = createJournalEntry(array('glcode' => $glcode1, 'document_ref' => $result2, 'credit' => round($creditamount, 2), 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
+        //credit entry for landlord account on agent side
+        $glaccountal = getGLCodeForAccount(array('gl' => 'AgentLandlord', 'property_id' => $propid));
+        $glcode1 = $glaccountal['glcode'];
+        $entry = createJournalEntry(array('glcode' => $glcode1, 'document_ref' => $result2, 'credit' => ($invoiceamount - $creditamount), 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
+//create debit entry for Agent on Landlord Side
+        $landlordagent = getGLCodeForAccount(array('gl' => 'LandlordAgent', 'property_id' => $propid));
+        $landlordagentgl = $landlordagent['glcode'];
+        $entry = createJournalEntry(array('glcode' => $landlordagentgl, 'document_ref' => $result2, 'debit' => ($invoiceamount - $creditamount), 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
+
+        //create credit entry for rent on  landlord (whole amount)
+        $landlordrent = getGLCodeForAccount(array('gl' => 'LandlordRent', 'property_id' => $propid));
+        $landlordrentgl = $landlordrent['glcode'];
+        $entry1 = createJournalEntry(array('glcode' => $landlordrentgl, 'document_ref' => $result2, 'credit' => $invoiceamount, 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
+
+        //create debit entry for commission account on landlord side (expense)
+        $landlordcomm = getGLCodeForAccount(array('gl' => 'LandlordCommission', 'property_id' => $propid));
+        $landlordrentgl = $landlordcomm['glcode'];
+        $entry1 = createJournalEntry(array('glcode' => $landlordrentgl, 'document_ref' => $result2, 'debit' => $creditamount, 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
+
+        header('Content-Type: application/json');
+        $response_array['status'] = 'Invoice/Credit Note ' . $result2 . ' created!';
+        $response_array['invoiceno'] = $result2;
+        echo json_encode($response_array);
+    }
+
+    $db->close_connection();
+}
+
+function create_crdtnote($id, $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges, $counter, $currentreading, $aptid, $fperiod, $items,$crdtinvce) {
+    $db = new MySQLDatabase();
+    $db->open_connection();
+    $tablename = "invoices";
+    $tablename2 = 'invoiceitems';
+    // $entrydate=date('Y-m-d',$entrydate);
+    $myDateTime = DateTime::createFromFormat('d/m/Y', trim($entrydate));
+    $entrydate = $myDateTime->format('Y-m-d');
+    $currentdate = date('Y-m-d h:i:s');
+    
+    if ($billing == "0") {
+        $result2 = incrementnumber("invno");
+    } else {
+        $result2 = incrementnumber("invno");
+        // $result2 = incrementnumber("credno");
+    }
+    //invoice amount is now gotten from sum of charges
+    $invoiceamount = array_sum($charges);
+    $query = "INSERT into $tablename(`invoiceno`,`invoicedate`,`amount`,paidamount,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`) VALUES ('$result2','$entrydate','$invoiceamount','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate') ";
+
+    $resultquery = $db->query("SELECT current_water_reading FROM floorplan WHERE apt_id='$aptid'") or die($db->error());
+    while ($row = mysql_fetch_array($resultquery)) {
+        $lastreading = $row['current_water_reading'];
+    }
+    $queryresult = $db->query($query) or die($db->error());
+    if (!$queryresult) {
+        die("could not create Credit Note");
+    } else {
+        $db->query("UPDATE $tablename SET paidamount = paidamount + $invoiceamount WHERE invoiceno ='$crdtinvce' ");
+        //loop through chargeable items and separate based on characteristics
+//        $commissionnotcharged=0;
+//        $chargeitems=  explode(",",$items);
+//        foreach ($chargeitems as $value) {
+//            $item=getChargeItem($value);
+//            //if item is n0t charge commission add to total
+//          if($item['charged_commission']==0){
+//              
+//          }
+//           // print_r($item);
+//        }
+        //if theres a water reading
+        if ($currentreading) {
+           // $db->query("UPDATE floorplan SET last_water_reading='$lastreading',current_water_reading='$currentreading' WHERE apt_id='$aptid' ") or die($db->error());
+        }
+        $priority = 'Z';
+        $commissionnotcharged = 0;
+        //die();
+        for ($i = 0; $i <= ($counter - 1); $i++) {
+            $chargename = $chargenames[$i];
+            $priority = setChargeItemPriority($chargename);
+            $chargeitemdetails = getChargeItemByName($chargename, $propid);
+            //if the charge item doesnt attract commission,reduce the credit amount below by the commission previously charged on the item
+            if ($chargeitemdetails['charged_commission'] == 0) {
+                $commissionnotcharged = $commissionnotcharged + $charges[$i];
+            }
+            if ($chargeitemdetails['is_deposit'] == 1) {
+                //create an invoice and return
+                header('Content-Type: application/json');
+                $response_array['status'] = 'Invoice/Credit Note ' . $result2 . ' created!';
+                $response_array['invoiceno'] = $result2;
+                $query1 = "INSERT into $tablename2 (`invoiceno`,`item_name`,`amount`,`priority`) VALUES ('$result2','$chargename','$charges[$i]','$priority')";
+                $db->query($query1) or die($db->error());
+                echo json_encode($response_array);
+                return;
+            }
+
+
+            $query1 = "INSERT into $tablename2 (`invoiceno`,`item_name`,`amount`,`priority`) VALUES ('$result2','$chargename','$charges[$i]','$priority')";
+            $db->query($query1) or die($db->error());
+        }
+        //empty counter,charge items,charges
+        unset($counter);
+        unset($chargenames);
+        unset($charges);
+
+        //get relevant ledger accounts
+        // debit entry for apartment gl
+        $glaccount = getGLCodeForAccount(array('gl' => 'HouseGL', 'apt_id' => $aptid));
+        $glcode = $glaccount['glcode'];
+        $entry = createJournalEntry(array('glcode' => $glcode, 'document_ref' => $result2, 'debit' => $invoiceamount, 'ttype' => 'INV', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
+
+//credit commission income acct for agent 
         $glaccount1 = getGLCodeForAccount(array('gl' => 'Commissions', 'property_id' => $propid));
         $glcode1 = $glaccount1['glcode'];
         $commission = getPropertyCommissionRate($propid);
@@ -4567,9 +3514,7 @@ function create_crdtnote($id, $entrydate, $incomeacct, $amount, $billing, $user,
 
     $db->close_connection();
 }
-
-function setChargeItemPriority($itemname)
-{
+function setChargeItemPriority($itemname) {
     $priority;
     switch (strtoupper($itemname)) {
         case 'RENT':
@@ -4593,8 +3538,7 @@ function setChargeItemPriority($itemname)
 
 //penalty invoice (tested-ok)
 
-function createPenaltyInvoice($invoiceitemsarray)
-{
+function createPenaltyInvoice($invoiceitemsarray) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "invoices";
@@ -4623,8 +3567,7 @@ function createPenaltyInvoice($invoiceitemsarray)
     $db->query($query1) or die($db->error());
 }
 
-function create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $fperiod)
-{
+function create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $fperiod) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tenantdetails = array();
@@ -4672,7 +3615,6 @@ function create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $user,
 
         //so create invoice
         $invoices = create_invoice($value['idno'], $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges1, sizeof($charges1), $currentreading = 0, $value['apt_id'], $fperiod);
-        //  die("rent".$invoices." amount ".$amount);
     }
     unset($tenantdetails);
     unset($individualdetails);
@@ -4689,15 +3631,12 @@ function create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $user,
 }
 
 //get chargeables for each apartment/house
-function getApartmentChargeables($aptid)
-{
+function getApartmentChargeables($aptid) {
     $mysqli = getMysqliConnection();
     $floorplantable = 'floorplan';
-    $res = $mysqli->query("SELECT propertyid,monthlyincome FROM $floorplantable WHERE apt_id='$aptid' limit 1") or die($mysqli->error);
+    $res = $mysqli->query("SELECT propertyid,monthlyincome FROM $floorplantable WHERE apt_id='$aptid'") or die($mysqli->error);
     while ($row = $res->fetch_assoc()) {
-
         $rent = $row['monthlyincome'];
-
     }
     return $rent;
     //get rent
@@ -4706,12 +3645,10 @@ function getApartmentChargeables($aptid)
 //invoice details
 //@param int $invoiceno
 //@return array $invoicedetail
-function getInvoiceDetails($invoiceno)
-{
+function getInvoiceDetails($invoiceno) {
     $mysqli = getMysqliConnection();
     $tablename = getInvoiceTable();
     $invoicedetail = array();
-    //  echo $invoiceno;
     $res = $mysqli->query("SELECT  * FROM $tablename WHERE invoiceno='$invoiceno'") or die($mysqli->error);
 
     while ($row = $res->fetch_assoc()) {
@@ -4727,8 +3664,7 @@ function getInvoiceDetails($invoiceno)
     return $invoicedetail;
 }
 
-function getinvoicebyid($id)
-{
+function getinvoicebyid($id) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "invoices";
@@ -4753,8 +3689,7 @@ function getinvoicebyid($id)
     $db->close_connection();
 }
 
-function getUnreversedinvoicebyid($id)
-{
+function getUnreversedinvoicebyid($id) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "invoices";
@@ -4779,13 +3714,12 @@ function getUnreversedinvoicebyid($id)
     $db->close_connection();
 }
 
-function reverseinvoice($id, $user)
-{
+function reverseinvoice($id, $user) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "invoices";
-    $tablename2 = "invoiceitems";
-    $currentdate = date('Y-m-d h:i:s');
+     $tablename2 = "invoiceitems";
+     $currentdate = date('Y-m-d h:i:s');
     $sql = $db->query("SELECT * FROM $tablename WHERE `tno` like '$id'") or die($db->error());
     while ($row = $db->fetch_array($sql)) {
         $invoiceno = $row['invoiceno'];
@@ -4805,12 +3739,12 @@ function reverseinvoice($id, $user)
     $sql2 = $db->query("SELECT * FROM $tablename2 WHERE `invoiceno` = '$invoiceno'") or die($db->error());
     while ($row2 = $db->fetch_array($sql2)) {
         $item_invoiceno = $row2['invoiceno'];
-        $item_item_name = $row2['item_name'];
-        $item_priority = $row2['priority'];
-        $item_amnt = $row2['amount'];
-
-        $query2 = $db->query("INSERT into $tablename2(`invoiceno`,`item_name`,`priority`,`amount`) VALUES ('R$item_invoiceno','$item_item_name','$item_priority','-$item_amnt')") or die($db->error());
-
+            $item_item_name = $row2['item_name'];
+            $item_priority = $row2['priority'];
+            $item_amnt = $row2['amount'];
+           
+      $query2 = $db->query("INSERT into $tablename2(`invoiceno`,`item_name`,`priority`,`amount`) VALUES ('R$item_invoiceno','$item_item_name','$item_priority','-$item_amnt')") or die($db->error());
+  
     }
     $query = $db->query("INSERT into $tablename(`invoiceno`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`revsd`,`invoicecredit`,`property_id`,`idclose_periods`,`ts`) VALUES ('R$invoiceno','$invoicedate','-$amount','$idno','$incomeacct','$user','1','$billing','$propid','$idclose_periods','$currentdate')") or die($db->error());
     $update = $db->query("UPDATE $tablename SET `revsd`='1' WHERE  `invoiceno` ='$invoiceno'") or die($db->error());
@@ -4822,8 +3756,7 @@ function reverseinvoice($id, $user)
 }
 
 //print an invoice
-function printhillsinvoice($invoiceno, $propid, $user)
-{
+function printhillsinvoice($invoiceno, $propid, $user) {
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/Nairobi');
     $date = date("d/m/y");
@@ -4841,11 +3774,8 @@ function printhillsinvoice($invoiceno, $propid, $user)
         while ($row = mysql_fetch_array($sql)) {
             $invoiceno = $row['invoiceno'];
             $invoicedate = $row['invoicedate'];
-            if ($row['invoicecredit'] == '1') {
-                $amount = -1 * $row['amount'];
-            } else {
-                $amount = $row['amount'];
-            }
+            if($row['invoicecredit']=='1'){$amount = -1*$row['amount'];}
+            else{$amount = $row['amount'];}
             $idno = $row['idno'];
             $incomeacct = $row['incomeaccount'];
             $billing = $row['invoicecredit'];
@@ -4855,13 +3785,10 @@ function printhillsinvoice($invoiceno, $propid, $user)
         //get apartment No
         $apartmentid = getApartmentFromTenant($idno);
         $aptdetails = getApartmentDetails($apartmentid);
-        // die($billing);
-        if ($billing == '0') {
-            $value = "Invoice";
-        } else {
-            $value = "Credit Note";
-        } //type of billing
-
+       // die($billing);
+       if ($billing == '0'){ $value = "Invoice";}
+       else{ $value = "Credit Note";} //type of billing
+       
         $sql1 = $db->query("SELECT accname FROM $tablename1 WHERE `id` like '$incomeacct' ORDER BY `priority` ASC") or die($db->error());
         while ($row1 = mysql_fetch_array($sql1)) {
             $accname = $row1['accname'];
@@ -4873,8 +3800,8 @@ function printhillsinvoice($invoiceno, $propid, $user)
             $lastwater = $row2['last_water_reading'];
             $currentwater = $row2['current_water_reading'];
             $bankname = $row2['bank_name'];
-            $acct_no = $row2['acct_no'];
-            $acct_name = $row2['acct_name'];
+             $acct_no = $row2['acct_no'];
+             $acct_name = $row2['acct_name'];
         }
         //get sum of chargeable items
         $sql3 = $db->query("SELECT item_name,amount FROM $tablename2 WHERE invoiceno='$invoiceno' ORDER BY priority ASC") or die($db->error());
@@ -4890,12 +3817,11 @@ function printhillsinvoice($invoiceno, $propid, $user)
             }
         }
         //get outstanding balance/prepayment
-        if ($bbf == '0') {
-            $balance = getCorrectBalance($idno, $invoiceno, $invoicedate);
-        } else {
-            $balance = $bbf;
+        if($bbf =='0'){
+        $balance = getCorrectBalance($idno, $invoiceno,$invoicedate);
+        } else{
+          $balance = $bbf;  
         }
-
         $chargestotal = array_sum($chargeablesamount);
         $totaldue = $balance + $chargestotal;
         $settings = getSettings();
@@ -4903,84 +3829,42 @@ function printhillsinvoice($invoiceno, $propid, $user)
         ?>
 
 
-        <center>
-            <table class="tftable printable" style="width:90%" border="1">
-                <tr>
-                    <td colspan="5">
-                        <img src="../images/cursors/logo1.png" style="height:137px;width:auto;">
-                    </td>
-                </tr>
 
-                <tr>
-                    <td><b><?php echo $value; ?> NO</b></td>
-                    <td><?php echo '<span id="invoiceno">&nbsp;' . $invoiceno . '</span>' ?></td>
-                    <td></td>
-                    <td><?php echo 'Date ' . date("d-m-Y", strtotime($invoicedate)) . '</b>' ?></td>
-                </tr>
-                <tr>
-                    <td>TO</td>
-                    <td colspan="3"><?php echo ucwords(@$tname) . '(' . $aptdetails[0]['apt_tag'] . ')' ?>
-                        <b>OF </b><?php echo ucwords(str_replace('_', " ", $propertyname)) ?></td>
-                </tr>
+        <center><table class="tftable printable" style="width:90%" border="1">
+            <tr><td colspan="5">
+<img src="../images/cursors/hills_header.png" style="height:237px;width:1100px;">
+</td></tr>
+               
+                <tr><td><b><?php echo $value;  ?> NO</b> </td><td><?php echo '<span id="invoiceno">&nbsp;' . $invoiceno . '</span>' ?></td><td></td><td><?php echo 'Date ' . date("d-m-Y", strtotime($invoicedate)) . '</b>' ?></td></tr>
+                <tr><td>TO</td><td colspan="3"><?php echo ucwords(@$tname) . '(' . $aptdetails[0]['apt_tag'] . ')' ?> <b>OF </b><?php echo ucwords(str_replace('_', " ", $propertyname)) ?></td></tr>
                 <?php
                 foreach ($chargeablenames as $item) {
 
                     if (strtoupper($item) == 'WATER') {
                         ?>
-                        <tr>
-                            <td>WATER CONSUMPTION</td>
-                            <td colspan="3">
-                                <?php echo '<span style="border:2px solid black;color:black">Last Reading:&nbsp;&nbsp;' . $lastwater . '&nbsp;Current Reading:&nbsp;&nbsp;' . $currentwater . '&nbsp;Consumption:&nbsp;' . ($currentwater - $lastwater) . 'units&nbsp;&nbsp;Rate:(ksh)' . get_water_rate($propid) . '&nbsp;&nbsp;&nbsp;</span>'; ?>
-                            </td>
-                        </tr>
+                        <tr><td>WATER CONSUMPTION</td><td colspan="3">
+                        <?php echo '<span style="border:2px solid black;color:black">Last Reading:&nbsp;&nbsp;' . $lastwater . '&nbsp;Current Reading:&nbsp;&nbsp;' . $currentwater . '&nbsp;Consumption:&nbsp;' . ($currentwater - $lastwater) . 'units&nbsp;&nbsp;Rate:(ksh)' . get_water_rate($propid) . '&nbsp;&nbsp;&nbsp;</span>'; ?>
+                            </td></tr>
                         <?php
                     }
                 }
                 ?>
-
-                <tr>
-                    <td><b>Qty</b></td>
-                    <td colspan="2"><b>Particulars</b></td>
-                    <td><b>Amount</b></td>
-                </tr>
+                <tr><td><b>Qty</b></td><td colspan="2"><b>Particulars</b></td><td><b>Amount</b></td></tr>
                 <?php
-
                 foreach ($tableitems as $key => $value1) {
 
                     echo trim($key, 0) . trim($value1, 0); //remove trailing zeros
                 }
                 ?>
-                <tr>
-                    <td></td>
-                    <td class="blackfont" colspan="2">BALANCE BROUGHT FORWARD:</td>
-                    <td><?php echo 'Ksh: ' . number_format($balance, 2); ?></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td><b>TOTAL CHARGEABLE</b></td>
-                    <td><b><?php echo number_format($chargestotal, 2) ?></b></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td><b>TOTAL DUE</b></td>
-                    <td><b><?php echo number_format($totaldue, 2) ?></b></td>
-                </tr>
-                <tr>
-                    <td colspan="4"><?php echo 'Being ' . $value . ' for: </b>' . @$remarks ?></td>
-                </tr>
-                <!--  Bank Details:<?php //echo $bankname; ?> <br> Acct No:<?php //echo $acct_no ?> <br> Acct Name:<?php //echo $acct_name ?>-->
-                <tr>
-                    <td colspan="4"><span
-                                class="linkright"><?php echo $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time ?></span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="4">
-                        <!-- <img src="../images/cursors/hills_footer.png" style="height:90px;width:1100px;"> -->
-                    </td>
-                </tr>
+                <tr><td></td><td class="blackfont" colspan="2">BALANCE BROUGHT FORWARD:</td><td><?php echo 'Ksh: ' . number_format($balance, 2); ?></td></tr>
+                <tr><td></td><td ></td><td><b>TOTAL CHARGEABLE</b></td><td><b><?php echo number_format($chargestotal, 2) ?></b></td></tr>
+                <tr><td></td><td></td><td><b>TOTAL DUE</b></td><td><b><?php echo number_format($totaldue, 2) ?></b></td></tr>
+                <tr><td colspan="4"><?php echo 'Being ' . $value . ' for: </b>' . @$remarks ?></td></tr>
+              <!--  Bank Details:<?php //echo $bankname; ?> <br> Acct No:<?php //echo $acct_no ?> <br> Acct Name:<?php //echo $acct_name ?>-->
+                <tr><td colspan="4"><span class="linkright"><?php echo $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time ?></span></td></tr>
+                            <tr><td colspan="4">
+<img src="../images/cursors/hills_footer.png" style="height:90px;width:1100px;">
+</td></tr>
             </table>
 
         </center>
@@ -4988,16 +3872,17 @@ function printhillsinvoice($invoiceno, $propid, $user)
 //        echo '<tr><td colspan="3">All acounts are due on or before the 5th day of the month,failure to settle by the said date attracts a penalty of 10% after every 7 days |&nbsp;&nbsp;&nbsp; <i>' . $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time . '</i></td></tr>';
 //        echo '</table></center>';
         ?>
-        <?php
+    <?php
     } else {
         return false;
     }
 }
 
 
+
+
 //print an invoice
-function printinvoice($invoiceno, $propid, $user)
-{
+function printinvoice($invoiceno, $propid, $user) {
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/Nairobi');
     $date = date("d/m/y");
@@ -5024,13 +3909,10 @@ function printinvoice($invoiceno, $propid, $user)
         //get apartment No
         $apartmentid = getApartmentFromTenant($idno);
         $aptdetails = getApartmentDetails($apartmentid);
-        // die($billing);
-        if ($billing == '0') {
-            $value = "Invoice";
-        } else {
-            $value = "Credit Note";
-        } //type of billing
-
+       // die($billing);
+       if ($billing == '0'){ $value = "Invoice";}
+       else{ $value = "Credit Note";} //type of billing
+       
         $sql1 = $db->query("SELECT accname FROM $tablename1 WHERE `id` like '$incomeacct' ORDER BY `priority` ASC") or die($db->error());
         while ($row1 = mysql_fetch_array($sql1)) {
             $accname = $row1['accname'];
@@ -5064,76 +3946,35 @@ function printinvoice($invoiceno, $propid, $user)
         ?>
 
 
-        <center>
-            <table class="tftable printable" style="width:90%" border="1">
-                <tr>
-                    <th><img src="../images/cursors/logo.png"/></th>
-                    <th colspan="3">
-                        <center><?php echo $settings['company_name'] ?></center>
-                        <br><?php echo $settings['tagline'] ?></th>
-                </tr>
-                <tr>
-                    <td><b><?php echo $value; ?> NO</b></td>
-                    <td><?php echo '<span id="invoiceno">&nbsp;' . $invoiceno . '</span>' ?></td>
-                    <td></td>
-                    <td><?php echo 'Date ' . date("d-m-Y", strtotime($invoicedate)) . '</b>' ?></td>
-                </tr>
-                <tr>
-                    <td>TO</td>
-                    <td colspan="3"><?php echo ucwords(@$tname) . '(' . $aptdetails[0]['apt_tag'] . ')' ?>
-                        <b>OF </b><?php echo ucwords(str_replace('_', " ", $propertyname)) ?></td>
-                </tr>
+
+        <center><table class="tftable printable" style="width:90%" border="1">
+                <tr><th><img src="../images/cursors/logo.png"/></th><th colspan="3"><center><?php echo $settings['company_name'] ?></center><br><?php echo $settings['tagline'] ?></th></tr>
+                <tr><td><b><?php echo $value;  ?> NO</b> </td><td><?php echo '<span id="invoiceno">&nbsp;' . $invoiceno . '</span>' ?></td><td></td><td><?php echo 'Date ' . date("d-m-Y", strtotime($invoicedate)) . '</b>' ?></td></tr>
+                <tr><td>TO</td><td colspan="3"><?php echo ucwords(@$tname) . '(' . $aptdetails[0]['apt_tag'] . ')' ?> <b>OF </b><?php echo ucwords(str_replace('_', " ", $propertyname)) ?></td></tr>
                 <?php
                 foreach ($chargeablenames as $item) {
 
                     if (strtoupper($item) == 'WATER') {
                         ?>
-                        <tr>
-                            <td>WATER CONSUMPTION</td>
-                            <td colspan="3">
-                                <?php echo '<span style="border:2px solid black;color:black">Last Reading:&nbsp;&nbsp;' . $lastwater . '&nbsp;Current Reading:&nbsp;&nbsp;' . $currentwater . '&nbsp;Consumption:&nbsp;' . ($currentwater - $lastwater) . 'units&nbsp;&nbsp;Rate:(ksh)' . get_water_rate($propid) . '&nbsp;&nbsp;&nbsp;</span>'; ?>
-                            </td>
-                        </tr>
+                        <tr><td>WATER CONSUMPTION</td><td colspan="3">
+                        <?php echo '<span style="border:2px solid black;color:black">Last Reading:&nbsp;&nbsp;' . $lastwater . '&nbsp;Current Reading:&nbsp;&nbsp;' . $currentwater . '&nbsp;Consumption:&nbsp;' . ($currentwater - $lastwater) . 'units&nbsp;&nbsp;Rate:(ksh)' . get_water_rate($propid) . '&nbsp;&nbsp;&nbsp;</span>'; ?>
+                            </td></tr>
                         <?php
                     }
                 }
                 ?>
-                <tr>
-                    <td><b>Qty</b></td>
-                    <td colspan="2"><b>Particulars</b></td>
-                    <td><b>Amount</b></td>
-                </tr>
+                <tr><td><b>Qty</b></td><td colspan="2"><b>Particulars</b></td><td><b>Amount</b></td></tr>
                 <?php
                 foreach ($tableitems as $key => $value1) {
 
                     echo trim($key, 0) . trim($value1, 0); //remove trailing zeros
                 }
                 ?>
-                <tr>
-                    <td></td>
-                    <td class="blackfont" colspan="2">BALANCE BROUGHT FORWARD:</td>
-                    <td><?php echo 'Ksh: ' . number_format($balance, 2); ?></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td><b>TOTAL CHARGEABLE</b></td>
-                    <td><b><?php echo number_format($chargestotal, 2) ?></b></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td><b>TOTAL DUE</b></td>
-                    <td><b><?php echo number_format($totaldue, 2) ?></b></td>
-                </tr>
-                <tr>
-                    <td colspan="4"><?php echo 'Being ' . $value . ' for: </b>' . @$remarks ?></td>
-                </tr>
-                <tr>
-                    <td colspan="4">PIN NO:<?php echo $settings['pin'] ?> VAT NO:<?php echo $settings['vat'] ?><span
-                                class="linkright"><?php echo $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time ?></span>
-                    </td>
-                </tr>
+                <tr><td></td><td class="blackfont" colspan="2">BALANCE BROUGHT FORWARD:</td><td><?php echo 'Ksh: ' . number_format($balance, 2); ?></td></tr>
+                <tr><td></td><td ></td><td><b>TOTAL CHARGEABLE</b></td><td><b><?php echo number_format($chargestotal, 2) ?></b></td></tr>
+                <tr><td></td><td></td><td><b>TOTAL DUE</b></td><td><b><?php echo number_format($totaldue, 2) ?></b></td></tr>
+                <tr><td colspan="4"><?php echo 'Being ' . $value . ' for: </b>' . @$remarks ?></td></tr>
+                <tr><td colspan="4">PIN NO:<?php echo $settings['pin'] ?>  VAT NO:<?php echo $settings['vat'] ?><span class="linkright"><?php echo $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time ?></span></td></tr>
             </table>
 
         </center>
@@ -5141,25 +3982,23 @@ function printinvoice($invoiceno, $propid, $user)
 //        echo '<tr><td colspan="3">All acounts are due on or before the 5th day of the month,failure to settle by the said date attracts a penalty of 10% after every 7 days |&nbsp;&nbsp;&nbsp; <i>' . $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time . '</i></td></tr>';
 //        echo '</table></center>';
         ?>
-        <?php
+    <?php
     } else {
         return false;
     }
 }
 
-function printinvoiceToScreen($invoiceno, $propid, $user)
-{
+function printinvoiceToScreen($invoiceno, $propid, $user) {
     echo printinvoice($invoiceno, $propid, $user);
 }
 
 //get outstanding balance for customer
 //@ param integer CustomerId
-function getBalance($idno, $latestinvoice = '0')
-{
+function getBalance($idno, $latestinvoice = '0') {
     $tablename = getInvoiceTable();
     $balances = array();
     $mysqli = getMysqliConnection();
-    //get balance for a tenants previous invoices that have not been reversed
+    //get balance for a tenants previous invoices that have not been reversed 
     $res = $mysqli->query("SELECT (amount-paidamount) as balance  FROM {$tablename} WHERE idno='$idno' AND revsd=0 AND invoiceno !='$latestinvoice' ") or die($mysqli->error);
     while ($row = $res->fetch_assoc()) {
         array_push($balances, $row['balance']);
@@ -5169,8 +4008,7 @@ function getBalance($idno, $latestinvoice = '0')
 
 /* * **************new 5/04/2016 ************* */
 
-function getrecpbyNo($recpno)
-{
+function getrecpbyNo($recpno) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "recptrans";
@@ -5185,87 +4023,83 @@ function getrecpbyNo($recpno)
 }
 
 //balances except for the last invoice
-function getCorrectBalance($idno, $latestinvoice = '0', $invoicedate, $receiptno = "")
-{
+function getCorrectBalance($idno, $latestinvoice = '0',$invoicedate, $receiptno = "") {
 
     $tablename = getInvoiceTable();
     $mysqli = getMysqliConnection();
     $totalinvoicesamount = array();
     $totalreceivedamount = array();
     $receiptdetails = getrecpbyNo($receiptno);
-
-    $propid = $_REQUEST["propid"];
+ 
+    $propid=$_REQUEST["propid"];
     //do not show balance if receipt date < invoice date
-    $date = date("Y-m") . "-30";
-    $propid = $_SESSION['propertyid'];
-
+    $date = date("Y-m")."-30";
+     $propid = $_SESSION['propertyid'];
+    
     if ($receiptno) {
         $rdate = $receiptdetails["rdate"];
 
         // die ("SELECT invoiceno,amount  FROM {$tablename} WHERE idno='$idno' AND revsd=0 AND invoiceno !='$latestinvoice' AND invoicedate <= '$rdate' ");
-
+       
         //SELECT invoices.invoiceno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE invoices.idno='$tenantid' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate'
         $res = $mysqli->query("SELECT invoiceno,IF(invoicecredit=0,amount,amount*-1) as amount ,invoicedate  FROM {$tablename} WHERE idno='$idno' AND revsd=0 AND property_id='$propid' AND invoiceno !='$latestinvoice' AND invoicedate <='$rdate'  ") or die($mysqli->error); //AND `invoicedate` <= $date
-        // $res=$mysqli->query("SELECT invoices.invoiceno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE invoices.idno='$idno' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate'");
+       // $res=$mysqli->query("SELECT invoices.invoiceno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE invoices.idno='$idno' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate'");
     }
-    //get balance for a tenants previous invoices that have not been fully paid and not reversed
+    //get balance for a tenants previous invoices that have not been fully paid and not reversed 
     //we are not using paidamount here to check whether invoice is paid/not since an invoice may have been paid fully but in installments,hence getInvoiceReceipts
     else {
 
         $res = $mysqli->query("SELECT invoiceno,IF(invoicecredit=0,amount,amount*-1) as amount,invoicedate  FROM {$tablename} WHERE idno='$idno' AND property_id='$propid' AND revsd=0 AND invoiceno !='$latestinvoice'  AND `invoicedate` <= '$invoicedate' ") or die($mysqli->error);//AND `invoicedate` <= $date
-   }
+    }
    // die("SELECT invoiceno,IF(invoicecredit=0,amount,amount*-1) as amount,invoicedate  FROM {$tablename} WHERE idno='$idno' AND property_id='$propid' AND revsd=0 AND invoiceno !='$latestinvoice'  AND `invoicedate` <= '$invoicedate' ");
     while ($row = $res->fetch_assoc()) {
         $invoiceno = $row['invoiceno'];
         //total invoiceamount
         $invoiceamount = $row['amount'];
-        $invoicedate = $row["invoicedate"];
+        $invoicedate=$row["invoicedate"];
         //total received amounts
-        $receivedamount = getInvoiceReceipts($invoiceno);
-
+       $receivedamount = getInvoiceReceipts($invoiceno);
         // $receivedamount = getTenantRecptrans($idno);
         array_push($totalreceivedamount, $receivedamount);
         array_push($totalinvoicesamount, $invoiceamount);
     }
-    $date = DateTime::createFromFormat("Y-m-d", $invoicedate);
+   $date=  DateTime::createFromFormat("Y-m-d",$invoicedate);
     //if(is_object($date)){
-
+    
 //    if($date->format("m") > date("m")){
 //        return 0;
 //    }
 //    }
 //    else{
-    $balance=(array_sum($totalinvoicesamount) - array_sum($totalreceivedamount));
-//echo(array_sum($totalinvoicesamount)."-".array_sum($totalreceivedamount))."=    $balance";
-    return    $balance;
-    //}
 
+    return (array_sum($totalinvoicesamount) - array_sum($totalreceivedamount));
+    //}
+    
 }
 
-function getCorrectBalance2($idno, $latestinvoice = '0', $receiptno = "")
-{
+function getCorrectBalance2($idno, $latestinvoice = '0', $receiptno = "") {
 
     $tablename = getInvoiceTable();
     $mysqli = getMysqliConnection();
     $totalinvoicesamount = array();
     $totalreceivedamount = array();
     $receiptdetails = getrecpbyNo($receiptno);
-
-    $propid = $_REQUEST["propid"];
+ 
+    $propid=$_REQUEST["propid"];
     //do not show balance if receipt date < invoice date
-    $date = date("Y-m") . "-30";
-
-
+    $date = date("Y-m")."-30";
+    
+    
     if ($receiptno) {
         $rdate = $receiptdetails["rdate"];
 
         // die ("SELECT invoiceno,amount  FROM {$tablename} WHERE idno='$idno' AND revsd=0 AND invoiceno !='$latestinvoice' AND invoicedate <= '$rdate' ");
-
+       
         //SELECT invoices.invoiceno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE invoices.idno='$tenantid' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate'
         $res = $mysqli->query("SELECT invoiceno,amount,invoicedate  FROM {$tablename} WHERE idno='$idno' AND revsd=0 AND property_id='$propid' AND invoiceno !='$latestinvoice' AND invoicedate <='$rdate'  ") or die($mysqli->error); //AND `invoicedate` <= $date
-        // $res=$mysqli->query("SELECT invoices.invoiceno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE invoices.idno='$idno' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate'");
+       // $res=$mysqli->query("SELECT invoices.invoiceno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE invoices.idno='$idno' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate'");
     }
-    //get balance for a tenants previous invoices that have not been fully paid and not reversed
+    //get balance for a tenants previous invoices that have not been fully paid and not reversed 
     //we are not using paidamount here to check whether invoice is paid/not since an invoice may have been paid fully but in installments,hence getInvoiceReceipts
     else {
 
@@ -5275,15 +4109,15 @@ function getCorrectBalance2($idno, $latestinvoice = '0', $receiptno = "")
         $invoiceno = $row['invoiceno'];
         //total invoiceamount
         $invoiceamount = $row['amount'];
-        $invoicedate = $row["invoicedate"];
+        $invoicedate=$row["invoicedate"];
         //total received amounts
         $receivedamount = getInvoiceReceipts($invoiceno);
         array_push($totalreceivedamount, $receivedamount);
         array_push($totalinvoicesamount, $invoiceamount);
     }
-    $date = DateTime::createFromFormat("Y-m-d", $invoicedate);
+   $date=  DateTime::createFromFormat("Y-m-d",$invoicedate);
     //if(is_object($date)){
-
+    
 //    if($date->format("m") > date("m")){
 //        return 0;
 //    }
@@ -5292,13 +4126,14 @@ function getCorrectBalance2($idno, $latestinvoice = '0', $receiptno = "")
 
     return (array_sum($totalinvoicesamount) - array_sum($totalreceivedamount));
     //}
-
+    
 }
 
 
+
+
 //get charge items for invoice
-function getInvoiceChargeItemsValue($invoiceno)
-{
+function getInvoiceChargeItemsValue($invoiceno) {
     $chargeitemstable = invoiceitemsTable();
     $chargeablesamount = array();
     $mysqli = getMysqliConnection();
@@ -5314,8 +4149,7 @@ function getInvoiceChargeItemsValue($invoiceno)
     return array_sum($chargeablesamount);
 }
 
-function getInvoiceItemsAndValue($invoiceno)
-{
+function getInvoiceItemsAndValue($invoiceno) {
     $chargeitemstable = invoiceitemsTable();
 
     $items = array();
@@ -5340,8 +4174,7 @@ function getInvoiceItemsAndValue($invoiceno)
 }
 
 //array sum
-function myarraysum($array)
-{
+function myarraysum($array) {
     $total = 0;
     foreach ($array as $value) {
         $total = $total + $value;
@@ -5350,17 +4183,15 @@ function myarraysum($array)
 }
 
 //getlatest invoice
-function getLatestInvoiceTenant($id)
-{
-
+function getLatestInvoiceTenant($id) {
+    
 }
 
-function getInvoiceBalance($idno, $latestinvoice = '0')
-{
+function getInvoiceBalance($idno, $latestinvoice = '0') {
     $tablename = getInvoiceTable();
     $balances = array();
     $mysqli = getMysqliConnection();
-    //get balance for a tenant where invoice has not been reversed
+    //get balance for a tenant where invoice has not been reversed 
     $res = $mysqli->query("SELECT (amount-paidamount) as balance  FROM {$tablename} WHERE idno='$idno' AND revsd=0 AND invoiceno='$latestinvoice' ") or die($mysqli->error);
     while ($row = $res->fetch_assoc()) {
         array_push($balances, $row['balance']);
@@ -5369,8 +4200,7 @@ function getInvoiceBalance($idno, $latestinvoice = '0')
 }
 
 //all invoices
-function getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $user, $allpropertiesflag = 0)
-{
+function getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $user, $allpropertiesflag = 0) {
     date_default_timezone_set('Africa/Nairobi');
     $time = date('h:i A');
     $db = new MySQLDatabase();
@@ -5395,7 +4225,7 @@ function getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $user, 
         echo '<table class="treport" ><thead>
 <tr><td colspan="9"><center><span style="font-size:15px;font-weight:normal;float:left;"> <b>INVOICE LIST -' . $accname . '</b></span><span style="font-size:18px;font-weight:bold">' . $property['company_name'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><center>' . str_repeat('&nbsp;', 25) . 'Invoice List From <b> ' . date("d-m-Y", strtotime($startdate)) . '</b>  To  <b>' . date("d-m-Y", strtotime($enddate)) . '</b></center></span></td></tr>';
-        echo '<tr>
+        echo'<tr>
 <u><th>S/no</th><th>Property</th> <th>Invoice/Credit No</th><th>Date</th> <th>House No</th><th>Tenant/Other Name</th> <th>Amount</th><th>Vat(' . round($tenantVAT * 100) . '%)</th><th>Total Amount</th></u></tr></thead>';
         echo '<tbody>';
         foreach ($allproperties as $property) {
@@ -5405,11 +4235,8 @@ function getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $user, 
 
             $i = 1;
             while ($row = $db->fetch_array($query)) {
-                if ($row['amount'] < 0) {
-                    echo '<tr><td>' . $i . '</td><td>' . findpropertybyid($propid) . '</td><td><a href="defaultreports.php?report=printinvoice&invoiceno=' . $row['invoiceno'] . '" target="blank">' . $row['invoiceno'] . '</a></td><td>' . date('F j,Y', strtotime($row['invoicedate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td style="background-color:#FF0000">' . number_format($row['amount'], 2) . '</td><td>' . number_format($tenantVAT * $row['amount'], 2) . '</td><td>' . number_format($row['amount'] + ($tenantVAT * $row['amount']), 2) . '</td></tr>';
-                } else {
-                    echo '<tr><td>' . $i . '</td><td>' . findpropertybyid($propid) . '</td><td><a href="defaultreports.php?report=printinvoice&invoiceno=' . $row['invoiceno'] . '" target="blank">' . $row['invoiceno'] . '</a></td><td>' . date('F j,Y', strtotime($row['invoicedate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($tenantVAT * $row['amount'], 2) . '</td><td>' . number_format($row['amount'] + ($tenantVAT * $row['amount']), 2) . '</td></tr>';
-                }
+if($row['amount'] < 0){echo '<tr><td>' . $i . '</td><td>' . findpropertybyid($propid) . '</td><td><a href="defaultreports.php?report=printinvoice&invoiceno=' . $row['invoiceno'] . '" target="blank">' . $row['invoiceno'] . '</a></td><td>' . date('F j,Y', strtotime($row['invoicedate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td style="background-color:#FF0000">' . number_format($row['amount'], 2) . '</td><td>' . number_format($tenantVAT * $row['amount'], 2) . '</td><td>' . number_format($row['amount'] + ($tenantVAT * $row['amount']), 2) . '</td></tr>'; }else{
+                echo '<tr><td>' . $i . '</td><td>' . findpropertybyid($propid) . '</td><td><a href="defaultreports.php?report=printinvoice&invoiceno=' . $row['invoiceno'] . '" target="blank">' . $row['invoiceno'] . '</a></td><td>' . date('F j,Y', strtotime($row['invoicedate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($tenantVAT * $row['amount'], 2) . '</td><td>' . number_format($row['amount'] + ($tenantVAT * $row['amount']), 2) . '</td></tr>';}
                 $sumamount[] = $row['amount'];
                 $sumvatamount[] = ($tenantVAT * $row['amount']);
                 $sumtotalamount[] = ($row['amount'] + ($tenantVAT * $row['amount']));
@@ -5427,16 +4254,13 @@ function getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $user, 
         echo '<table class="treport" ><thead>
 <tr><td colspan="8"><center><span style="font-size:15px;font-weight:normal;float:left;"> <b>INVOICE LIST -' . $accname . '</b></span><span style="font-size:18px;font-weight:bold">' . $property['company_name'] . '</span><span style="font-size:18px;font-weight:normal; float:right;">' . findpropertybyid($propid) . '</span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><center>' . str_repeat('&nbsp;', 25) . 'Invoice List From <b> ' . date("d-m-Y", strtotime($startdate)) . '</b>  To  <b>' . date("d-m-Y", strtotime($enddate)) . '</b></center></span></td></tr>';
-        echo '<tr>
+        echo'<tr>
 <u><th>S/no</th> <th>Invoice/Credit No</th><th>Date</th> <th>House No</th><th>Tenant/Other Name</th> <th>Amount</th><th>Vat(' . round($tenantVAT * 100) . '%)</th><th>Total Amount</th></u></tr></thead>';
         echo '<tbody>';
         $i = 1;
         while ($row = $db->fetch_array($query)) {
-            if ($row['revsd'] == 1) {
-                echo '<tr><td>' . $i++ . '</td><td><a href="defaultreports.php?report=printhillsinvoice&invoiceno=' . $row['invoiceno'] . '" target="blank">' . $row['invoiceno'] . '</a></td><td>' . date('F j,Y', strtotime($row['invoicedate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td style="background-color:#FF0000">' . number_format($row['amount'], 2) . '</td><td>' . number_format($tenantVAT * $row['amount'], 2) . '</td><td>' . number_format($row['amount'] + ($tenantVAT * $row['amount']), 2) . '</td></tr>';
-            } else {
-                echo '<tr><td>' . $i++ . '</td><td><a href="defaultreports.php?report=printhillsinvoice&invoiceno=' . $row['invoiceno'] . '" target="blank">' . $row['invoiceno'] . '</a></td><td>' . date('F j,Y', strtotime($row['invoicedate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($tenantVAT * $row['amount'], 2) . '</td><td>' . number_format($row['amount'] + ($tenantVAT * $row['amount']), 2) . '</td></tr>';
-            }
+if($row['revsd'] == 1){ echo '<tr><td>' . $i++ . '</td><td><a href="defaultreports.php?report=printhillsinvoice&invoiceno=' . $row['invoiceno'] . '" target="blank">' . $row['invoiceno'] . '</a></td><td>' . date('F j,Y', strtotime($row['invoicedate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td style="background-color:#FF0000">' . number_format($row['amount'], 2) . '</td><td>' . number_format($tenantVAT * $row['amount'], 2) . '</td><td>' . number_format($row['amount'] + ($tenantVAT * $row['amount']), 2) . '</td></tr>';} else{
+            echo '<tr><td>' . $i++ . '</td><td><a href="defaultreports.php?report=printhillsinvoice&invoiceno=' . $row['invoiceno'] . '" target="blank">' . $row['invoiceno'] . '</a></td><td>' . date('F j,Y', strtotime($row['invoicedate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($tenantVAT * $row['amount'], 2) . '</td><td>' . number_format($row['amount'] + ($tenantVAT * $row['amount']), 2) . '</td></tr>';}
             $sumamount[] = $row['amount'];
             $sumvatamount[] = ($tenantVAT * $row['amount']);
             $sumtotalamount[] = ($row['amount'] + ($tenantVAT * $row['amount']));
@@ -5449,8 +4273,7 @@ function getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $user, 
     }
 }
 
-function getinvoicelistChargeables($startdate, $enddate, $accid, $accname, $propid, $user)
-{
+function getinvoicelistChargeables($startdate, $enddate, $accid, $accname, $propid, $user) {
     date_default_timezone_set('Africa/Nairobi');
     $time = date('h:i A');
     $invoicedetail = array();
@@ -5482,8 +4305,7 @@ function getinvoicelistChargeables($startdate, $enddate, $accid, $accname, $prop
     return $allinvoicedetails;
 }
 
-function getreceiptlistChargeables($startdate, $enddate, $accid, $accname, $propid, $user)
-{
+function getreceiptlistChargeables($startdate, $enddate, $accid, $accname, $propid, $user) {
     date_default_timezone_set('Africa/Nairobi');
     $time = date('h:i A');
     $invoicedetail = array();
@@ -5517,8 +4339,7 @@ function getreceiptlistChargeables($startdate, $enddate, $accid, $accname, $prop
 }
 
 //get receipts for tenant
-function getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $tenantid)
-{
+function getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $tenantid) {
     date_default_timezone_set('Africa/Nairobi');
     $time = date('h:i A');
     $invoicedetail = array();
@@ -5543,8 +4364,8 @@ function getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $
     $resultset = $mysqli->query("SELECT $recptable.recpno,$recptable.idno,$recptable.invoicenopaid,$recptable.rdate,$recptable.amount,$tablename2.Id,$tablename2.tenant_name,$tablename2.Apartment_tag,$tablename2.property_name FROM $recptable LEFT JOIN $tablename2 ON $recptable.idno=$tablename2.Id WHERE $recptable.rdate BETWEEN '$startdate' AND '$enddate' AND $recptable.revsd=0 AND $recptable.property_id='$propid' AND $recptable.idno='$tenantid' ORDER BY $tablename2.Apartment_tag ASC ") or die($mysqli->error); //find a way to sort by propertyid
     //die("SELECT $recptable.recpno,$recptable.idno,$recptable.invoicenopaid,$recptable.rdate,$recptable.amount,$tablename2.Id,$tablename2.tenant_name,$tablename2.Apartment_tag,$tablename2.property_name FROM $recptable LEFT JOIN $tablename2 ON $recptable.idno=$tablename2.Id WHERE $recptable.rdate BETWEEN '$startdate' AND '$enddate' AND $recptable.revsd=0 AND $recptable.property_id='$propid' AND $recptable.idno='$tenantid' ORDER BY $tablename2.Apartment_tag ASC" );
     while ($row = $resultset->fetch_assoc()) {
-        $invoicedetail["receiptpaidamount"] = $row["amount"];
-        $invoicedetail['recpno'] = $row['recpno'];
+        $invoicedetail["receiptpaidamount"]=$row["amount"];
+         $invoicedetail['recpno'] = $row['recpno'];
         $invoicedetail['invoiceno'] = $row['invoicenopaid'];
         $invoicedetail['apartment'] = $row['Apartment_tag'];
         $invoicedetail['name'] = $row['tenant_name'];
@@ -5557,8 +4378,7 @@ function getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $
     return $allinvoicedetails;
 }
 
-function incrementnumber($column)
-{
+function incrementnumber($column) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     if ($mysqli->connect_errno) {
         echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
@@ -5569,7 +4389,6 @@ function incrementnumber($column)
     while ($row = mysqli_fetch_array($q)) {
         $result = $row[$column];
     }
-
     $result = $result + 1;
     $q1 = $mysqli->query("UPDATE $tablename set `$column`='$result'") or die($mysqli->error);
     $q2 = $mysqli->query("SELECT $column from $tablename") or die($mysqli->error);
@@ -5579,8 +4398,7 @@ function incrementnumber($column)
     return $result;
 }
 
-function addclient($name, $address, $email, $city, $clientphone, $usr)
-{
+function addclient($name, $address, $email, $city, $clientphone, $usr) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $tablename = "clientlist";
     if ($mysqli->connect_errno) {
@@ -5593,8 +4411,7 @@ function addclient($name, $address, $email, $city, $clientphone, $usr)
     mysqli_close($mysqli);
 }
 
-function editclient($id, $name, $address, $email, $city, $clientphone)
-{
+function editclient($id, $name, $address, $email, $city, $clientphone) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $tablename = "clientlist";
     if ($mysqli->connect_errno) {
@@ -5607,8 +4424,7 @@ function editclient($id, $name, $address, $email, $city, $clientphone)
     mysqli_close($mysqli);
 }
 
-function populateclients()
-{
+function populateclients() {
     $db = new MySQLDatabase();
     $tablename = "clientlist";
     $db->open_connection();
@@ -5623,8 +4439,7 @@ function populateclients()
     $db->close_connection();
 }
 
-function fetchallclients()
-{
+function fetchallclients() {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $tablename = "clientlist";
     if ($mysqli->connect_errno) {
@@ -5637,8 +4452,7 @@ function fetchallclients()
     mysqli_close($mysqli);
 }
 
-function fetchclientdetails($id)
-{
+function fetchclientdetails($id) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $tablename = "clientlist";
     if ($mysqli->connect_errno) {
@@ -5662,8 +4476,7 @@ function fetchclientdetails($id)
 }
 
 //suppliers
-function fetchsupplierdetails($id)
-{
+function fetchsupplierdetails($id) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $tablename = getSupplierListTable();
     if ($mysqli->connect_errno) {
@@ -5688,8 +4501,7 @@ function fetchsupplierdetails($id)
     mysqli_close($mysqli);
 }
 
-function fetchallsuppliers($propid)
-{
+function fetchallsuppliers($propid) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $tablename = getSupplierListTable();
     if ($mysqli->connect_errno) {
@@ -5702,8 +4514,7 @@ function fetchallsuppliers($propid)
     mysqli_close($mysqli);
 }
 
-function addsupplier($name, $items, $address, $email, $city, $clientphone, $usr, $propid)
-{
+function addsupplier($name, $items, $address, $email, $city, $clientphone, $usr, $propid) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $tablename = getSupplierListTable();
     if ($mysqli->connect_errno) {
@@ -5717,8 +4528,7 @@ function addsupplier($name, $items, $address, $email, $city, $clientphone, $usr,
 }
 
 //edit supplier
-function editsupplier($id, $name, $items, $address, $email, $city, $clientphone)
-{
+function editsupplier($id, $name, $items, $address, $email, $city, $clientphone) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $tablename = getSupplierListTable();
     if ($mysqli->connect_errno) {
@@ -5732,8 +4542,7 @@ function editsupplier($id, $name, $items, $address, $email, $city, $clientphone)
 }
 
 //convert number towords
-function convert_number_to_words($number)
-{
+function convert_number_to_words($number) {
 
     $hyphen = '-';
     $conjunction = ' and ';
@@ -5782,10 +4591,10 @@ function convert_number_to_words($number)
         return false;
     }
 
-    if (($number >= 0 && (int)$number < 0) || (int)$number < 0 - PHP_INT_MAX) {
+    if (($number >= 0 && (int) $number < 0) || (int) $number < 0 - PHP_INT_MAX) {
         // overflow
         trigger_error(
-            'convert_number_to_words only accepts numbers between -' . PHP_INT_MAX . ' and ' . PHP_INT_MAX, E_USER_WARNING
+                'convert_number_to_words only accepts numbers between -' . PHP_INT_MAX . ' and ' . PHP_INT_MAX, E_USER_WARNING
         );
         return false;
     }
@@ -5805,7 +4614,7 @@ function convert_number_to_words($number)
             $string = $dictionary[$number];
             break;
         case $number < 100:
-            $tens = ((int)($number / 10)) * 10;
+            $tens = ((int) ($number / 10)) * 10;
             $units = $number % 10;
             $string = $dictionary[$tens];
             if ($units) {
@@ -5822,7 +4631,7 @@ function convert_number_to_words($number)
             break;
         default:
             $baseUnit = pow(1000, floor(log($number, 1000)));
-            $numBaseUnits = (int)($number / $baseUnit);
+            $numBaseUnits = (int) ($number / $baseUnit);
             $remainder = $number % $baseUnit;
             $string = convert_number_to_words($numBaseUnits) . ' ' . $dictionary[$baseUnit];
             if ($remainder) {
@@ -5835,7 +4644,7 @@ function convert_number_to_words($number)
     if (null !== $fraction && is_numeric($fraction)) {
         $string .= $decimal;
         $words = array();
-        foreach (str_split((string)$fraction) as $number) {
+        foreach (str_split((string) $fraction) as $number) {
             $words[] = $dictionary[$number];
         }
         $string .= implode(' ', $words);
@@ -5844,194 +4653,8 @@ function convert_number_to_words($number)
     return $string;
 }
 
-function storeData($sql)
-{
-    $mysqli = getMysqliConnection();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    $res = $mysqli->query($sql) or die($mysqli->error);
-    return $res;
-
-}
-
-function queryResults($table)
-{
-    $mysqli = getMysqliConnection();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    $res = $mysqli->query("SELECT * From $table ") or die($mysqli->error);
-    $rowcount = mysqli_num_rows($res);
-    $data = array();
-    while ($row = mysqli_fetch_assoc($res)) {
-        $data[] = $row;
-    }
-    return json_decode(json_encode(array("count" => $rowcount, "data" => $data)), FALSE);
-
-}
-
-function ApproveInvoice($id)
-{
-    $mysqli = getMysqliConnection();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    $res = $mysqli->query("Update  invoice_dummy set status=1 where id=$id") or die($mysqli->error);
-
-}
-
-function ApproveReceipt($id)
-{
-    $mysqli = getMysqliConnection();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    $res = $mysqli->query("Update  recept_dummy set status=1 where id=$id") or die($mysqli->error);
-
-}
-
-function getTempInvoicesById($id)
-{
-    $mysqli = getMysqliConnection();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    $res = $mysqli->query("SELECT * From invoice_dummy where status=0 and id=$id") or die($mysqli->error);
-    $rowcount = mysqli_num_rows($res);
-    $row = mysqli_fetch_assoc($res);
-
-    return json_decode(json_encode(array("count" => $rowcount, "data" => $row['invoice'])), FALSE);
-}
-
-function getTempInvoices()
-{
-    $mysqli = getMysqliConnection();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    $res = $mysqli->query("SELECT * From invoice_dummy where status=0") or die($mysqli->error);
-    $rowcount = mysqli_num_rows($res);
-    $data = array();
-    while ($row = mysqli_fetch_assoc($res)) {
-        $data[] = $row;
-    }
-    return json_decode(json_encode(array("count" => $rowcount, "data" => $data)), FALSE);
-}
-
-function getTempReceiptsById($id)
-{
-    $mysqli = getMysqliConnection();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    $res = $mysqli->query("SELECT * From recept_dummy where status=0 and id=$id") or die($mysqli->error);
-    $rowcount = mysqli_num_rows($res);
-    $row = mysqli_fetch_assoc($res);
-
-    return json_decode(json_encode(array("count" => $rowcount, "data" => $row['receipt'])), FALSE);
-
-}
-
-function getTempReceipts()
-{
-    $mysqli = getMysqliConnection();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    $res = $mysqli->query("SELECT * From recept_dummy where status=0") or die($mysqli->error);
-    $rowcount = mysqli_num_rows($res);
-    $data = array();
-    while ($row = mysqli_fetch_assoc($res)) {
-        $data[] = $row;
-    }
-    return json_decode(json_encode(array("count" => $rowcount, "data" => $data)), FALSE);
-
-}
-
-function create_temp_receipt($data)
-{
-    $mysqli = getMysqliConnection();
-    // $tablename = "invoices";
-    $data1 = json_encode($data);
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    //die($data1);
-    $stmt = $mysqli->prepare("Insert into recept_dummy (`receipt`) values(?)");
-    $stmt->bind_param("s", $receipt);
-    // set parameters and execute
-    $receipt = $data1;
-
-
-    if ($stmt->execute()) {
-        return "success";
-    } else {
-        return "failed";
-    }
-
-    return;
-}
-
-function create_temp_invoice($data)
-{
-    $mysqli = getMysqliConnection();
-    // $tablename = "invoices";
-    $data1 = json_encode($data);
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    //die($data1);
-    $stmt = $mysqli->prepare("Insert into invoice_dummy (`invoice`) values(?)");
-    $stmt->bind_param("s", $receipt);
-    // set parameters and execute
-    $receipt = $data1;
-
-
-    if ($stmt->execute()) {
-        return "success";
-    } else {
-        return "failed";
-    }
-
-    return;
-}
-
 //receipts
-function fetchinvoicedetailsPlain($tenantid)
-{
-    $mysqli = getMysqliConnection();
-    $tablename = "invoices";
-    $tablename1 = "tenants";
-    $invoicenos = array();
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    $res = $mysqli->query("SELECT $tablename.*,$tablename1.tenant_name FROM $tablename  LEFT JOIN $tablename1 ON $tablename.idno=$tablename1.Id WHERE  $tablename.revsd=0 AND $tablename.idno like '$tenantid' AND ($tablename.amount - $tablename.paidamount)>0 order by $tablename.invoicedate") or die($mysqli->error);
-    $rowcount = mysqli_num_rows($res);
-    $data = array();
-    while ($row = $res->fetch_assoc()) {
-        $data[] = $row;
-    }
-
-    if (count($data) == 0) {
-        $res = $mysqli->query("SELECT $tablename.*,$tablename1.tenant_name FROM $tablename  LEFT JOIN $tablename1 ON $tablename.idno=$tablename1.Id WHERE  $tablename.revsd=0 AND $tablename.idno like '$tenantid' order by $tablename.invoicedate DESC LIMIT 1") or die($mysqli->error);
-        $data[] = $res->fetch_assoc();
-    }
-
-    return $data;
-}
-
-function fetchinvoicedetails($tenantid)
-{
+function fetchinvoicedetails($tenantid) {
     $mysqli = getMysqliConnection();
     $tablename = "invoices";
     $tablename1 = "tenants";
@@ -6074,8 +4697,7 @@ function fetchinvoicedetails($tenantid)
     mysqli_close($mysqli);
 }
 
-function fetchpendinginvoicedetails($tenantid)
-{
+function fetchpendinginvoicedetails($tenantid) {
     $mysqli = getMysqliConnection();
     $tablename = "invoices";
     $tablename1 = "tenants";
@@ -6117,25 +4739,21 @@ function fetchpendinginvoicedetails($tenantid)
     mysqli_close($mysqli);
 }
 
-function update_invoice($invoiceno, $recpamount, $idno, $receiptdate, $paymode, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $counter, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit, $reference)
-{
+function update_invoice($invoiceno, $recpamount, $idno, $receiptdate, $paymode, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $counter, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit,$reference) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "invoices";
-    // die("SELECT paidamount FROM $tablename WHERE invoiceno='$invoiceno'");
     $resultset = $db->query("SELECT paidamount FROM $tablename WHERE invoiceno='$invoiceno'");
     while ($row = $db->fetch_array($resultset)) {
         $paid = $row['paidamount'];
     }
     $paidamount = $recpamount + $paid;
     $db->query("UPDATE $tablename SET `paidamount`='$paidamount' WHERE invoiceno='$invoiceno'") or die(mysql_error());
-    create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit, $reference);
-
+    create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit,$reference);
 }
 
 //create a receipt
-function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit = 0, $reference)
-{
+function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit = 0,$reference) {
     $response_array['status']="";
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/nairobi');
@@ -6151,17 +4769,15 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
    
     $invoiceitems = getInvoiceItemsAndValue($invoiceno);
     $aptid = getApartmentFromTenant($idno);
-//die(print_r($invoiceitems));
-    //if item is deposit
-    $recpno = incrementnumber("recpno");
-    foreach ($invoiceitems as $item) {
-        
-        $invoiceitemdetails = getChargeItemByName($item['name'], $propid);
-        if ($invoiceitemdetails['is_deposit'] == 1) {
-            $deposit_amount = min($recpamount, $item['amount']);
-            $recpamount = $recpamount - $deposit_amount;
 
-            $query = "INSERT into $tablename(`rdate`,`amount`,`pmode`,`recpno`,`chqdet`,`chqno`,`chequedate`,`rmks`,`idno`,`invoicenopaid`,`cashacc`,`bankacc`,`paidby`,`us`,`isdeposited`,`property_id`,`idclose_periods`,`is_deposit`,`reference`,`ts`) VALUES ('$receiptdate','$deposit_amount','$paymode','$recpno','$chequedetails','$chequeno','$chequedate','$remarks','$idno','$invoiceno','$cashaccount','$bankaccount','$paidby','$user','0','$propid','$fperiod','D','$reference','$currentdate')";
+    //if item is deposit
+    foreach ($invoiceitems as $item) {
+        $invoiceitemdetails = getChargeItemByName($item['name'], $propid);
+        $recpno = incrementnumber("recpno");
+
+        if ($invoiceitemdetails['is_deposit'] == 1) {
+            
+            $query = "INSERT into $tablename(`rdate`,`amount`,`pmode`,`recpno`,`chqdet`,`chqno`,`chequedate`,`rmks`,`idno`,`invoicenopaid`,`cashacc`,`bankacc`,`paidby`,`us`,`isdeposited`,`property_id`,`idclose_periods`,`is_deposit`,`reference`,`ts`) VALUES ('$receiptdate','$recpamount','$paymode','$recpno','$chequedetails','$chequeno','$chequedate','$remarks','$idno','$invoiceno','$cashaccount','$bankaccount','$paidby','$user','0','$propid','$fperiod','D','$reference','$currentdate')";
             $db->query($query) or die($db->error());
             // credit entry for apartment gl
             $glaccount = getGLCodeForAccount(array('gl' => 'HouseGL', 'apt_id' => $aptid));
@@ -6181,7 +4797,8 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
             if ($paymode == 0) {
                 $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => "UC", "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
                 saveUndepositedCash($data);
-            } //bank deposits
+            }
+            //bank deposits
             else if ($paymode == 3) {
                 $bank = getBankDetails($bankdeposit);
                 $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => $bank["bank_code"], "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
@@ -6189,110 +4806,77 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
             }
 
 
-//            header('Content-Type: application/json');
-            $response_array['status'] = $recpno;
-//            echo json_encode($response_array);
-//
-        }
-    }
-    if ($recpamount > 0) {
-        $recpno = incrementnumber("recpno");
-        $query = "INSERT into $tablename(`rdate`,`amount`,`pmode`,`recpno`,`chqdet`,`chqno`,`chequedate`,`rmks`,`idno`,`invoicenopaid`,`cashacc`,`bankacc`,`paidby`,`us`,`isdeposited`,`property_id`,`idclose_periods`,`reference`,`ts`) VALUES ('$receiptdate','$recpamount','$paymode','$recpno','$chequedetails','$chequeno','$chequedate','$remarks','$idno','$invoiceno','$cashaccount','$bankaccount','$paidby','$user','0','$propid','$fperiod','$reference','$currentdate')";
-        if (!$db->query($query)) {
-            echo $db->error();
-        } else {
-            // credit entry for apartment gl
-            $glaccount = getGLCodeForAccount(array('gl' => 'HouseGL', 'apt_id' => $aptid));
-            $glcode4 = $glaccount['glcode'];
-            $entry = createJournalEntry(array('glcode' => $glcode4, 'document_ref' => $recpno, 'credit' => $recpamount, 'ttype' => 'RECP', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-
-            //debit entry for agent bank
-            //if not penalty calculate commission
-            if (!$penalty) {
-                $commission = getPropertyCommissionRate($propid);
-                $creditamount = round((($commission * $recpamount) / 100), 2);
-                $glaccountal = getGLCodeForAccount(array('gl' => 'AgentBank'));
-                $glcode5 = $glaccountal['glcode'];
-                $entry = createJournalEntry(array('glcode' => $glcode5, 'document_ref' => $recpno, 'debit' => $recpamount, 'ttype' => 'RECP', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-                //debit entry for bank
-            }
-
-
-            header('Content-Type: application/json');
-            //check if invoice is penalty and penalty option is checked,if not calculate a penalty
-            $invoicedetail = getInvoiceDetails($invoiceno);
-            if ($invoicedetail['is_penalty'] == 0 && $penalty) {
-                //create penalties if any
-                $penaltyamount = calculatePenalty(array('tenantid' => $idno, 'rdate' => $receiptdate, 'amount' => $invoicedetail['amount'], 'recpno' => $recpno, 'property_id' => $propid, 'penalty_gl' => $penaltygl, 'idclose_period' => $fperiod));
-            }
-            //process cash deposits
-            if ($paymode == 0) {
-                $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => "UC", "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
-                saveUndepositedCash($data);
-            } //bank deposits
-            else if ($paymode == 3) {
-                $bank = getBankDetails($bankdeposit);
-                $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => $bank["bank_code"], "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
-                saveUndepositedCash($data);
-            }
             if( $response_array['status']=="")
             {
-            $response_array['status'] = $recpno;
-           }else{
                 $response_array['status'] =  $response_array['status'].','.$recpno;
             }
-           
-            // $datereceipt = date("Y-m-d", strtotime($receiptdate));
-            //$idno
-            // //$json = array();
-            // $data2 = array(
-            //     "CustId" => 5998,
-            //     "TransactionRef" => $reference,
-            //     "TransDate" => $datereceipt,
-            //     "BankAcct" => 20000001,
-            //     "Amount" => $recpamount
-            // );
-            // $json[] = $data2;
-            // $json_data = json_encode($json);
-            // $username = "api-user";
-            // $password = "admin";
-            // $headers = array(
-            //     'Authorization: Basic ' . base64_encode($username . ':' . $password),
-            // );
-
-
-            // //Perform curl post request to add item to the accounts erp
-            // $curl = curl_init();
-
-            // curl_setopt_array($curl, array(
-            //     CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER",
-            //     CURLOPT_RETURNTRANSFER => true,
-            //     CURLOPT_ENCODING => "",
-            //     CURLOPT_MAXREDIRS => 10,
-            //     CURLOPT_TIMEOUT => 0,
-            //     CURLOPT_FOLLOWLOCATION => true,
-            //     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            //     CURLOPT_CUSTOMREQUEST => "POST",
-            //     CURLOPT_POSTFIELDS => $json_data,
-            //     CURLOPT_HTTPHEADER => $headers,
-            // ));
-
-            // $response = curl_exec($curl);
-
-            // curl_close($curl);
-             echo json_encode($response_array);
+           else{
+            $response_array['status'] = $recpno;
+           }
+            
+            
         }
-    } else {
+
         header('Content-Type: application/json');
-        $response_array['status'] = 0;
         echo json_encode($response_array);
+    }
+   
+    $query = "INSERT into $tablename(`rdate`,`amount`,`pmode`,`recpno`,`chqdet`,`chqno`,`chequedate`,`rmks`,`idno`,`invoicenopaid`,`cashacc`,`bankacc`,`paidby`,`us`,`isdeposited`,`property_id`,`idclose_periods`,`reference`,`ts`) VALUES ('$receiptdate','$recpamount','$paymode','$recpno','$chequedetails','$chequeno','$chequedate','$remarks','$idno','$invoiceno','$cashaccount','$bankaccount','$paidby','$user','0','$propid','$fperiod','$reference','$currentdate')";
+
+    if (!$db->query($query)) {
+        echo $db->error();
+    } else {
+       
+        // credit entry for apartment gl
+        $glaccount = getGLCodeForAccount(array('gl' => 'HouseGL', 'apt_id' => $aptid));
+        $glcode4 = $glaccount['glcode'];
+        $entry = createJournalEntry(array('glcode' => $glcode4, 'document_ref' => $recpno, 'credit' => $recpamount, 'ttype' => 'RECP', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
+
+        //debit entry for agent bank
+        //if not penalty calculate commission
+        if (!$penalty) {
+            $commission = getPropertyCommissionRate($propid);
+            $creditamount = round((($commission * $recpamount) / 100), 2);
+            $glaccountal = getGLCodeForAccount(array('gl' => 'AgentBank'));
+            $glcode5 = $glaccountal['glcode'];
+            $entry = createJournalEntry(array('glcode' => $glcode5, 'document_ref' => $recpno, 'debit' => $recpamount, 'ttype' => 'RECP', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
+            //debit entry for bank
+        }
+
+
+
+        header('Content-Type: application/json');
+        //check if invoice is penalty and penalty option is checked,if not calculate a penalty
+        $invoicedetail = getInvoiceDetails($invoiceno);
+        if ($invoicedetail['is_penalty'] == 0 && $penalty) {
+            //create penalties if any
+            $penaltyamount = calculatePenalty(array('tenantid' => $idno, 'rdate' => $receiptdate, 'amount' => $invoicedetail['amount'], 'recpno' => $recpno, 'property_id' => $propid, 'penalty_gl' => $penaltygl, 'idclose_period' => $fperiod));
+        }
+        //process cash deposits
+        if ($paymode == 0) {
+            $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => "UC", "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
+            saveUndepositedCash($data);
+        }
+        //bank deposits
+        else if ($paymode == 3) {
+            $bank = getBankDetails($bankdeposit);
+            $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => $bank["bank_code"], "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
+            saveUndepositedCash($data);
+        }
+        if($response_array['status']==""){
+            $response_array['status'] = $recpno;
+        }
+        else{
+            $response_array['status']= $response_array['status'].','. $recpno; $recpno; 
+        }
+       
+        die json_encode($response_array);
     }
 }
 
 //other receipt
-function create_other_receipt($customer, $receiptdate, $paymode, $recpamount, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $propid, $penalty, $penaltygl, $fperiod, $bank, $response = 1, $reference)
-{
-
+function create_other_receipt($customer, $receiptdate, $paymode, $recpamount, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $propid, $penalty, $penaltygl, $fperiod, $bank, $response = 1,$reference) {
+   
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/nairobi');
     $db->open_connection();
@@ -6308,7 +4892,7 @@ function create_other_receipt($customer, $receiptdate, $paymode, $recpamount, $c
 
     $aptid = getApartmentFromTenant($idno);
 
-
+  
     //if item is deposit
     $glaccountal = getGLCodeForAccount(array('gl' => 'AgentBank'));
     $glcode2 = $glaccountal['glcode'];
@@ -6345,100 +4929,15 @@ function create_other_receipt($customer, $receiptdate, $paymode, $recpamount, $c
                 $penaltyamount = calculatePenalty(array('tenantid' => $idno, 'rdate' => $receiptdate, 'amount' => $invoicedetail['amount'], 'recpno' => $recpno, 'property_id' => $propid, 'penalty_gl' => $penaltygl, 'idclose_period' => $fperiod));
             }
             $response_array['status'] = $recpno;
-
-            $datereceipt = date("Y-m-d", strtotime($receiptdate));
-
-//20000001
-//$datereceipt
-//$reference
-//$recpamount
-
-            $json = array(
-                "CustId" => 5998,
-                "TransactionRef" => $recpno,
-                "TransDate" => $datereceipt,
-                "BankAcct" => 20000001,
-                "Amount" => $recpamount
-            );
-            $json_data = json_encode($json);
-            $username = "api-user";
-            $password = "admin";
-            $headers = array(
-                'Authorization: Basic ' . base64_encode($username . ':' . $password),
-            );
-
-
-            //Perform curl post request to add item to the accounts erp
-            $curl = curl_init();
-
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER",
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "POST",
-                CURLOPT_POSTFIELDS => $json_data,
-                CURLOPT_HTTPHEADER => $headers,
-            ));
-
-            $response = curl_exec($curl);
-
-            curl_close($curl);
-
-
-            echo json_encode($response);
+            echo json_encode($response_array);
         } else {
-            $datereceipt = date("Y-m-d", strtotime($receiptdate));
-            //$idno
-            //$json = array();
-            $data2 = array(
-                "CustId" => 5998,
-                "TransactionRef" => $recpno,
-                "TransDate" => $datereceipt,
-                "BankAcct" => 20000001,
-                "Amount" => $recpamount
-            );
-            //die($data2);
-            $json[] = $data2;
-            $json_data = json_encode($json);
-            $username = "api-user";
-            $password = "admin";
-            $headers = array(
-                'Authorization: Basic ' . base64_encode($username . ':' . $password),
-            );
-
-
-            //Perform curl post request to add item to the accounts erp
-            $curl = curl_init();
-
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER",
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "POST",
-                CURLOPT_POSTFIELDS => $json_data,
-                CURLOPT_HTTPHEADER => $headers,
-            ));
-
-            $response = curl_exec($curl);
-
-            curl_close($curl);
-
             return $response_array;
         }
     }
 }
 
 //get banks
-function getBanks($expenseacct = "")
-{
+function getBanks($expenseacct = "") {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $accountstable = "banks";
@@ -6457,8 +4956,7 @@ function getBanks($expenseacct = "")
 }
 
 //get bank balance
-function getBankDetails($id)
-{
+function getBankDetails($id) {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $accountstable = "banks";
@@ -6472,9 +4970,8 @@ function getBankDetails($id)
     return $result;
 }
 
-//send cash to undeposited
-function saveUndepositedCash($data)
-{
+//send cash to undeposited 
+function saveUndepositedCash($data) {
     $bankstable = "banks";
     $mysqli = getMysqliConnection();
     $tablename = getBankTransactionsTable();
@@ -6489,12 +4986,12 @@ function saveUndepositedCash($data)
 
 
     $query = "INSERT into $tablename(`recpno`,`amount`,`date`,`bank_type`,`is_credit`,`is_debit`,`narration`,`user`) "
-        . "VALUES ('$recpno','$recpamount','$date','$banktype','$iscredit','$isdebit','$narration','$user')";
+            . "VALUES ('$recpno','$recpamount','$date','$banktype','$iscredit','$isdebit','$narration','$user')";
 
     if (!$mysqli->query($query)) {
         echo $mysqli->error;
     } else {
-        //update bank balance
+        //update bank balance 
         $result = $mysqli->query("SELECT `total_balance` FROM $bankstable WHERE `bank_code`='$banktype' ") or die($mysqli->error);
         while ($row = $result->fetch_assoc()) {
             $amount = $row['total_balance'];
@@ -6510,8 +5007,7 @@ function saveUndepositedCash($data)
 
 //get bank transactions
 
-function getBankTransactions($startdate, $enddate, $id = "")
-{
+function getBankTransactions($startdate, $enddate, $id = "") {
 
     $mysqli = getMysqliConnection();
     $tablename = getBankTransactionsTable();
@@ -6525,14 +5021,12 @@ function getBankTransactions($startdate, $enddate, $id = "")
 }
 
 //pay landlord
-function payLandlord($params)
-{
+function payLandlord($params) {
     $propid = $params['property_id'];
     $amount = $params['amount'];
     $fperiod = $params['idclose_periods'];
     $journals = $params['journal_refs'];
 
-    // die("dd");
     //debit entry for landlord account on agent side
     $glaccountal = getGLCodeForAccount(array('gl' => 'AgentLandlord', 'property_id' => $propid));
     $glcode1 = $glaccountal['glcode'];
@@ -6555,63 +5049,6 @@ function payLandlord($params)
 //       $creditamount=((100/(100-$commission))*$amount);
     $landlordagentgl = $landlordagent['glcode'];
     $entry = createJournalEntry(array('glcode' => $landlordagentgl, 'document_ref' => $payno, 'credit' => $amount, 'ttype' => 'PAY', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-
-    $items = array(
-        array(
-            'account_code' => 30000001,
-            'amount' => -$amount,
-            'memo' => $remarks
-        ),
-        array(
-            'account_code' => 10000002,
-            'amount' => -$amount,
-            'memo' => $remarks
-        )
-    );
-
-    $json2 = array(
-        'currency' => 'KS',
-        'source_ref' => 30000001,
-        'reference' => 30000001,
-        'memo' => "Rent invoice",
-        'amount' => $amount,
-        'bank_act' => 10000002,
-        'items' => $items
-    );
-    $json_data2 = json_encode($json2);
-    $myfile = fopen("invoice.txt", "a");
-    fwrite($myfile, $json_data2);
-    fclose($myfile);
-
-    //Perform curl post request to add gl to the accounts erp
-    $curl2 = curl_init();
-
-    curl_setopt_array($curl2, array(
-        CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/journal.php?action=add-journal&company-id=RIVER",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "POST",
-        CURLOPT_POSTFIELDS => $json_data2,
-        CURLOPT_HTTPHEADER => $headers,
-    ));
-
-    $response2 = curl_exec($curl2);
-
-    curl_close($curl2);
-
-    $new_id2 = json_decode($response2)->id;
-
-    if ($new_id2) {
-        $response = array("success" => "1", "message" => "Success");
-        //$response = array("success" => "1", "message" => "Short detected and added total_short = " . $total_short. " total_comments = ". $total_comments);
-    } else {
-        $response = array("success" => "0", "message" => "Failed to add invoice  to ERP");
-    }
-
     if ($entry) {
         //update journals
         updateJournals($journals);
@@ -6623,8 +5060,7 @@ function payLandlord($params)
 
 //get floor count
 
-function getFloorCount($propid)
-{
+function getFloorCount($propid) {
     $db = new MySQLDatabase();
     $result = $db->query("SELECT floornumber from floorplan WHERE propertyid='$propid' order by floornumber ASC LIMIT 1 ") or die($db->error());
     while ($row = $db->fetch_array($result)) {
@@ -6633,8 +5069,7 @@ function getFloorCount($propid)
     return $aptid;
 }
 
-function UpdateFloorCount($propid)
-{
+function UpdateFloorCount($propid) {
     $db = new MySQLDatabase();
     $result = $db->query("SELECT floornumber from floorplan WHERE propertyid='$propid' order by floornumber DESC LIMIT 1 ") or die($db->error());
     while ($row = @$db->fetch_array($result)) {
@@ -6644,8 +5079,7 @@ function UpdateFloorCount($propid)
 }
 
 //get tenant apt from id
-function getApartmentFromTenant($tenantid)
-{
+function getApartmentFromTenant($tenantid) {
     $aptid = 0;
     $tenantstable = getTenantTable();
     $db = new MySQLDatabase();
@@ -6656,29 +5090,8 @@ function getApartmentFromTenant($tenantid)
     return $aptid;
 }
 
-function getTenantDetailsFromRow($tenantid)
-{
-    $tenantstable = getTenantTable();
-    $db = new MySQLDatabase();
-    $result = $db->query("SELECT * FROM {$tenantstable} WHERE Id='$tenantid' AND vacated=0 ") or die($db->error());
-    $row = $db->fetch_array();
-    return $row;
-}
-
-function getTenantDetailsFromId($tenantid)
-{
-    $tenantstable = getTenantTable();
-    $db = getMysqliConnection();
-    $result = $db->query("SELECT * FROM {$tenantstable} WHERE idno='$tenantid' AND vacated=0 ") or die($db->error());
-    // die("SELECT * FROM {$tenantstable} WHERE idno='$tenantid' AND vacated=0 ");
-    $row = $result->fetch_array();
-
-    return $row;
-}
-
 //tenant table
-function getTenantTable()
-{
+function getTenantTable() {
     return 'tenants';
 }
 
@@ -6687,8 +5100,7 @@ function getTenantTable()
  * invoked after receiving of receipt
  */
 
-function calculatePenalty($penaltydetails)
-{
+function calculatePenalty($penaltydetails) {
     $datetime = getDateAndTime();
     $date = new DateTime($datetime["todaysdate"]);
     //get the current month (tested-ok)
@@ -6718,7 +5130,8 @@ function calculatePenalty($penaltydetails)
             //get remaining days
             //$remainingdays=$receiptday-$days;
         }
-    } //if the receipt date is past current month
+    }
+    //if the receipt date is past current month
     else if ($rmonth > $thismonth) {
 
         //get the exact receipt day (tested-ok)
@@ -6739,7 +5152,7 @@ function calculatePenalty($penaltydetails)
 
     $amount = ($rate * $penaltydetails['amount']) / 100;
 
-    //dynamic amount
+    //dynamic amount 
     $remamount = $amount;
     //static amount
     //$remamount=1000;
@@ -6756,8 +5169,7 @@ function calculatePenalty($penaltydetails)
 //if day>1,fetch penalty
 //use propertyid and tenantid to generate penalty invoice,appending "penalty for delayed payment on INVOICENO"
 //check if penalty exists
-function checkPenalty($days)
-{
+function checkPenalty($days) {
     $penaltiestable = delaypenaltiesTable();
     $db = new MySQLDatabase();
     //select where days fall in between a lower and upper limit
@@ -6772,8 +5184,7 @@ function checkPenalty($days)
 }
 
 //check property  VAT
-function checkPropertyVAT($propid)
-{
+function checkPropertyVAT($propid) {
     $mysqli = getMysqliConnection();
     $result = $mysqli->query("SELECT has_vat FROM properties WHERE `propertyid`='$propid'") or die($mysqli->error);
     while ($row = $result->fetch_assoc()) {
@@ -6783,8 +5194,7 @@ function checkPropertyVAT($propid)
 }
 
 //get vat amounts
-function getVAT($vatname)
-{
+function getVAT($vatname) {
     $mysqli = getMysqliConnection();
     $result = $mysqli->query("SELECT amount from vatamounts  WHERE `alias` like '$vatname' ") or die($mysqli->error);
     while ($row = $result->fetch_assoc()) {
@@ -6794,8 +5204,7 @@ function getVAT($vatname)
 }
 
 //get penalty rate
-function getPenaltyRate($days)
-{
+function getPenaltyRate($days) {
     include_once './includes/database.php'; //format amount in words
     $penaltiestable = delaypenaltiesTable();
     $db = new MySQLDatabase();
@@ -6807,8 +5216,7 @@ function getPenaltyRate($days)
     return 10; //$penaltyrate;
 }
 
-function printreceipt2($receiptno, $user)
-{
+function printreceipt2($receiptno, $user) {
     include '../includes/numberformatter.php'; //format amount in words
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/Nairobi');
@@ -6818,137 +5226,98 @@ function printreceipt2($receiptno, $user)
     $tablename = "recptrans";
     $tablename2 = "tenants";
     $tablename3 = "invoiceitems";
-    $invoicetable = getInvoiceTable();
+    $invoicetable=  getInvoiceTable();
     $tableitems = [];
-    $chargeablesamount = array();
-    
+    $chargeablesamount=array();
+  
     $sql = $db->query("SELECT * FROM $tablename WHERE `recpno` like '$receiptno'") or die($db->error());
     if ($db->num_rows($sql) > 0) {
         while ($row = $db->fetch_array($sql)) {
             $recpno = $row['recpno'];
             $recpdate = $row['rdate'];
             $amount = $row['amount'];
-            $chequedate = $row['chequedate'];
-            $chequeno = $row['chqno'];
-            $cheqdet = $row['chqdet'];
+            $chequedate=$row['chequedate'];
+            $chequeno=$row['chqno'];
+            $cheqdet=$row['chqdet'];
             $idno = $row['idno'];
             $remarks = $row['rmks'];
             $pmode = $row['pmode'];
-            $mode = getPayMode($pmode);
+            $mode=getPayMode($pmode);
             $invoiceno = $row['invoicenopaid'];
-            $reference = $row['reference'];
+            $reference=$row['reference'];
         }
         $sql2 = $db->query("SELECT property_name,tenant_name,Apartment_tag FROM $tablename2 WHERE ( `Id`='$idno' AND `vacated` like '0')") or die($db->error());
-        while ($row2 = $db->fetch_array($sql2)) {
+        while ($row2 =$db->fetch_array($sql2)) {
             $propertyname = $row2['property_name'];
             $tname = $row2['tenant_name'];
             $tag = $row2['Apartment_tag'];
         }
-        $sql3 = $db->query("SELECT item_name,amount FROM $tablename3 WHERE invoiceno='$invoiceno' ORDER BY `priority` ASC") or die($db->error());
+        $sql3 =$db->query("SELECT item_name,amount FROM $tablename3 WHERE invoiceno='$invoiceno' ORDER BY `priority` ASC") or die($db->error());
         while ($row3 = $db->fetch_array($sql3)) {
             $item_name = $row3['item_name'];
             $item_amount = $row3['amount'];
-            array_push($chargeablesamount, $item_amount);
+            array_push($chargeablesamount,$item_amount);
             array_push($tableitems, '<tr><td></td><td style="color:black;" colspan="2">' . $item_name . '</u></td><td>Ksh:' . number_format($item_amount, 2) . '</td></tr>');
         }
-        //get outstanding balance/pre<tr><td></td><td style="color:black;" colspan="2">'payment
-
-        $balance = getCorrectBalance($idno, $latestinvoice = '0');
-        $settings = getSettings();
-
-        $penaltysql = $db->query("SELECT amount FROM $invoicetable WHERE recpno='$recpno' AND `is_penalty`=1 ") or die($db->error());
-        while ($row = $db->fetch_array($penaltysql)) {
+         //get outstanding balance/pre<tr><td></td><td style="color:black;" colspan="2">'payment
+        
+        $balance=  getCorrectBalance($idno,$latestinvoice='0');
+        $settings=getSettings();
+        
+        $penaltysql=$db->query("SELECT amount FROM $invoicetable WHERE recpno='$recpno' AND `is_penalty`=1 ") or die($db->error());
+        while ($row= $db->fetch_array($penaltysql)) {
             $penaltyamount = $row['amount'];
+              }
+             //echo '<br>';
+              ?>
+<style>
+    .tftable td{font-size:18px;}
+    
+</style>
+<table class="tftable printable " width="90%" style="font-family:Arial,sans-serif;letter-spacing:2px;" >
+       <br><br>
+        <!--<tr style="border-top:1px solid black"><td colspan="4" ></td></tr>--> 
+        <tr height="1%"><td ><b><?php echo strtoupper($settings["company_name"])?></b></td></tr>
+         <tr height="1%"><td ><?php echo strtoupper($settings["tagline"])?></td></tr>
+         <tr height="1%"><td ><b><br></b></center></td></tr>
+          <tr height="2%"><td style="height:1px;"><b>RECPNO:</b>&nbsp;<?php echo $recpno ?>&nbsp;&nbsp;<b>Date:</b><?php echo date("d-m-Y",strtotime($recpdate ))?></td></tr>
+                
+                        <tr height="1%"><td><b>Received From:</b>&nbsp;<?php echo ucwords(@$tname) .'('.@$tag.')'?> <b>OF </b><br><?php echo  ucwords(str_replace('_', " ", $propertyname))  ?></td></tr>
+                        <tr height="2%"><td style="height:1px;"><b>Amount:</b><?php echo number_format($amount, 2).'&nbsp (Ksh&nbsp;'.convert_number_to_words($amount).' only)'?></b></td></tr>
+                            <tr><td><b>Payment Mode&nbsp;&nbsp;</b><?php echo strtoupper($mode[0]['paymode']);?></b></td></tr>
+                        <?php if(strtoupper($mode[0]['paymode'])=="CHEQUE"){?>
+                        <tr height="2%"><td style="height:1px;"><b>CHEQUE NO<?php echo  $chequeno.' OF '.$cheqdet?></b>&nbsp;<b>Chq.Date&nbsp;</b><?php echo date("d-m-Y",strtotime($chequedate));?></td></tr>
+                 <?php } else if(strtoupper($mode[0]['paymode'])=="BANK DEPOSIT"){                                   ?>
+           
+                        <tr height="2%"><td style="height:1px;"><b><?php echo getReceiptBank($recpno,$recpdate)?></b></td></tr>
+              <?php }?>
+                        <tr height="2%"><td style="height:1px;"><b>REFERENCE:</b><?=strtoupper($reference);?></b></td></tr>
+        <tr height="1%"><td><b>Remarks</b>&nbsp;<?php echo $remarks?></td></tr>
+        <?php  
+        //for peta
+        // echo '<tr><td colspan="4"><hr/></td></tr>'
+        echo '<tr><td></td><td colspan="3">';
+        
+      // foreach ($tableitems as $key => $value1) {
+           
+          // echo $key . $value1;
+        
+      //  }
+        echo '<td></tr>';
+        if($penaltyamount){
+           echo '<tr height="5%"><td></td><td><u>Penalty For Late Payment</u></td><td>Ksh:' . number_format($penaltyamount, 2) . '</td></tr>';
+      
         }
-        //echo '<br>';
-        ?>
-        <style>
-            .tftable td {
-                font-size: 18px;
-            }
-
-        </style>
-        <table class="tftable printable " width="90%" style="font-family:Arial,sans-serif;letter-spacing:2px;">
-            <br><br>
-            <!--<tr style="border-top:1px solid black"><td colspan="4" ></td></tr>-->
-            <tr height="1%">
-                <td><b><?php echo strtoupper($settings["company_name"]) ?></b></td>
-            </tr>
-            <tr height="1%">
-                <td><?php echo strtoupper($settings["tagline"]) ?></td>
-            </tr>
-            <tr height="1%">
-                <td><b><br></b></center></td>
-            </tr>
-            <tr height="2%">
-                <td style="height:1px;"><b>RECPNO:</b>&nbsp;<?php echo $recpno ?>
-                    &nbsp;&nbsp;<b>Date:</b><?php echo date("d-m-Y", strtotime($recpdate)) ?></td>
-            </tr>
-
-            <tr height="1%">
-                <td><b>Received From:</b>&nbsp;<?php echo ucwords(@$tname) . '(' . @$tag . ')' ?>
-                    <b>OF </b><br><?php echo ucwords(str_replace('_', " ", $propertyname)) ?></td>
-            </tr>
-            <tr height="2%">
-                <td style="height:1px;">
-                    <b>Amount:</b><?php echo number_format($amount, 2) . '&nbsp (Ksh&nbsp;' . convert_number_to_words($amount) . ' only)' ?></b>
-                </td>
-            </tr>
-            <tr>
-                <td><b>Payment Mode&nbsp;&nbsp;</b><?php echo strtoupper($mode[0]['paymode']); ?></b></td>
-            </tr>
-            <?php if (strtoupper($mode[0]['paymode']) == "CHEQUE") { ?>
-                <tr height="2%">
-                    <td style="height:1px;"><b>CHEQUE NO<?php echo $chequeno . ' OF ' . $cheqdet ?></b>&nbsp;<b>Chq.Date&nbsp;</b><?php echo date("d-m-Y", strtotime($chequedate)); ?>
-                    </td>
-                </tr>
-            <?php } else if (strtoupper($mode[0]['paymode']) == "BANK DEPOSIT") { ?>
-
-                <tr height="2%">
-                    <td style="height:1px;"><b><?php echo getReceiptBank($recpno, $recpdate) ?></b></td>
-                </tr>
-            <?php } ?>
-            <tr height="2%">
-                <td style="height:1px;"><b>REFERENCE:</b><?= strtoupper($reference); ?></b></td>
-            </tr>
-            <tr height="1%">
-                <td><b>Remarks</b>&nbsp;<?php echo $remarks ?></td>
-            </tr>
-            <?php
-            //for peta
-            // echo '<tr><td colspan="4"><hr/></td></tr>'
-            echo '<tr><td></td><td colspan="3">';
-
-            // foreach ($tableitems as $key => $value1) {
-
-            // echo $key . $value1;
-
-            //  }
-            echo '<td></tr>';
-            if ($penaltyamount) {
-                echo '<tr height="5%"><td></td><td><u>Penalty For Late Payment</u></td><td>Ksh:' . number_format($penaltyamount, 2) . '</td></tr>';
-
-            }
-
-            if ($balance) { ?>
-                <tr height="5%">
-                    <td class="blackfont"><b>BAL
-                            C/FORWARD:</b>&nbsp;&nbsp;<?php echo 'Ksh: ' . number_format($balance, 2); ?></td>
-                </tr>
-            <?php }
-            ?>
-            <tr height="5%">
-                <td><?php echo $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time ?>
-                    <span><br>PIN NO:<?php echo $settings['pin'] ?>  VAT NO:<?php echo $settings['vat'] ?></span></td>
-            </tr>
-            <tr height="1%">
-                <td>
-                    <center><b><br></b></center>
-                </td>
-            </tr>
-        </table>
-        <?php
-        /* echo '<center><table class="printable" style="width:800px;"><div id="printheader"><tr><td colspan="3" style="width:800px"><span id="copy">Copy</span><center><span id="invoice">RECEIPT</span></center></td></tr>
+        
+         if($balance){  ?>
+<tr height="5%"><td class="blackfont"><b>BAL C/FORWARD:</b>&nbsp;&nbsp;<?php echo 'Ksh: '.number_format($balance,2);?></td></tr>
+<?php }
+?>
+<tr height="5%"><td ><?php echo $user.'&nbsp;&nbsp;'.$date.'&nbsp;&nbsp;'.$time?><span><br>PIN NO:<?php echo $settings['pin']  ?>  VAT NO:<?php echo $settings['vat']  ?></span></td></tr>
+<tr height="1%"><td ><center><b><br></b></center></td></tr>
+</table>
+<?php
+       /* echo '<center><table class="printable" style="width:800px;"><div id="printheader"><tr><td colspan="3" style="width:800px"><span id="copy">Copy</span><center><span id="invoice">RECEIPT</span></center></td></tr>
 
 </div>';
         echo '<tr><td colpan="2"><span id="invoiceno">RECEIPT NO&nbsp;' . $recpno . '</span></td><td></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Date ' .date("d-m-Y",strtotime($recpdate)) . '</td></tr>';
@@ -6956,32 +5325,30 @@ function printreceipt2($receiptno, $user)
         echo '<tr><td colspan="2"><b>Received from&nbsp;</b><u>' . strtoupper(@$tname) . '</u>&nbsp;of&nbsp;<b>' . ucwords(str_replace('_', " ", @$propertyname)) . ' (' . @$tag . ') ' . '</b>
     <br>the sum of Kshs <u><b>' . convert_number_to_words($amount) . ' Only<br/>being payment for: </b>' . $remarks . '</u> </b></td><td><h4>AMOUNT: Kshs ' . number_format($amount, 2) . '</h4></td></tr>';
         echo '<tr><td colspan="3"><hr/></td></tr><tr><td colspan="3">';
-
+        
         foreach ($tableitems as $key => $value1) {
-
+           
             echo $key . $value1;
-
+        
         }
         if($penaltyamount){
            echo '<tr><td><u>Penalty For Late Payment</u></td><td>Ksh:' . number_format($penaltyamount, 2) . '</td></tr>';
-
+      
         }
         if($balance){
         echo '<tr><td class="blackfont">BALANCE CARRIED FORWARD:</td><td colspan="1"> Ksh: '.number_format($balance,2).'</td></tr>';
         }
         echo '<tr><td colspan="3">' . $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time . '</td></tr>';
-
+        
           echo '</table>';*/
-
+        
     } else {
         return false;
     }
 }
 
-function printreceipt($receiptno, $user)
-{   
-   
-    include_once '../includes/numberformatter.php'; //format amount in words
+function printreceipt($receiptno, $user) {
+    include '../includes/numberformatter.php'; //format amount in words
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/Nairobi');
     $date = date("d/m/y");
@@ -6990,197 +5357,116 @@ function printreceipt($receiptno, $user)
     $tablename = "recptrans";
     $tablename2 = "tenants";
     $tablename3 = "invoiceitems";
-    $tableinv = "invoices";
-    $invoicetable = getInvoiceTable();
+     $tableinv = "invoices";
+    $invoicetable=  getInvoiceTable();
     $tableitems = [];
-    $chargeablesamount = array();
+    $chargeablesamount=array();
     $carfrwd = 0;
-    $deposit="Rent";
+    
     $sql = $db->query("SELECT * FROM $tablename WHERE `recpno` like '$receiptno'") or die($db->error());
-   
     if ($db->num_rows($sql) > 0) {
         while ($row = $db->fetch_array($sql)) {
             $recpno = $row['recpno'];
             $recpdate = $row['rdate'];
             $amount = $row['amount'];
-            $chequedate = $row['chequedate'];
-            $chequeno = $row['chqno'];
-            $cheqdet = $row['chqdet'];
+            $chequedate=$row['chequedate'];
+            $chequeno=$row['chqno'];
+            $cheqdet=$row['chqdet'];
             $idno = $row['idno'];
-            $remarks = $row[''];
-            $deposit = $row['is_deposit']=="D"?"Deposit":"Rent";
+            $remarks = $row['rmks'];
             $pmode = $row['pmode'];
-            $mode = getPayMode($pmode);
+            $mode=getPayMode($pmode);
             $invoiceno = $row['invoicenopaid'];
-            $reference = $row['reference'];
+            $reference=$row['reference'];
         }
         $sql2 = $db->query("SELECT property_name,tenant_name,Apartment_tag FROM $tablename2 WHERE ( `Id`='$idno' AND `vacated` like '0')") or die($db->error());
-        while ($row2 = $db->fetch_array($sql2)) {
+        while ($row2 =$db->fetch_array($sql2)) {
             $propertyname = $row2['property_name'];
             $tname = $row2['tenant_name'];
             $tag = $row2['Apartment_tag'];
         }
         $sql4 = $db->query("SELECT invoicedate FROM $tableinv WHERE invoiceno = '$invoiceno'") or die($db->error());
-        while ($row4 = $db->fetch_array($sql4)) {
+        while ($row4 =$db->fetch_array($sql4)) {
             $invoicedate = $row4['invoicedate'];
-
+           
         }
-        $sql3 = $db->query("SELECT item_name,amount FROM $tablename3 WHERE invoiceno='$invoiceno' ORDER BY `priority` ASC") or die($db->error());
+        $sql3 =$db->query("SELECT item_name,amount FROM $tablename3 WHERE invoiceno='$invoiceno' ORDER BY `priority` ASC") or die($db->error());
         while ($row3 = $db->fetch_array($sql3)) {
             $item_name = $row3['item_name'];
             $item_amount = $row3['amount'];
-            array_push($chargeablesamount, $item_amount);
+            array_push($chargeablesamount,$item_amount);
             array_push($tableitems, '<tr><td></td><td style="color:black;" colspan="2">' . $item_name . '</u></td><td>Ksh:' . number_format($item_amount, 2) . '</td></tr>');
         }
-       
-// here............
-        // $sql5 = $db->query("SELECT deposit_payed,reason FROM recptrans_deposit_refunded WHERE reciept_no='$receiptno'");
-
-        //      get outstanding balance/pre<tr><td></td><td style="color:black;" colspan="2">'payment
-        // while ($row4 =$db->fetch_array($sql5)) {
-        //     $propertyname = $row2['property_name'];
-        //     $deposit_payed = $row4['deposit_payed'];
-        //     $reason = $row4['reason'];
-
-        //     array_push($payed_amount,$deposit_payed);
-        //     array_push($payed_amount,$reason);
-        // }
-        //    die(print_r($payed_amount));
-
-        $balance = getCorrectBalance($idno, $latestinvoice = '0', $invoicedate);
-        $settings = getSettings();
-
-        $penaltysql = $db->query("SELECT amount FROM $invoicetable WHERE recpno='$recpno' AND `is_penalty`=1 ") or die($db->error());
-        while ($row = $db->fetch_array($penaltysql)) {
+         //get outstanding balance/pre<tr><td></td><td style="color:black;" colspan="2">'payment
+        
+        $balance=  getCorrectBalance($idno,$latestinvoice='0',$invoicedate);
+        $settings=getSettings();
+        
+        $penaltysql=$db->query("SELECT amount FROM $invoicetable WHERE recpno='$recpno' AND `is_penalty`=1 ") or die($db->error());
+        while ($row= $db->fetch_array($penaltysql)) {
             $penaltyamount = $row['amount'];
+              }
+             //echo '<br>';
+              ?>
+<style>
+    .tftable td{font-size:16px;}
+    .tdborder  {
+border-collapse: collapse;
+  }
+    .tdborder td {border: 1px solid black;}
+   
+</style>
+<table class="tftable printable " width="90%" style="font-family:Arial,sans-serif;letter-spacing:2px;" >
+       <br><br>
+        <!--<tr style="border-top:1px solid black"><td colspan="4" ></td></tr>--> 
+       <tr height="1%"><td colspan="4"><img src="../images/cursors/LHEAD.png"/></td></tr>
+       <tr height="1%"><td align="right" colspan="4"><b>RECEIPT</b></td></tr>
+           <tr height="2%"><td colspan="4" style="height:1px;" align="right"><u>Date:</u>&nbsp;<?php echo date("d-m-Y",strtotime($recpdate ))?></td></tr>
+           <tr height="2%"><td colspan="4" style="height:1px;" align="right"><u>Receipt No:</u>&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $recpno ?>&nbsp;&nbsp;</td></tr>
+      
+                        <tr height="1%"><td colspan="4"><b>Received From:</b>&nbsp;<?php echo ucwords(@$tname) .'('.@$tag.')'?> <b>OF </b><br><?php echo  ucwords(str_replace('_', " ", $propertyname))  ?></td></tr>
+                        <tr height="2%"><td colspan="4" align="right" style="height:1px;"><b>Amount: <?php echo number_format($amount, 2).'&nbsp <br> (Ksh&nbsp;'.convert_number_to_words($amount).' only)'?></b></td></tr>
+                        <tr height="1%"><td colspan="4"><b>Remarks</b>&nbsp;<?php echo $remarks?></td></tr> 
+                        <tr height="1%"><td colspan="4"><table class="tdborder" width="90%" align="center">
+                        <tr height="1%" border="1"  ><td style="border: 1px solid black;">Date</td><td style="border: 1px solid black;">Description</td><td style="border: 1px solid black;">Amount</td><td style="border: 1px solid black;">Balance</td></tr> 
+                         <tr height="1%" border="1" ><td style="border: 1px solid black;"><?php echo date("d-m-Y",strtotime($recpdate ))?></td><td style="border: 1px solid black;">B/F</td><td style="border: 1px solid black;">-</td><td style="border: 1px solid black;"><?php echo '0'; ?></td></tr> 
+                        <tr height="1%"  ><td></td><td>Rent</td><td><?php echo number_format($amount, 2);?></td><td><?php echo number_format($balance,2);?></td></tr>
+                                </table></td></tr>
+                        <tr ><td colspan="4"><b>Payment Mode&nbsp;&nbsp;</b><?php echo strtoupper($mode[0]['paymode']);?></b></td></tr>
+                        <?php if(strtoupper($mode[0]['paymode'])=="CHEQUE"){?>
+                        <tr height="2%"><td colspan="4" style="height:1px;"><b>CHEQUE NO<?php echo  $chequeno.' OF '.$cheqdet?></b>&nbsp;<b>Chq.Date&nbsp;</b><?php echo date("d-m-Y",strtotime($chequedate));?></td></tr>
+                 <?php } else if(strtoupper($mode[0]['paymode'])=="BANK DEPOSIT"){                                   ?>
+           
+                        <tr height="2%"><td colspan="4" style="height:1px;"><b><?php echo getReceiptBank($recpno,$recpdate)?></b></td></tr>
+              <?php }?>
+                        <tr height="2%"><td colspan="4" style="height:1px;"><b>REFERENCE:</b><?=strtoupper($reference);?></b></td></tr>
+        
+        <?php  
+        //for peta
+        // echo '<tr><td colspan="4"><hr/></td></tr>'
+        echo '<tr><td></td><td colspan="3">';
+        
+      // foreach ($tableitems as $key => $value1) {
+           
+          // echo $key . $value1;
+        
+      //  }
+        echo '<td></tr>';
+        if($penaltyamount){
+           echo '<tr height="5%"><td></td><td colspan="3"><u>Penalty For Late Payment</u></td><td>Ksh:' . number_format($penaltyamount, 2) . '</td></tr>';
+      
         }
-        //echo '<br>';
-        ?>
-        <style>
-            .tftable td {
-                font-size: 16px;
-            }
-
-            .tdborder {
-                border-collapse: collapse;
-            }
-
-            .tdborder td {
-                border: 1px solid black;
-            }
-
-        </style>
-        <table class=" printable " width="90%" style="font-family:Arial,sans-serif;letter-spacing:2px;">
-            <br><br>
-            <!--<tr style="border-top:1px solid black"><td colspan="4" ></td></tr>-->
-            <tr >
-                <td colspan="4"><img src="../images/cursors/LHEAD.png" height="100px"/></td>
-            </tr>
-            <tr height="1%">
-                <td align="right" colspan="4"><b>RECEIPT</b></td>
-            </tr>
-            <tr height="2%">
-                <td colspan="4" style="height:1px;" align="right">
-                    <u>Date:</u>&nbsp;<?php echo date("d-m-Y", strtotime($recpdate)) ?></td>
-            </tr>
-            <tr height="2%">
-                <td colspan="4" style="height:1px;" align="right"><u>Receipt
-                        No:</u>&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $recpno ?>&nbsp;&nbsp;
-                </td>
-            </tr>
-
-            <tr height="1%">
-                <td colspan="4"><b>Received From:</b>&nbsp;<?php echo ucwords(@$tname) . '(' . @$tag . ')' ?> <b>OF </b><br><?php echo ucwords(str_replace('_', " ", $propertyname)) ?>
-                </td>
-            </tr>
-            <tr height="2%">
-                <td colspan="4" align="right" style="height:1px;">
-                    <b>Amount: <?php echo number_format($amount, 2) . '&nbsp <br> (Ksh&nbsp;' . convert_number_to_words($amount) . ' only)' ?></b>
-                </td>
-            </tr>
-            <tr height="1%">
-                <td colspan="4"><b>Remarks</b>&nbsp;<?php echo $remarks ?></td>
-            </tr>
-            <tr height="1%">
-                <td colspan="4">
-                    <table class="tdborder" width="90%" align="center">
-                        <tr height="1%" border="1">
-                            <td style="border: 1px solid black;">Date</td>
-                            <td style="border: 1px solid black;">Description</td>
-                            <td style="border: 1px solid black;">Amount</td>
-                            <td style="border: 1px solid black;">Balance</td>
-                        </tr>
-                        <tr height="1%" border="1">
-                            <td style="border: 1px solid black;"><?php echo date("d-m-Y", strtotime($recpdate)) ?></td>
-                            <td style="border: 1px solid black;">B/F</td>
-                            <td style="border: 1px solid black;">-</td>
-                            <td style="border: 1px solid black;"><?php echo '0'; ?></td>
-                        </tr>
-                        <tr height="1%">
-                            <td></td>
-                            <td><?php echo $deposit;?></td>
-                            <td><?php echo number_format($amount, 2); ?></td>
-                            <td><?php echo number_format($balance, 2); ?></td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="4"><b>Payment Mode&nbsp;&nbsp;</b><?php echo strtoupper($mode[0]['paymode']); ?></b></td>
-            </tr>
-            <?php if (strtoupper($mode[0]['paymode']) == "CHEQUE") { ?>
-                <tr height="2%">
-                    <td colspan="4" style="height:1px;"><b>CHEQUE NO<?php echo $chequeno . ' OF ' . $cheqdet ?></b>&nbsp;<b>Chq.Date&nbsp;</b><?php echo date("d-m-Y", strtotime($chequedate)); ?>
-                    </td>
-                </tr>
-            <?php } else if (strtoupper($mode[0]['paymode']) == "BANK DEPOSIT") { ?>
-
-                <tr height="2%">
-                    <td colspan="4" style="height:1px;"><b><?php echo getReceiptBank($recpno, $recpdate) ?></b></td>
-                </tr>
-            <?php } ?>
-            <tr height="2%">
-                <td colspan="4" style="height:1px;"><b>REFERENCE:</b><?= strtoupper($reference); ?></b></td>
-            </tr>
-
-            <?php
-            //for peta
-            // echo '<tr><td colspan="4"><hr/></td></tr>'
-            echo '<tr><td></td><td colspan="3">';
-
-            // foreach ($tableitems as $key => $value1) {
-
-            // echo $key . $value1;
-
-            //  }
-            echo '<td></tr>';
-            if ($penaltyamount) {
-                echo '<tr height="5%"><td></td><td colspan="3"><u>Penalty For Late Payment</u></td><td>Ksh:' . number_format($penaltyamount, 2) . '</td></tr>';
-
-            }
-
-            if ($balance) { ?>
-                <tr height="5%">
-                    <td colspan="4" style="text-align:center" class="blackfont">BAL
-                        C/FORWARD:&nbsp;&nbsp;<?php echo 'Ksh: ' . number_format($balance, 2); ?></td>
-                </tr>
-            <?php }
-            ?>
-            <tr height="5%">
-                <td colspan="4" align="right"
-                    style="font-size:10px"><?php echo $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time ?></td>
-            </tr>
-            <tr height="1%">
-                <td colspan="4">
-                    <center><b><br></b></center>
-                </td>
-            </tr>
-            <tr height="1%">
-                <td colspan="4"></td>
-            </tr>
-        </table>
-        <?php
-        /* echo '<center><table class="printable" style="width:800px;"><div id="printheader"><tr><td colspan="3" style="width:800px"><span id="copy">Copy</span><center><span id="invoice">RECEIPT</span></center></td></tr>
+        
+         if($balance){  ?>
+                        <tr height="5%"><td colspan="4" style="text-align:center" class="blackfont">BAL C/FORWARD:&nbsp;&nbsp;<?php echo 'Ksh: '.number_format($balance,2);?></td></tr>
+<?php }
+?>
+<tr height="5%"><td colspan="4" align="right" style="font-size:10px" ><?php echo $user.'&nbsp;&nbsp;'.$date.'&nbsp;&nbsp;'.$time?></td></tr>
+<tr height="1%"><td colspan="4" ><center><b><br></b></center></td></tr>
+<tr height="1%"><td  colspan="4" ><img src="../images/cursors/Footer.png"/></td></tr>
+</table>
+<?php
+       /* echo '<center><table class="printable" style="width:800px;"><div id="printheader"><tr><td colspan="3" style="width:800px"><span id="copy">Copy</span><center><span id="invoice">RECEIPT</span></center></td></tr>
 
 </div>';
         echo '<tr><td colpan="2"><span id="invoiceno">RECEIPT NO&nbsp;' . $recpno . '</span></td><td></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Date ' .date("d-m-Y",strtotime($recpdate)) . '</td></tr>';
@@ -7188,33 +5474,30 @@ function printreceipt($receiptno, $user)
         echo '<tr><td colspan="2"><b>Received from&nbsp;</b><u>' . strtoupper(@$tname) . '</u>&nbsp;of&nbsp;<b>' . ucwords(str_replace('_', " ", @$propertyname)) . ' (' . @$tag . ') ' . '</b>
     <br>the sum of Kshs <u><b>' . convert_number_to_words($amount) . ' Only<br/>being payment for: </b>' . $remarks . '</u> </b></td><td><h4>AMOUNT: Kshs ' . number_format($amount, 2) . '</h4></td></tr>';
         echo '<tr><td colspan="3"><hr/></td></tr><tr><td colspan="3">';
-
+        
         foreach ($tableitems as $key => $value1) {
-
+           
             echo $key . $value1;
-
+        
         }
         if($penaltyamount){
            echo '<tr><td><u>Penalty For Late Payment</u></td><td>Ksh:' . number_format($penaltyamount, 2) . '</td></tr>';
-
+      
         }
         if($balance){
         echo '<tr><td class="blackfont">BALANCE CARRIED FORWARD:</td><td colspan="1"> Ksh: '.number_format($balance,2).'</td></tr>';
         }
         echo '<tr><td colspan="3">' . $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time . '</td></tr>';
-
+        
           echo '</table>';*/
-
+        
     } else {
-        // return false;
+        //return false;
     }
-    
-
 }
 
 
-function printreceiptother($receiptno, $user)
-{
+function printreceiptother($receiptno, $user) {
     include '../includes/numberformatter.php'; //format amount in words
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/Nairobi');
@@ -7224,116 +5507,80 @@ function printreceiptother($receiptno, $user)
     $tablename = "otherrecptrans";
     $tablename2 = "tenants";
     $tablename3 = "invoiceitems";
-    $invoicetable = getInvoiceTable();
+    $invoicetable=  getInvoiceTable();
     $tableitems = [];
-    $payed_amount = [];
-    $chargeablesamount = array();
+    $chargeablesamount=array();
     $sql = $db->query("SELECT * FROM $tablename WHERE `recpno` like '$receiptno'") or die($db->error());
     if ($db->num_rows($sql) > 0) {
         while ($row = $db->fetch_array($sql)) {
             $recpno = $row['recpno'];
             $recpdate = $row['rdate'];
             $amount = $row['amount'];
-            $chequedate = $row['chequedate'];
-            $chequeno = $row['chqno'];
-            $cheqdet = $row['chqdet'];
+            $chequedate=$row['chequedate'];
+            $chequeno=$row['chqno'];
+            $cheqdet=$row['chqdet'];
             $customer = $row['customer'];
             $remarks = $row['rmks'];
             $pmode = $row['pmode'];
-            $mode = getPayMode($pmode);
+            $mode=getPayMode($pmode);
             $invoiceno = $row['invoicenopaid'];
         }
 
+   
+        
+       
+        $settings=getSettings();
+        
+        $penaltysql=$db->query("SELECT amount FROM $invoicetable WHERE recpno='$recpno' AND `is_penalty`=1 ") or die($db->error());
+    
+             echo '<br><br><br>';
+              ?>
 
-        $settings = getSettings();
+<center><table class="tftable printable "  style="font-weight:bold;width:90% !important" border="1">
+       <tr><th><img src="../images/cursors/logo.png"/></th><th colspan="3"><center><?php echo $settings['company_name'] ?></center><br><?php echo $settings['tagline'] ?></th></tr>
+                <tr height="2%"><td style="height:1px;"><?php echo str_repeat(5,'&nbsp;')?>RECPNO</td><td style="height:5px;"><?php echo $recpno ?></td><td></td><td>Date:<?php echo date("d-m-Y",strtotime($recpdate ))?></td></tr>
+                
+                        <tr height="1%"><td><?php echo str_repeat(5,'&nbsp;')?>Received From</td><td colspan="3"><?php echo ucwords(@$customer)?> </td></tr>
+                        <tr height="2%"><td style="height:1px;">Amount</td><td colspan="2"><b><?php echo number_format($amount, 2).'&nbsp (Ksh&nbsp;'.convert_number_to_words($amount).' only)'?></b></td><td><b><?php echo strtoupper($mode[0]['paymode']);?></b></td></tr>
+                        <?php if(strtoupper($mode[0]['paymode'])=="CHEQUE"){?>
+                        <tr height="2%"><td style="height:1px;"></td><td colspan="2"><b>CHEQUE NO<?php echo  $chequeno.' OF '.$cheqdet?></b></td><td>Chq.Date&nbsp;<?php echo date("d-m-Y",strtotime($chequedate));?></td></tr>
+                 <?php }else if(strtoupper($mode[0]['paymode'])=="BANK DEPOSIT"){
+               
+                     ?>
+                        <tr height="2%"><td style="height:1px;"></td><td></td><td colspan="2"><b> <?php echo getReceiptBank($recpno,$recpdate)?></b></td></tr>
+              <?php }?>
+        <tr height="1%"><td><?php echo str_repeat(5,'&nbsp;')?>Remarks</td><td colspan="3"><b><?php echo $remarks?></b></td></tr>
+        <?php  
+        //for peta
+//         echo '<tr><td colspan="4"><hr/></td></tr>'
+//        . '<tr><td></td><td colspan="3">';
+//        
+//        foreach ($tableitems as $key => $value1) {
+//           
+//            echo $key . $value1;
+//        
+//        }
+//        echo '<td></tr>';
+    ?>
+<tr height="5%"><td colspan="4"><?php echo $user.'&nbsp;&nbsp;'.$date.'&nbsp;&nbsp;'.$time?><span class="linkright">PIN NO:<?php echo $settings['pin']  ?>  VAT NO:<?php echo $settings['vat']  ?></span></td></tr>
+</table>
 
-        $penaltysql = $db->query("SELECT amount FROM $invoicetable WHERE recpno='$recpno' AND `is_penalty`=1 ") or die($db->error());
+</center>
+<?php
 
-        echo '<br><br><br>';
-        ?>
-
-        <center>
-            <table class="tftable printable " style="font-weight:bold;width:90% !important" border="1">
-                <tr>
-                    <th><img src="../images/cursors/logo.png"/></th>
-                    <th colspan="3">
-                        <center><?php echo $settings['company_name'] ?></center>
-                        <br><?php echo $settings['tagline'] ?></th>
-                </tr>
-                <tr height="2%">
-                    <td style="height:1px;"><?php echo str_repeat(5, '&nbsp;') ?>RECPNO</td>
-                    <td style="height:5px;"><?php echo $recpno ?></td>
-                    <td></td>
-                    <td>Date:<?php echo date("d-m-Y", strtotime($recpdate)) ?></td>
-                </tr>
-
-                <tr height="1%">
-                    <td><?php echo str_repeat(5, '&nbsp;') ?>Received From</td>
-                    <td colspan="3"><?php echo ucwords(@$customer) ?> </td>
-                </tr>
-                <tr height="2%">
-                    <td style="height:1px;">Amount</td>
-                    <td colspan="2">
-                        <b><?php echo number_format($amount, 2) . '&nbsp (Ksh&nbsp;' . convert_number_to_words($amount) . ' only)' ?></b>
-                    </td>
-                    <td><b><?php echo strtoupper($mode[0]['paymode']); ?></b></td>
-                </tr>
-                <?php if (strtoupper($mode[0]['paymode']) == "CHEQUE") { ?>
-                    <tr height="2%">
-                        <td style="height:1px;"></td>
-                        <td colspan="2"><b>CHEQUE NO<?php echo $chequeno . ' OF ' . $cheqdet ?></b></td>
-                        <td>Chq.Date&nbsp;<?php echo date("d-m-Y", strtotime($chequedate)); ?></td>
-                    </tr>
-                <?php } else if (strtoupper($mode[0]['paymode']) == "BANK DEPOSIT") {
-
-                    ?>
-                    <tr height="2%">
-                        <td style="height:1px;"></td>
-                        <td></td>
-                        <td colspan="2"><b> <?php echo getReceiptBank($recpno, $recpdate) ?></b></td>
-                    </tr>
-                <?php } ?>
-                <tr height="1%">
-                    <td><?php echo str_repeat(5, '&nbsp;') ?>Remarks</td>
-                    <td colspan="3"><b><?php echo $remarks ?></b></td>
-                </tr>
-                <?php
-                //for peta
-                //         echo '<tr><td colspan="4"><hr/></td></tr>'
-                //        . '<tr><td></td><td colspan="3">';
-                //
-                //        foreach ($tableitems as $key => $value1) {
-                //
-                //            echo $key . $value1;
-                //
-                //        }
-                //        echo '<td></tr>';
-                ?>
-                <tr height="5%">
-                    <td colspan="4"><?php echo $user . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time ?><span
-                                class="linkright">PIN NO:<?php echo $settings['pin'] ?>  VAT NO:<?php echo $settings['vat'] ?></span>
-                    </td>
-                </tr>
-            </table>
-
-        </center>
-        <?php
-
-
+        
     } else {
         return false;
     }
 }
-
-function getrecpbyid($id, $type = "")
-{
+function getrecpbyid($id,$type="") {
     $db = new MySQLDatabase();
     $db->open_connection();
-    if ($type == "other") {
-        $tablename = "otherrecptrans";
-    } else {
-        $tablename = "recptrans";
-    }
+	if($type=="other"){
+		 $tablename = "otherrecptrans";
+	}else{
+    $tablename = "recptrans";
+	}
     echo '<table class="treport" ><thead>
 <tr>
 <th><center><u>Receipt No</u></center></th>
@@ -7350,115 +5597,71 @@ function getrecpbyid($id, $type = "")
         $recpdate = $row['rdate'];
         $amount = $row['amount'];
         $idno = $row['idno'];
-
+		
         echo "<tr><td>$recpno</td><td>" . $recpdate . "</td><td>" . $amount . "</td><td>" . $idno . "</td><td><a href='#' id='delreceipt' title='$recpid' tabindex='$type'><img src='../images/close.png'>Reverse Receipt</a></td>";
     }
     echo '</tr></tbody>'
-        . '</table></center>';
+    . '</table></center>';
     $db->close_connection();
-
-
-    // call erp
-    $json = array();
-    $data2 = array(
-        "CustId" => $idno,
-        "TransactionRef" => $recpno,
-        "TransDate" => $recpdate,
-        "BankAcct" => 20000001,
-        "Amount" => $amount
-    );
-    $json[] = $data2;
-    $json_data = json_encode($json);
-    $username = "api-user";
-    $password = "admin";
-    $headers = array(
-        'Authorization: Basic ' . base64_encode($username . ':' . $password),
-    );
-
-
-    //Perform curl post request to add item to the accounts erp
-    $curl = curl_init();
-
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=reverse-payment&company-id=RIVER",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "POST",
-        CURLOPT_POSTFIELDS => $json_data,
-        CURLOPT_HTTPHEADER => $headers,
-    ));
-
-    $response = curl_exec($curl);
-
-    curl_close($curl);
-
 }
 
 
-function getBillbyNo($no)
-{
+function getBillbyNo($no) {
     $db = new MySQLDatabase();
     $db->open_connection();
-
-    $tablename = "bills";
+	
+		 $tablename = "bills";
 
     $sql = $db->query("SELECT * FROM $tablename WHERE bill_no = '$no'") or die(mysql_error());
     while ($row = mysql_fetch_array($sql)) {
-        $data['bl_id'] = $row['pay_id'];
+        $data['bl_id']= $row['pay_id'];
         $data['bill_no'] = $row['bill_no'];
         $data['bill_amount'] = $row['bill_amnt'];
-
+      	
     }
     $db->close_connection();
-    if (is_array($data)) {
-        return json_encode($data);
-    } else {
+    if(is_array($data)){
+    return json_encode($data);
+    }else {
         return NULL;
     }
 }
 
 
-function reverseBillbyNo($no)
-{
+function reverseBillbyNo($no) {
     $db = new MySQLDatabase();
     $db->open_connection();
-
-    $tablename = "bills";
+	
+		 $tablename = "bills";
 
     $sql = $db->query("UPDATE $tablename SET reversed=1 WHERE bill_no = '$no'") or die(mysql_error());
     $sql2 = $db->query("UPDATE paytrans SET revsd=1 WHERE billnopaid = '$no'") or die(mysql_error());
-
+   
     $db->close_connection();
-    return TRUE;
+   return TRUE;
 }
 
-function reverseExpensebyNo($payno)
-{
-    $db = getMysqliConnection();
-    $tablename = "paytrans";
-
-    $res = $db->query("SELECT * FROM $tablename WHERE `payno` = $payno ") or die($db->error);
+function reverseExpensebyNo($payno) {
+   $db = getMysqliConnection();
+	$tablename = "paytrans";
+        
+         $res = $db->query("SELECT * FROM $tablename WHERE `payno` = $payno ") or die($db->error);
     while ($row = $res->fetch_assoc()) {
         $billno = $row['billnopaid'];
     }
-    if ($billno) {
-        $db->query("UPDATE bills SET reversed=1 WHERE bill_no = '$billno'") or die(mysql_error());
-        $db->query("UPDATE paytrans SET revsd=1 WHERE payno = '$payno'") or die(mysql_error());
-
-        //  $db->close_connection();
-        return "Voucher " . $payno . " has been reversed";
-    } else {
+    if($billno){
+    $db->query("UPDATE bills SET reversed=1 WHERE bill_no = '$billno'") or die(mysql_error());
+     $db->query("UPDATE paytrans SET revsd=1 WHERE payno = '$payno'") or die(mysql_error());
+   
+  //  $db->close_connection();
+   return "Voucher ".$payno." has been reversed";
+    }
+    else{
         return "No such voucher";
     }
 }
-
 //get bank receipt
-function getReceiptBank($recpno, $date)
-{
+function getReceiptBank($recpno, $date) {
 
     $mysqli = getMysqliConnection();
 
@@ -7477,16 +5680,16 @@ function getReceiptBank($recpno, $date)
     return $bankname;
 }
 
-function reversereceipt($id, $username, $type)
-{
+function reversereceipt($id,$username,$type) {
     $db = new MySQLDatabase();
     $db->open_connection();
-    if ($type == "other") {
-        $tablename = "otherrecptrans";
-    } else {
-        $tablename = "recptrans";
-    }
-    $currentdate = date('Y-m-d h:i:s');
+	if($type=="other"){
+		 $tablename = "otherrecptrans";
+	}
+	else{
+    $tablename = "recptrans";
+	}
+	$currentdate = date('Y-m-d h:i:s');
     $invoicetable = getInvoiceTable();
     $sql = $db->query("SELECT * FROM $tablename WHERE `tno` like '$id'") or die(mysql_error());
     while ($row = mysql_fetch_array($sql)) {
@@ -7499,7 +5702,7 @@ function reversereceipt($id, $username, $type)
         $chequedate = $row['chequedate'];
         $amount = $row['amount'];
         $idno = $row['idno'];
-        $isdeposit = $row['is_deposit'];
+		 $isdeposit = $row['is_deposit'];
         $rmks = $row['rmks'];
         $invoicenopaid = $row['invoicenopaid'];
         $cashacct = $row['cashacc'];
@@ -7525,16 +5728,14 @@ function reversereceipt($id, $username, $type)
 }
 
 //delete receipt (deletes a receipt and its reversed equivalent
-function deleteReceiptFromInvoice($invoiceno)
-{
+function deleteReceiptFromInvoice($invoiceno) {
     $mysqli = getMysqliConnection();
     $receipttable = getReceiptsTable();
     $mysqli->query("UPDATE {$receipttable} SET `is_deleted`=1 WHERE `invoicenopaid` like '$invoiceno' ") or die($mysqli->error);
     $mysqli->close();
 }
 
-function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag = 0, $tenant = 0)
-{
+function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag = 0, $tenant = 0) {
 
     date_default_timezone_set('Africa/Nairobi');
     $time = date('h:i A');
@@ -7556,7 +5757,7 @@ function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag
         echo '<table class="treport1 width70 exportlist" ><thead>
 <tr><td colspan="15"><center><span style="font-size:15px;font-weight:normal;float:left;"> <b>RECEIPT LIST</b></span><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><centre>' . str_repeat('&nbsp;', 25) . 'Receipt List From <b> ' . date("d-m-Y", strtotime($startdate)) . '</b>  To  <b>' . date("d-m-Y", strtotime($enddate)) . '</b></center></span></td></tr>';
-        echo '<tr>
+        echo'<tr>
 <u><td>T/AC</td><td>L/AC</td><td>Property</td> <td>Invoice No</td><td>Receipt No</td><td>Paymode</td><td>Bank</td><td>Receipt Date</td><td>Transaction Date</td><td>Reference</td> <td>House No</td><td>Tenant/Other Name</td><td>Narration</td> <td>Amount</td><td>Commission</td><td>Net Amount</td></u></tr>';
         echo '</thead><tbody>';
         //foreach ($allproperties as $property) {
@@ -7574,7 +5775,7 @@ function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag
             $propid = $row['property_id'];
 
             $commission = getPropertyCommissionRate($propid);
-            //get invoice items
+            //get invoice items 
             $commissionnotcharged = 0;
             $invoice = getInvoiceDetails($row['invoicenopaid']);
             $pmode = $row['pmode'];
@@ -7586,7 +5787,7 @@ function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag
                 $itemdetails = getChargeItemByName($item['name'], $propid);
 
                 if ($itemdetails['commission_charged'] == 0 || $invoice['is_penalty'] == 1) {
-                    //get the item value as a % of the total amount
+                    //get the item value as a % of the total amount 
                     if ($itemdetails['amount'])
                         $commissionnotcharged = $commissionnotcharged + (($itemdetails['amount'] / $invoicevalue) * ($commission / 100) * $invoicevalue);
                     // echo $commissionnotcharged;
@@ -7606,10 +5807,10 @@ function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag
                 $link = '<a class="whitetext"  href="defaultreports.php?report=printreceipt&receiptno=' . $recpno . '" target="blank"><span style="color:blue">' . $recpno . '</span></a>';
             }
 
-            echo '<tr><td>' . $row['Id'] . '</td><td>' . $propid . $invoice['amount'] . '</td><td>' . findpropertybyid($propid) . '</td><td>' . $row['invoicenopaid'] . '</td><td>' . $link . '</td><td>' . $paymode[0]['paymode'] . '</td><td>' . getReceiptBank($row['recpno'], $row['rdate']) . '</td><td>' . date("d-m-Y", strtotime($row['rdate'])) . '</td><td>' . date("d-m-Y", strtotime($row['ts'])) . '</td><td>' . $row['reference'] . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . $row['rmks'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($commamount, 2) . '</td><td>' . number_format($netamount, 2) . '</td></tr>';
-            array_push($sumamount, (float)$row['amount']);
-            array_push($sumcommmamount, (float)($commamount));
-            array_push($sumtotalamount, (float)($netamount));
+            echo '<tr><td>' . $row['Id'] . '</td><td>' . $propid . $invoice['amount'] . '</td><td>' . findpropertybyid($propid) . '</td><td>'.$row['invoicenopaid'].'</td><td>' . $link . '</td><td>' . $paymode[0]['paymode'] . '</td><td>' . getReceiptBank($row['recpno'], $row['rdate']) . '</td><td>' . date("d-m-Y", strtotime($row['rdate'])) . '</td><td>' . date("d-m-Y", strtotime($row['ts'])) . '</td><td>'.$row['reference'].'</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . $row['rmks'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($commamount, 2) . '</td><td>' . number_format($netamount, 2) . '</td></tr>';
+            array_push($sumamount, (float) $row['amount']);
+            array_push($sumcommmamount, (float) ($commamount));
+            array_push($sumtotalamount, (float) ($netamount));
         }
 
         //  }
@@ -7630,7 +5831,7 @@ function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag
         echo '<table class="treport1 width70" ><thead>
 <tr><td colspan="14"><center><span style="font-size:15px;font-weight:normal;float:left;"> <b>RECEIPT LIST</b></span><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><centreceiptlier>' . str_repeat('&nbsp;', 25) . 'Receipt List From <b> ' . date("d-m-Y", strtotime($startdate)) . '</b>  To  <b>' . date("d-m-Y", strtotime($enddate)) . '</b></center></span></td></tr>';
-        echo '<tr>
+        echo'<tr>
 <u><th>T/AC</th><th>L/AC</th><th>Property</th> <td>Invoice No</td><th>Receipt No</th><th>Paymode</th><th>Bank</th><th>Receipt Date</th><th>Transaction Date</th><th>Reference</th>  <th>House No</th><th>Tenant/Other Name</th><th>Narration</th> <th>Amount</th><th>Commission</th><th>Net Amount</th></u></tr>';
         echo '</thead><tbody>';
         $i = 1;
@@ -7649,7 +5850,7 @@ function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag
             foreach ($invoiceitems as $item) {
                 $itemdetails = getChargeItemByName($item['name'], $propid);
                 if ($itemdetails['commission_charged'] == 0 || $invoice['is_penalty'] == 1) {
-                    //get the item value as a % of the total amount
+                    //get the item value as a % of the total amount 
                     if ($itemdetails['amount'])
                         $commissionnotcharged = $commissionnotcharged + (($itemdetails['amount'] / $invoicevalue) * ($commission / 100) * $invoicevalue);
                     // echo $commissionnotcharged;
@@ -7667,10 +5868,10 @@ function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag
                 $recpno = $row['recpno'];
                 $link = '<a class="whitetext"  href="defaultreports.php?report=printreceipt&receiptno=' . $recpno . '" target="blank"><span style="color:blue">' . $recpno . '</span></a>';
             }
-            echo '<tr><td>' . $row['Id'] . '</td><td>' . $propid . '</td><td>' . findpropertybyid($propid) . '</td><td>' . $row['invoicenopaid'] . '</td><td>' . $link . '</td><td>' . $paymode[0]['paymode'] . '</td><td>' . getReceiptBank($row['recpno'], $row['rdate']) . '<td>' . date("d-m-Y", strtotime($row['rdate'])) . '</td><td>' . date("d-m-Y", strtotime($row['ts'])) . '</td><td>' . $row['reference'] . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . $row['rmks'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($commamount, 2) . '</td><td>' . number_format($netamount, 2) . '</td></tr>';
-            array_push($sumamount, (float)$row['amount']);
-            array_push($sumcommmamount, (float)($commamount));
-            array_push($sumtotalamount, (float)($netamount));
+            echo '<tr><td>' . $row['Id'] . '</td><td>' . $propid . '</td><td>' . findpropertybyid($propid) . '</td><td>'.$row['invoicenopaid'].'</td><td>' . $link . '</td><td>' . $paymode[0]['paymode'] . '</td><td>' . getReceiptBank($row['recpno'], $row['rdate']) . '<td>' . date("d-m-Y", strtotime($row['rdate'])) . '</td><td>' . date("d-m-Y", strtotime($row['ts'])) . '</td><td>'.$row['reference'].'</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . $row['rmks'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($commamount, 2) . '</td><td>' . number_format($netamount, 2) . '</td></tr>';
+            array_push($sumamount, (float) $row['amount']);
+            array_push($sumcommmamount, (float) ($commamount));
+            array_push($sumtotalamount, (float) ($netamount));
         }
 
         echo '</tbody>';
@@ -7681,8 +5882,7 @@ function getreceiptlist($startdate, $enddate, $propid, $user, $allpropertiesflag
     }
 }
 
-function getreceiptlistother($startdate, $enddate, $propid, $user, $allpropertiesflag = 0)
-{
+function getreceiptlistother($startdate, $enddate, $propid, $user, $allpropertiesflag = 0) {
 
     date_default_timezone_set('Africa/Nairobi');
     $time = date('h:i A');
@@ -7700,32 +5900,23 @@ function getreceiptlistother($startdate, $enddate, $propid, $user, $allpropertie
     }
 
 
+
     echo '<table class="treport1 width70 exportlist" ><thead>
 <tr><td colspan="7"><center><span style="font-size:15px;font-weight:normal;float:left;"> <b>RECEIPT LIST</b></span><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><centre>' . str_repeat('&nbsp;', 25) . 'Customer Receipt List From <b> ' . date("d-m-Y", strtotime($startdate)) . '</b>  To  <b>' . date("d-m-Y", strtotime($enddate)) . '</b></center></span></td></tr>';
-    echo '<tr>
+    echo'<tr>
 <u> <td>Receipt No</td><td>Paymode</td><td>Receipt Date</td> <td>CustomerName</td><td>Narration</td><td>Reference</td> <td>Amount</td>></u></tr>';
     echo '</thead><tbody>';
     $query = $db->query("SELECT $tablename.*  FROM $tablename WHERE DATE_FORMAT($tablename.ts,'%Y-%m-%d') BETWEEN '$startdate' AND '$enddate' AND $tablename.is_deleted=0 AND `is_deposit`='R' ORDER BY rdate DESC ") or die($db->error());
     while ($row = $db->fetch_array($query)) {
         //loop here
-        array_push($sumamount, (float)$row['amount']);
+        array_push($sumamount, (float) $row['amount']);
 
         $pmode = $row['pmode'];
         $paymode = getPayMode($pmode);
         ?>
-        <tr>
-            <td><a class='whitetext'
-                   href="defaultreports.php?report=printreceiptcustomer&receiptno=<?= $row['recpno'] ?>" target='blank'><span
-                            style='color:blue'><?= $row['recpno'] ?></span></a></td>
-            <td><?= $paymode[0]['paymode'] ?></td>
-            <td><?= date("d-m-Y", strtotime($row['rdate'])) ?></td>
-            <td><?= $row["customer"] ?></td>
-            <td><?= $row['rmks'] ?></td>
-            <td><?= $row['reference'] ?></td>
-            <td><?= number_format($row['amount'], 2) ?></td>
-        </tr>
-        <?php
+        <tr><td><a class='whitetext'  href="defaultreports.php?report=printreceiptcustomer&receiptno=<?= $row['recpno'] ?>" target='blank'><span style='color:blue'><?= $row['recpno'] ?></span></a></td><td><?= $paymode[0]['paymode'] ?></td><td><?= date("d-m-Y", strtotime($row['rdate'])) ?></td><td><?= $row["customer"] ?></td><td><?= $row['rmks'] ?></td><td><?= $row['reference'] ?></td><td><?= number_format($row['amount'], 2) ?></td></tr>
+    <?php
     }
     echo '</tbody>';
     echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td></td><td></td><td><b>' . number_format(@array_sum($sumamount), 2) . '</b></td></tr></tfoot>';
@@ -7734,8 +5925,7 @@ function getreceiptlistother($startdate, $enddate, $propid, $user, $allpropertie
     echo '<i>Printed by:</i> ' . $user . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
 }
 
-function getTenantDeposits($startdate, $enddate, $propid, $user, $allpropertiesflag = 0)
-{
+function getTenantDeposits($startdate, $enddate, $propid, $user, $allpropertiesflag = 0) {
     date_default_timezone_set('Africa/Nairobi');
     $time = date('h:i A');
     $db = new MySQLDatabase();
@@ -7744,10 +5934,10 @@ function getTenantDeposits($startdate, $enddate, $propid, $user, $allpropertiesf
     $tablename2 = "tenants";
     $tablename3 = "vatamounts";
     // die($startdate." ".$enddate);
-    $myDateTimestart = DateTime::createFromFormat('d-m-Y', trim($startdate));
-    $startdate = $myDateTimestart->format('Y-m-d');
-    $myDateTime = DateTime::createFromFormat('d-m-Y', trim($enddate));
-    $enddate = $myDateTime->format('Y-m-d');
+    $myDateTimestart = DateTime::createFromFormat('d-m-Y',trim($startdate));
+$startdate =$myDateTimestart->format('Y-m-d');
+    $myDateTime = DateTime::createFromFormat('d-m-Y',trim($enddate));
+$enddate = $myDateTime->format('Y-m-d');
 
     $q2 = $db->query("SELECT amount from $tablename3 WHERE vatid='1'") or die(mysql_error());
     $sumamount = array();
@@ -7762,7 +5952,7 @@ function getTenantDeposits($startdate, $enddate, $propid, $user, $allpropertiesf
         echo '<table class="treport1 width70" ><thead>
 <tr><td colspan="11"><center><span style="font-size:15px;font-weight:normal;float:left;"> <b>DEPOSITS LIST</b></span><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><centre>' . str_repeat('&nbsp;', 25) . 'Deposits List From <b> ' . date("d-m-Y", strtotime($startdate)) . '</b>  To  <b>' . date("d-m-Y", strtotime($enddate)) . '</b></center></span></td></tr>';
-        echo '<tr>
+        echo'<tr>
 <u><th>T/AC</th><th>L/AC</th><th>Property</th> <th>Receipt No</th><th>Paymode</th><th>Reference</th><th>Receipt Date</th> <th>House No</th><th>Tenant/Other Name</th><th>Narration</th> <th>Amount</th><th>Net Amount</th></u></tr>';
         echo '</thead><tbody>';
         foreach ($allproperties as $property) {
@@ -7772,20 +5962,20 @@ function getTenantDeposits($startdate, $enddate, $propid, $user, $allpropertiesf
             $query = $db->query("SELECT $tablename.recpno,$tablename.pmode,$tablename.invoicenopaid,$tablename.reference,$tablename.rdate,$tablename.rmks,$tablename.amount,$tablename2.Id,$tablename2.tenant_name,$tablename2.Apartment_tag,$tablename2.property_name FROM $tablename LEFT JOIN $tablename2 ON $tablename.idno=$tablename2.Id WHERE ($tablename.rdate BETWEEN '$startdate' AND '$enddate')  AND $tablename2.property_id='$propid' AND `is_deposit`='D' ORDER BY $tablename2.Apartment_tag ASC ") or die($db->error());
             $i = 1;
             while ($row = $db->fetch_array($query)) {
-                //get invoice items
+                //get invoice items 
                 $commissionnotcharged = 0;
                 $invoice = getInvoiceDetails($row['invoicenopaid']);
                 $pmode = $row['pmode'];
                 $paymode = getPayMode($pmode);
-                //print_r($paymode);
+				//print_r($paymode);
                 $invoicevalue = $invoice['amount'];
                 $invoiceitems = getInvoiceItemsAndValue($row['invoicenopaid']);
 
                 $netamount = $row['amount'];
-                echo '<tr><td>' . $row['Id'] . '</td><td>' . $propid . $invoice['amount'] . '</td><td>' . findpropertybyid($propid) . '</td><td><a class="whitetext"  href="defaultreports.php?report=printreceipt&receiptno=' . $row['recpno'] . '" target="blank"><span style="color:blue">' . $row['recpno'] . '</span></a></td><td>' . $paymode[0]['paymode'] . '</td><td>' . $row['reference'] . '</td><td>' . date("d-m-Y", strtotime($row['rdate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . $row['rmks'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($netamount, 2) . '</td></tr>';
-                array_push($sumamount, (float)$row['amount']);
+                echo '<tr><td>' . $row['Id'] . '</td><td>' . $propid . $invoice['amount'] . '</td><td>' . findpropertybyid($propid) . '</td><td><a class="whitetext"  href="defaultreports.php?report=printreceipt&receiptno=' . $row['recpno'] . '" target="blank"><span style="color:blue">' . $row['recpno'] . '</span></a></td><td>' . $paymode[0]['paymode'] . '</td><td>'.$row['reference'].'</td><td>' . date("d-m-Y", strtotime($row['rdate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . $row['rmks'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($netamount, 2) . '</td></tr>';
+                array_push($sumamount, (float) $row['amount']);
 
-                array_push($sumtotalamount, (float)($netamount));
+                array_push($sumtotalamount, (float) ($netamount));
             }
         }
 
@@ -7796,12 +5986,12 @@ function getTenantDeposits($startdate, $enddate, $propid, $user, $allpropertiesf
         echo '<i>Printed by:</i> ' . $user . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
     } else {
         //get receipts not deleted
-
+		
         $query = $db->query("SELECT $tablename.recpno,$tablename.pmode,$tablename.invoicenopaid,$tablename.rdate,$tablename.rmks,$tablename.amount,$tablename2.Id,$tablename2.tenant_name,$tablename2.Apartment_tag,$tablename2.property_name FROM $tablename LEFT JOIN $tablename2 ON $tablename.idno=$tablename2.Id WHERE ($tablename.rdate BETWEEN '$startdate' AND '$enddate') AND $tablename2.property_id='$propid' AND `is_deposit`='D' ORDER BY $tablename2.Apartment_tag ASC ") or die($db->error());
         echo '<table class="treport1 width70" ><thead>
 <tr><td colspan="10"><center><span style="font-size:15px;font-weight:normal;float:left;"> <b>DEPOSITS LIST</b></span><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><centreceiptlier>' . str_repeat('&nbsp;', 25) . 'Deposits List From <b> ' . date("d-m-Y", strtotime($startdate)) . '</b>  To  <b>' . date("d-m-Y", strtotime($enddate)) . '</b></center></span></td></tr>';
-        echo '<tr>
+        echo'<tr>
 <u><th>T/AC</th><th>L/AC</th><th>Property</th> <th>Receipt No</th><th>Receipt Date</th> <th>House No</th><th>Tenant/Other Name</th><th>Narration</th> <th>Amount</th><th>Net Amount</th></u></tr>';
         echo '</thead><tbody>';
         $i = 1;
@@ -7812,9 +6002,9 @@ function getTenantDeposits($startdate, $enddate, $propid, $user, $allpropertiesf
             $paymode = getPayMode($pmode);
             $netamount = $row['amount'];
             echo '<tr><td>' . $row['Id'] . '</td><td>' . $propid . '</td><td>' . findpropertybyid($propid) . '</td><td><a class="whitetext"  href="defaultreports.php?report=printreceipt&receiptno=' . $row['recpno'] . '" target="blank"><span style="color:blue">' . $row['recpno'] . '</span></a></td><td>' . $pmode[0]['paymode'] . '</td><td>' . date("d-m-Y", strtotime($row['rdate'])) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . $row['rmks'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($netamount, 2) . '</td></tr>';
-            array_push($sumamount, (float)$row['amount']);
-            array_push($sumcommmamount, (float)($commamount));
-            array_push($sumtotalamount, (float)($netamount));
+            array_push($sumamount, (float) $row['amount']);
+            array_push($sumcommmamount, (float) ($commamount));
+            array_push($sumtotalamount, (float) ($netamount));
         }
 
         echo '</tbody>';
@@ -7827,8 +6017,7 @@ function getTenantDeposits($startdate, $enddate, $propid, $user, $allpropertiesf
 
 //end of recptrans
 //get water rate
-function get_water_rate($propid)
-{
+function get_water_rate($propid) {
     include_once '../includes/config.php';
     $mysqli = getMysqliConnection();
     if ($mysqli->connect_errno) {
@@ -7844,11 +6033,9 @@ function get_water_rate($propid)
 }
 
 //fetch tenant/property rent statement
-function fetchstatement2($tenantid, $propid, $startdate, $enddate, $count, $allpropertiesflag)
-{
+function fetchstatement2($tenantid, $propid, $startdate, $enddate, $count, $allpropertiesflag) {
     //die('dsdsdsds');
     include_once '../includes/config.php';
-
     $mysqli = getMysqliConnection();
     date_default_timezone_set('Africa/Nairobi');
     $startdate = date("Y-m-d", strtotime($startdate));
@@ -7859,82 +6046,71 @@ function fetchstatement2($tenantid, $propid, $startdate, $enddate, $count, $allp
     $suminvoiceamount = array();
     $sumpaidamount = array();
     $sumbal = array();
-    $bftot = 0;
-    $dtot = 0;
-    $ctot = 0;
-    $gtot = 0;
+    $bftot=0; $dtot =0; $ctot=0; $gtot=0;
     if ($mysqli->connect_errno) {
         echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
     }
     if ($count == '0') {
         //$res = $mysqli->query("SELECT recptrans.recpno,recptrans.idno,recptrans.rdate,recptrans.rmks as narration,recptrans.is_deposit as transactiontype,recptrans.invoicenopaid FROM recptrans WHERE recptrans.idno='$tenantid' AND recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-        $querybf = $mysqli->query("SELECT SUM(amount) as bal,idno, tno FROM invoices WHERE invoices.idno='$tenantid' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate < '$startdate' AND invoicecredit ='0'
+$querybf = $mysqli->query("SELECT SUM(amount) as bal,idno, tno FROM invoices WHERE invoices.idno='$tenantid' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate < '$startdate' AND invoicecredit ='0'
     UNION SELECT SUM(amount*-1) as bal,idno, tno FROM invoices WHERE invoices.idno='$tenantid' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate < '$startdate' AND invoicecredit ='1'
-    UNION SELECT SUM(-1*recptrans.amount) as bal,idno, tno FROM recptrans WHERE recptrans.idno='$tenantid' AND property_id='$propid' AND recptrans.rdate < '$startdate' AND recptrans.revsd=0  GROUP BY idno") or die($mysqli->error);
+    UNION SELECT SUM(-1*recptrans.amount) as bal,idno, tno FROM recptrans WHERE recptrans.idno='$tenantid' AND property_id='$propid' AND recptrans.rdate < '$startdate' AND recptrans.revsd=0  GROUP BY idno") or  die($mysqli->error);
 
         $res = $mysqli->query("SELECT invoices.invoiceno,invoices.invoicedate,IF(invoicecredit ='1',invoices.amount,'0')as credit,IF(invoicecredit ='1','0',invoices.amount)  as debit,invoices.remarks as narration,IF(invoicecredit ='1','Credit Note','Invoice') as transaction_type FROM invoices WHERE invoices.idno='$tenantid' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate'
                                 UNION SELECT recptrans.recpno,rdate,amount as credit,'0'as debit,rmks,'Receipt' as transaction_type FROM recptrans WHERE recptrans.idno='$tenantid' AND recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ORDER BY invoicedate") or die($mysqli->error);
         $entity = strtoupper(findtenantbyid($tenantid));
     } else {
-        $querybf = $mysqli->query("SELECT SUM(amount) as bal,idno, tno FROM invoices WHERE  invoices.revsd=0 AND property_id='$propid' AND invoicedate < '$startdate'  AND invoicecredit ='0'
+     $querybf = $mysqli->query("SELECT SUM(amount) as bal,idno, tno FROM invoices WHERE  invoices.revsd=0 AND property_id='$propid' AND invoicedate < '$startdate'  AND invoicecredit ='0'
     UNION SELECT SUM(amount*-1) as bal,idno, tno FROM invoices WHERE  invoices.revsd=0 AND property_id='$propid' AND invoicedate < '$startdate' AND invoicecredit ='1'
-    UNION SELECT SUM(-1*recptrans.amount) as bal,idno, tno FROM recptrans WHERE  property_id='$propid' AND recptrans.rdate < '$startdate' AND recptrans.revsd=0  GROUP BY idno") or die($mysqli->error);
+    UNION SELECT SUM(-1*recptrans.amount) as bal,idno, tno FROM recptrans WHERE  property_id='$propid' AND recptrans.rdate < '$startdate' AND recptrans.revsd=0  GROUP BY idno") or  die($mysqli->error);
 
         $res = $mysqli->query("SELECT invoices.invoiceno,invoices.invoicedate,IF(invoicecredit ='1',invoices.amount,'0')as credit,IF(invoicecredit ='1','0',invoices.amount)  as debit,invoices.remarks as narration,IF(invoicecredit ='1','Credit Note','Invoice') as transaction_type FROM invoices WHERE  invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate'
                                 UNION SELECT recptrans.recpno,rdate,amount as credit,'0'as debit,rmks,'Receipt' as transaction_type FROM recptrans WHERE  recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ORDER BY invoicedate ") or die($mysqli->error);
-
-
-        //   $res = $mysqli->query("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
+   
+        
+     //   $res = $mysqli->query("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
         //$res = $mysqli->query("SELECT recptrans.recpno,recptrans.idno,recptrans.rdate,recptrans.rmks as narration,recptrans.is_deposit as transactiontype,recptrans.invoicenopaid FROM recptrans WHERE recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
         $entity = 'ALL';
     }
     echo '<table class="treport" ><thead>
-<tr><td><img src="../images/cursors/logo1.png" style="height:100px;width:140px;"></td><td colspan="8" style="background-color:beige"><h3><center>STATEMENT FOR <u>' . $entity . '</u> OF <i>' . strtoupper(findpropertybyid($propid)) . '</i><br><br>&nbsp;FOR THE PERIOD&nbsp;' . date('d-m-Y', strtotime($startdate)) . '&nbsp;TO&nbsp;' . date('d-m-Y', strtotime($enddate)) . '</center></h3></td></tr>
+<tr><td><img src="../images/cursors/anjuman.png" style="height:100px;width:140px;"></td><td colspan="8" style="background-color:beige"><h3><center>STATEMENT FOR <u>' . $entity . '</u> OF <i>' . strtoupper(findpropertybyid($propid)) . '</i><br><br>&nbsp;FOR THE PERIOD&nbsp;' .date('d-m-Y',strtotime($startdate)). '&nbsp;TO&nbsp;' . date('d-m-Y',strtotime($enddate)) . '</center></h3></td></tr>
 <tr>
 <th><center><u>Date</u></center></th>
 <th><center><u>Invoice/Receipt No</u></center></th>
 <th><center><u>Transaction</u></center></th>
 <th><center><u>Narration</u></center></th>
-<th><center><u>Unit Amount</center></u></th>
 <th><center><u>Debit</center></u></th>
 <th><center><u>Credit</center></u></th>
 <th><center><u>Balance</center></u></th></tr></thead><tbody>';
-    //die($querybf1);
-    while ($row1 = $querybf->fetch_assoc()) {
-        $bftot = $bftot + $row1['bal'];
-    }
-    echo '<tr><td colspan="4" align="right"><b>B/F Amount</b></td><td></td><td></td><td align=right>' . number_format($bftot, 2) . '&nbsp;&nbsp;</td></tr>';
+ //die($querybf1);
+while ($row1 = $querybf->fetch_assoc()) {
+ $bftot = $bftot + $row1['bal'];
+} 
+echo '<tr><td colspan="4" align="right"><b>B/F Amount</b></td><td></td><td></td><td align=right>'.number_format($bftot,2).'&nbsp;&nbsp;</td></tr>';
     while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
+//get all payments from recptrans for a given invoice 
 
-
+      
         $tenantdetails = getTenantDetails($row['idno']);
         $aptid = getApartmentFromTenant($row['idno']);
         $aptdetails = getApartmentDetails($aptid);
 
         $invoice = getInvoiceDetails($row['invoiceno']);
-        $rent = getRentItemFromInvoice($row['invoiceno']);
-        $dtot = $dtot + $row['debit'];
-        $ctot = $ctot + $row['credit'];
-        $gtot = $gtot + $row['debit'] - $row['credit'];
-        echo '<tr><td>' . date("d-m-Y", strtotime($row['invoicedate'])) . '</td><td>' . $row['invoiceno'] . '</td><td>' . $row['transaction_type'] . '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;' . $row['narration'] . '</td><td>' . $rent . '</td><td align=right style="color:red">&nbsp;&nbsp;' . number_format($row['debit']) . '&nbsp;&nbsp;</td><td align=right style="color:green">&nbsp;&nbsp;' . number_format($row['credit']) . '&nbsp;&nbsp;</td><td align=right>' . number_format($gtot + $bftot) . '&nbsp;&nbsp;</td></tr>';
+       $dtot = $dtot + $row['debit'];
+ $ctot = $ctot + $row['credit'];  
+ $gtot = $gtot + $row['debit']- $row['credit'];
+echo '<tr><td>'.date("d-m-Y", strtotime($row['invoicedate'])).'</td><td>' .$row['invoiceno'].'</td><td>' . $row['transaction_type'] . '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;' . $row['narration'] . '</td><td align=right style="color:red">&nbsp;&nbsp;' . number_format($row['debit']) . '&nbsp;&nbsp;</td><td align=right style="color:green">&nbsp;&nbsp;' . number_format($row['credit']) . '&nbsp;&nbsp;</td><td align=right>' . number_format($gtot+$bftot) . '&nbsp;&nbsp;</td></tr>';
 
     }
 
     echo '</tbody>';
 
-    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td></td><td align=right><b>' . number_format($dtot, 2) . '&nbsp;&nbsp;</b></td><td align=right><b>' . number_format($ctot, 2) . '&nbsp;&nbsp;</b></td><td align=right><b>' . number_format(($dtot - $ctot) + $bftot, 2) . '&nbsp;&nbsp;</b></td></tr></tfoot>';
+    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td align=right><b>' . number_format($dtot, 2) . '&nbsp;&nbsp;</b></td><td align=right><b>' . number_format($ctot, 2) . '&nbsp;&nbsp;</b></td><td align=right><b>' . number_format(($dtot-$ctot)+$bftot, 2) . '&nbsp;&nbsp;</b></td></tr></tfoot>';
     echo '</table>';
     mysqli_close($mysqli);
 }
-
-// function fetchstatement($tenantid, $propid, $startdate, $enddate, $count, $allpropertiesflag) {
-
-// $res = $mysqli->query("SELECT agentproperty.* FROM agentproperty JOIN properties on agentproperty.property_id=properties.propertyid WHERE  properties.active=1 ORDER BY agentproperty.propertyname ") or die($mysqli->error);
-// }
 //fetch tenant/property rent statement
-function fetchstatement($tenantid, $propid, $startdate, $enddate, $count, $allpropertiesflag)
-{
+function fetchstatement($tenantid, $propid, $startdate, $enddate, $count, $allpropertiesflag) {
     include_once '../includes/config.php';
     $mysqli = getMysqliConnection();
     date_default_timezone_set('Africa/Nairobi');
@@ -7946,7 +6122,6 @@ function fetchstatement($tenantid, $propid, $startdate, $enddate, $count, $allpr
     $suminvoiceamount = array();
     $sumpaidamount = array();
     $sumbal = array();
-
     if ($mysqli->connect_errno) {
         echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
     }
@@ -7961,7 +6136,7 @@ function fetchstatement($tenantid, $propid, $startdate, $enddate, $count, $allpr
         $entity = 'ALL';
     }
     echo '<table class="treport" ><thead>
-<tr><td><img src="../images/cursors/logo1.png" style="height:100px;width:140px;"></td><td colspan="8" style="background-color:beige"><h3><center>STATEMENT FOR <u>' . $entity . '</u> OF <i>' . strtoupper(findpropertybyid($propid)) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr>
+<tr><td><img src="../images/cursors/anjuman.png" style="height:100px;width:140px;"></td><td colspan="8" style="background-color:beige"><h3><center>STATEMENT FOR <u>' . $entity . '</u> OF <i>' . strtoupper(findpropertybyid($propid)) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr>
 <tr>
 <th><center><u>Invoice/Receipt No</u></center></th>
 <th><center><u>Date</u></center></th>
@@ -7973,7 +6148,7 @@ function fetchstatement($tenantid, $propid, $startdate, $enddate, $count, $allpr
 <th><center><u>Credit</center></u></th>
 <th><center><u>Balance</center></u></th></tr></thead><tbody>';
     while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
+//get all payments from recptrans for a given invoice 
 
         $invoicedetails['recpno'] = $row['invoiceno'];
         $invoicedetails['rdate'] = $row['invoicedate'];
@@ -7984,9 +6159,9 @@ function fetchstatement($tenantid, $propid, $startdate, $enddate, $count, $allpr
         $invoicedetails['aptname'] = $aptdetails[0]['apt_tag'];
         $invoicedetails['remarks'] = $row['narration'];
         $invoice = getInvoiceDetails($row['invoiceno']);
-        if ($invoice['invoicecreditnote'] == 1) {
-            $invamn = $invoice['amount'] * -1;
-        } else {
+        if($invoice['invoicecreditnote'] == 1){ 
+            $invamn = $invoice['amount']*-1;
+        }else{
             $invamn = $invoice['amount'];
         }
         $invoicedetails['credit'] = $invamn;
@@ -8011,302 +6186,29 @@ function fetchstatement($tenantid, $propid, $startdate, $enddate, $count, $allpr
     mysqli_close($mysqli);
 }
 
-// function is_admin(){
 
-//  return $_SESSION['usergroup']==1?:true:false;
-// }
-// function is_cashier(){
-//  return $_SESSION['usergroup']==4?:true:false;
-// }
-// function is_office_officer(){
-//  return $_SESSION['usergroup']==2?:true:false;
-// }
-// function is_office_manager(){
-//  return $_SESSION['usergroup']==5?:true:false;
-// }
-// function land_lord(){
-//  return $_SESSION['usergroup']==2?:true:false;
-// }
-function fetchstatement13($tenantid, $propid, $startdate, $enddate, $count, $allpropertiesflag)
-{
-    include_once '../includes/config.php';
-    $mysqli = getMysqliConnection();
-    date_default_timezone_set('Africa/Nairobi');
-    $startdate = date("Y-m-d", strtotime($startdate));
-    $enddate = date("Y-m-d", strtotime($enddate));
-    $invoicenos = array();
-    $invoicedetails = array();
-    $allinvoicedetails = array();
-    $suminvoiceamount = array();
-    $sumpaidamount = array();
-    $sumbal = array();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    if ($count == '0') {
-        //$res = $mysqli->query("SELECT recptrans.recpno,recptrans.idno,recptrans.rdate,recptrans.rmks as narration,recptrans.is_deposit as transactiontype,recptrans.invoicenopaid FROM recptrans WHERE recptrans.idno='$tenantid' AND recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-
-        $res = $mysqli->query("SELECT invoices.invoiceno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE invoices.idno='$tenantid' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-        $entity = strtoupper(findtenantbyid($tenantid));
-    } else {
-        $res = $mysqli->query("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
-        //$res = $mysqli->query("SELECT recptrans.recpno,recptrans.idno,recptrans.rdate,recptrans.rmks as narration,recptrans.is_deposit as transactiontype,recptrans.invoicenopaid FROM recptrans WHERE recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-        $entity = 'ALL';
-    }
-    echo '<table class="treport" ><thead>
-<tr><td><img src="../images/cursors/logo1.png" style="height:100px;width:140px;"></td><td colspan="8" style="background-color:beige"><h3><center>STATEMENT FOR <u>' . $entity . '</u> OF <i>' . strtoupper(findpropertybyid($propid)) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr>
-<tr>
-<th><center><u>Invoice/Receipt No</u></center></th>
-<th><center><u>Date</u></center></th>
-<th><center><u>Transaction</u></center></th>
-<th><center><u>Customer/Tenant Name</u></center></th>
-<th><center><u>House</u></center></th>
-<th><center><u>Narration</u></center></th>
-<th><center><u>Debit</center></u></th>
-<th><center><u>Credit</center></u></th>
-<th><center><u>Balance</center></u></th></tr></thead><tbody>';
-    while ($row = $res->fetch_assoc()) {
-        //get all payments from recptrans for a given invoice
-
-        $invoicedetails['recpno'] = $row['invoiceno'];
-        $invoicedetails['rdate'] = $row['invoicedate'];
-        $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'];
-        $aptid = getApartmentFromTenant($row['idno']);
-        $aptdetails = getApartmentDetails($aptid);
-        $invoicedetails['aptname'] = $aptdetails[0]['apt_tag'];
-        $invoicedetails['remarks'] = $row['narration'];
-        $invoice = getInvoiceDetails($row['invoiceno']);
-        if ($invoice['invoicecreditnote'] == 1) {
-            $invamn = $invoice['amount'] * -1;
-        } else {
-            $invamn = $invoice['amount'];
-        }
-        $invoicedetails['credit'] = $invamn;
-        $invoicedetails['transaction_type'] = $row['transactiontype'];
-
-        $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
-        array_push($allinvoicedetails, $invoicedetails);
-    }
-
-    foreach ($allinvoicedetails as $invoicedetail) {
-        $paidamount = $invoicedetail['paidamount'];
-        $bal = $invoicedetail['credit'] - $paidamount;
-        array_push($suminvoiceamount, $invoicedetail['credit']);
-        array_push($sumpaidamount, $paidamount);
-        array_push($sumbal, $bal);
-        echo '<tr><td>' . $invoicedetail['recpno'] . '</td><td>' . date('d-m-Y', strtotime($invoicedetail['rdate'])) . '</td><td>' . $invoicedetail['transaction_type'] . '</td><td>' . $invoicedetail['name'] . '</td><td>' . $invoicedetail['aptname'] . '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;' . $invoicedetail['remarks'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($invoicedetail['credit']) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($paidamount) . '</td><td>&nbsp;&nbsp;' . $bal . '</td></tr>';
-    }
-    echo '</tbody>';
-
-    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td></td><td></td><td><b>' . number_format(@array_sum($suminvoiceamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumpaidamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumbal), 2) . '</b></td></tr></tfoot>';
-    echo '</table>';
-    mysqli_close($mysqli);
-}
-
-function fetchstatement3($tenantid, $propid, $startdate, $enddate, $count, $allpropertiesflag)
-{
-
-    include_once '../includes/config.php';
-    $mysqli = getMysqliConnection();
-    date_default_timezone_set('Africa/Nairobi');
-    $startdate = date("Y-m-d", strtotime($startdate));
-    $enddate = date("Y-m-d", strtotime($enddate));
-    $invoicenos = array();
-    $invoicedetails = array();
-    $allinvoicedetails = array();
-    $suminvoiceamount = array();
-    $sumpaidamount = array();
-    $sumbal = array();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    if ($count == '0') {
-        //$res = $mysqli->query("SELECT recptrans.recpno,recptrans.idno,recptrans.rdate,recptrans.rmks as narration,recptrans.is_deposit as transactiontype,recptrans.invoicenopaid FROM recptrans WHERE recptrans.idno='$tenantid' AND recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-
-        $res = $mysqli->query("SELECT invoices.invoiceno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE invoices.idno='$tenantid' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-        $entity = strtoupper(findtenantbyid($tenantid));
-    } else {
-        $res = $mysqli->query("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
-        //$res = $mysqli->query("SELECT recptrans.recpno,recptrans.idno,recptrans.rdate,recptrans.rmks as narration,recptrans.is_deposit as transactiontype,recptrans.invoicenopaid FROM recptrans WHERE recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-        $entity = 'ALL';
-    }
-    echo '<table class="treport" ><thead>
-<tr><td><img src="../images/cursors/logo1.png" style="height:100px;width:140px;"></td><td colspan="9" style="background-color:beige"><h3><center>STATEMENT FOR <u>' . $entity . '</u> OF <i>' . strtoupper(findpropertybyid($propid)) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr>
-<tr>
-<th><center><u>Invoice/Receipt No</u></center></th>
-<th><center><u>Date</u></center></th>
-<th><center><u>Transaction</u></center></th>
-<th><center><u>Customer/Tenant Name</u></center></th>
-<th><center><u>House</u></center></th>
-<th><center><u>Narration</u></center></th>
-<th><center><u>Debit</center></u></th>
-<th><center><u>Credit</center></u></th>
-<th><center><u>Balance</center></u></th>
-
-</tr></thead><tbody>';
-    while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
-
-        $invoicedetails['recpno'] = $row['invoiceno'];
-        $invoicedetails['rdate'] = $row['invoicedate'];
-        $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'];
-        $aptid = getApartmentFromTenant($row['idno']);
-        $aptdetails = getApartmentDetails($aptid);
-        $invoicedetails['aptname'] = $aptdetails[0]['apt_tag'];
-        $invoicedetails['remarks'] = $row['narration'];
-        $invoice = getInvoiceDetails($row['invoiceno']);
-        if ($invoice['invoicecreditnote'] == 1) {
-            $invamn = $invoice['amount'] * -1;
-        } else {
-            $invamn = $invoice['amount'];
-        }
-        $invoicedetails['credit'] = $invamn;
-        $invoicedetails['transaction_type'] = $row['transactiontype'];
-        //  die($row['invoiceno']);
-        $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
-        // echo "<br>ss".getInvoiceReceipts($row['invoiceno'])."<br/>";
-        array_push($allinvoicedetails, $invoicedetails);
-
-    }
-    //die(print_r($allinvoicedetails));
-    foreach ($allinvoicedetails as $invoicedetail) {
-
-        $paidamount = $invoicedetail['paidamount'];
-        $bal = $invoicedetail['credit'] - $paidamount;
-        array_push($suminvoiceamount, $invoicedetail['credit']);
-        array_push($sumpaidamount, $paidamount);
-        array_push($sumbal, $bal);
-        $credit = $invoicedetail['credit'];
-        if ($bal <= 0) {
-            $percent = 100;
-        } else {
-            $percent = number_format($paid / $credit * 100);
-        }
-        echo '<tr><td>' . $invoicedetail['recpno'] . '</td><td>' . date('d-m-Y', strtotime($invoicedetail['rdate'])) . '</td><td>' . $invoicedetail['transaction_type'] . '</td><td>' . $invoicedetail['name'] . '</td><td>' . $invoicedetail['aptname'] . '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;' . $invoicedetail['remarks'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($invoicedetail['credit']) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($paidamount) . '</td><td>&nbsp;&nbsp;' . $bal . '</td></tr>';
-    }
-    echo '</tbody>';
-
-    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td></td><td></td><td><b>' . number_format(@array_sum($suminvoiceamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumpaidamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumbal), 2) . '</b></td></tr></tfoot>';
-    echo '</table>';
-    mysqli_close($mysqli);
-}
-
-function fetchstatement4($tenantid, $propid, $startdate, $enddate, $count, $allpropertiesflag, $percentage)
-{
-
-    include_once '../includes/config.php';
-    $mysqli = getMysqliConnection();
-    date_default_timezone_set('Africa/Nairobi');
-    $startdate = date("Y-m-d", strtotime($startdate));
-    $enddate = date("Y-m-d", strtotime($enddate));
-    $invoicenos = array();
-    $invoicedetails = array();
-    $allinvoicedetails = array();
-    $suminvoiceamount = array();
-    $sumpaidamount = array();
-    $sumbal = array();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    if ($count == '0') {
-        //$res = $mysqli->query("SELECT recptrans.recpno,recptrans.idno,recptrans.rdate,recptrans.rmks as narration,recptrans.is_deposit as transactiontype,recptrans.invoicenopaid FROM recptrans WHERE recptrans.idno='$tenantid' AND recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-
-        $res = $mysqli->query("SELECT invoices.invoiceno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE invoices.idno='$tenantid' AND invoices.revsd=0 AND property_id='$propid' AND invoicedate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-        $entity = strtoupper(findtenantbyid($tenantid));
-    } else {
-        $res = $mysqli->query("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
-        //$res = $mysqli->query("SELECT recptrans.recpno,recptrans.idno,recptrans.rdate,recptrans.rmks as narration,recptrans.is_deposit as transactiontype,recptrans.invoicenopaid FROM recptrans WHERE recptrans.revsd=0 AND property_id='$propid' AND rdate between '$startdate' AND '$enddate' ") or die($mysqli->error);
-        $entity = 'ALL';
-    }
-    echo '<table class="treport" ><thead>
-<tr><td><img src="../images/cursors/logo1.png" style="height:100px;width:140px;"></td><td colspan="9" style="background-color:beige"><h3><center>STATEMENT FOR <u>' . $entity . '</u> OF <i>' . strtoupper(findpropertybyid($propid)) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr>
-<tr>
-<th><center><u>Invoice/Receipt No</u></center></th>
-<th><center><u>Date</u></center></th>
-<th><center><u>Transaction</u></center></th>
-<th><center><u>Customer/Tenant Name</u></center></th>
-<th><center><u>House</u></center></th>
-<th><center><u>Narration</u></center></th>
-<th><center><u>Debit</center></u></th>
-<th><center><u>Credit</center></u></th>
-<th><center><u>Balance</center></u></th>
-<th><center><u>Percent(%)</center></u></th>
-
-</tr></thead><tbody>';
-    while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
-
-        $invoicedetails['recpno'] = $row['invoiceno'];
-        $invoicedetails['rdate'] = $row['invoicedate'];
-        $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'];
-        $aptid = getApartmentFromTenant($row['idno']);
-        $aptdetails = getApartmentDetails($aptid);
-        $invoicedetails['aptname'] = $aptdetails[0]['apt_tag'];
-        $invoicedetails['remarks'] = $row['narration'];
-        $invoice = getInvoiceDetails($row['invoiceno']);
-        if ($invoice['invoicecreditnote'] == 1) {
-            $invamn = $invoice['amount'] * -1;
-        } else {
-            $invamn = $invoice['amount'];
-        }
-        $invoicedetails['credit'] = $invamn;
-        $invoicedetails['transaction_type'] = $row['transactiontype'];
-
-        $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
-        array_push($allinvoicedetails, $invoicedetails);
-    }
-
-    foreach ($allinvoicedetails as $invoicedetail) {
-        $paidamount = $invoicedetail['paidamount'];
-        $bal = $invoicedetail['credit'] - $paidamount;
-        array_push($suminvoiceamount, $invoicedetail['credit']);
-        array_push($sumpaidamount, $paidamount);
-        array_push($sumbal, $bal);
-        $credit = $invoicedetail['credit'];
-        if ($bal <= 0) {
-            $percent = 100;
-        } else {
-            $percent = number_format($paid / $credit * 100);
-        }
-
-
-        echo '<tr><td>' . $invoicedetail['recpno'] . '</td><td>' . date('d-m-Y', strtotime($invoicedetail['rdate'])) . '</td><td>' . $invoicedetail['transaction_type'] . '</td><td>' . $invoicedetail['name'] . '</td><td>' . $invoicedetail['aptname'] . '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;' . $invoicedetail['remarks'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($invoicedetail['credit']) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($paidamount) . '</td><td>&nbsp;&nbsp;' . $bal . '</td><td>' . $percent . '</td></tr>';
-    }
-    echo '</tbody>';
-
-    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td></td><td></td><td><b>' . number_format(@array_sum($suminvoiceamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumpaidamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumbal), 2) . '</b></td></tr></tfoot>';
-    echo '</table>';
-    mysqli_close($mysqli);
-}
-
-function getAgentStatement($startdate, $enddate, $propid, $user, $allpropertiesflag = 1)
-{
+function getAgentStatement($startdate, $enddate, $propid, $user, $allpropertiesflag = 1) {
 
     date_default_timezone_set('Africa/Nairobi');
     $time = date('h:i A');
-    $mysqli = getMysqliConnection();
+  $mysqli = getMysqliConnection();
     $tablename = "recptrans";
     $tablename2 = "tenants";
     $tablename3 = "vatamounts";
     $sumpenaltyamount = array();
-    // $startdate = date("Y-m-d", strtotime($startdate));
+   // $startdate = date("Y-m-d", strtotime($startdate));
     $myDateTimee = DateTime::createFromFormat('d/m/Y', trim($startdate));
     $startdate = $myDateTimee->format('Y-m-d');
     $myDateTime = DateTime::createFromFormat('d/m/Y', trim($enddate));
     $enddate = $myDateTime->format('Y-m-d');
-
+    
     // $enddate=date("Y-m-d",strtotime(trim($enddate));
     //penalties as income
     $penalties = fetchPaidPenalties($startdate, $enddate, $count = 0);
     foreach ($penalties as $penalty) {
         array_push($sumpenaltyamount, $penalty['paidamount']);
     }
+
 
 
     $q2 = $mysqli->query("SELECT amount from $tablename3 WHERE vatid=1") or die($mysqli->error);
@@ -8318,18 +6220,18 @@ function getAgentStatement($startdate, $enddate, $propid, $user, $allpropertiesf
     }
 
     if ($allpropertiesflag) {
-
+        
         $allproperties = getProperties();
         echo '<div class="dvData"><table class="treport1" style="width:900px !important"><thead>
 <tr><td colspan="11"><center><span style="font-size:15px;font-weight:normal;float:left;"> <b>AGENT STATEMENT</b></span><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><centre>' . str_repeat('&nbsp;', 25) . 'AGENT STATEMENT From <b> ' . date("d-m-Y", strtotime($startdate)) . '</b>  To  <b>' . date("d-m-Y", strtotime($enddate)) . '</b></center></span></td></tr>';
-        echo '<tr>
+        echo'<tr>
 <u><th>T/AC</th><th>L/AC</th><th>Property</th><th>House</th> <td>Tenant/Client</td><th>Receipt/Payno No</th><th>Paymode</th><th>Receipt/Pay Date</th><th>Narration</th> <th>Amount</th><th>Commission</th></u></tr>';
         echo '</thead><tbody>';
         $receipts = array();
-
+        
         foreach ($allproperties as $property) {
-
+            
             $propid1 = $property['property_id'];
 
             $commission = getPropertyCommissionRate($propid1);
@@ -8337,9 +6239,9 @@ function getAgentStatement($startdate, $enddate, $propid, $user, $allpropertiesf
             $res = $mysqli->query("SELECT $tablename.recpno,$tablename.pmode,$tablename.invoicenopaid,$tablename.rdate,$tablename.rmks,$tablename.amount,$tablename2.Id,$tablename2.tenant_name,$tablename2.Apartment_tag,$tablename2.property_name FROM $tablename LEFT JOIN $tablename2 ON $tablename.idno=$tablename2.Id WHERE ($tablename.rdate BETWEEN '$startdate' AND '$enddate') AND $tablename.is_deleted=0 AND $tablename2.property_id='$propid1' ORDER BY $tablename2.Apartment_tag ASC ") or die($mysqli->error);// or die($db->error());
 //print_r($res);
             $i = 1;
-            while ($row = $res->fetch_assoc()) {
-                // print_r($row)."dsd";
-                //get invoice items
+               while ($row = $res->fetch_assoc()) {
+               // print_r($row)."dsd";
+                 //get invoice items 
                 $commissionnotcharged = 0;
                 $invoice = getInvoiceDetails($row['invoicenopaid']);
                 $pmode = $row['pmode'];
@@ -8350,9 +6252,9 @@ function getAgentStatement($startdate, $enddate, $propid, $user, $allpropertiesf
                 foreach ($invoiceitems as $item) {
                     $itemdetails = getChargeItemByName($item['name'], $propid1);
                     if ($itemdetails['commission_charged'] == 0 || $invoice['is_penalty'] == 1) {
-                        //get the item value as a % of the total amount
+                        //get the item value as a % of the total amount 
                         if ($itemdetails['amount'])
-                            $commissionnotcharged = $commissionnotcharged + (($itemdetails['amount'] / $invoicevalue) * ($commission / 100) * $invoicevalue);
+                     $commissionnotcharged = $commissionnotcharged + (($itemdetails['amount'] / $invoicevalue) * ($commission / 100) * $invoicevalue);
                         // echo $commissionnotcharged;
                     }
                 }
@@ -8367,13 +6269,13 @@ function getAgentStatement($startdate, $enddate, $propid, $user, $allpropertiesf
                 //if receipt is not already in array
                 // print($row['recpno']);
                 if (!in_array($row['recpno'], $receipts)) {
-
+                    
                     //add receipts to array
                     array_push($receipts, $row['recpno']);
                     echo '<tr><td>' . $row['Id'] . '</td><td>' . $propid1 . '</td><td>' . findpropertybyid($propid1) . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td><a class="whitetext"  href="defaultreports.php?report=printreceipt&receiptno=' . $row['recpno'] . '" target="blank"><span style="color:blue">' . $row['recpno'] . '</span></a></td><td>' . $paymode[0]['paymode'] . '</td><td>' . date("d-m-Y", strtotime($row['rdate'])) . '<td>' . $row['rmks'] . '</td><td>' . number_format($row['amount'], 2) . '</td><td>' . number_format($commamount, 2) . '</td></tr>';
-                    array_push($sumamount, (float)$row['amount']);
-                    array_push($sumcommmamount, (float)($commamount));
-                    array_push($sumtotalamount, (float)($netamount));
+                    array_push($sumamount, (float) $row['amount']);
+                    array_push($sumcommmamount, (float) ($commamount));
+                    array_push($sumtotalamount, (float) ($netamount));
                 }
             }
         }
@@ -8382,8 +6284,8 @@ function getAgentStatement($startdate, $enddate, $propid, $user, $allpropertiesf
         $resultpay = $mysqli->query("SELECT DISTINCT (paytrans.payno),paytrans.amount,paytrans.payno,paytrans.pmode,paytrans.paydate,paytrans.rmks,bkaccounts.acname,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.remarks FROM paytrans LEFT JOIN bkaccounts ON paytrans.supp_id=bkaccounts.glcode LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE paytrans.property_id='0' AND paytrans.paydate between '$startdate' AND '$enddate' GROUP BY payno") or die($mysqli->error);
 
         $counter = 1;
-        while ($rowpay = $resultpay->fetch_assoc()) {
-
+        while ($rowpay= $resultpay->fetch_assoc()) {
+        
             $payno = $rowpay['payno'];
             $paydate = $rowpay['paydate'];
             $paymode = getPayMode($rowpay['pmode']);
@@ -8409,18 +6311,17 @@ function getAgentStatement($startdate, $enddate, $propid, $user, $allpropertiesf
 
 //arrears/prepayments
 //fetch tenant/property rent statement
-function fetcharrearsprepayment($tenantid, $propid, $fromdate, $enddate, $count, $flag)
-{
+function fetcharrearsprepayment($tenantid, $propid,$fromdate,$enddate, $count, $flag) {
     include_once '../includes/config.php';
     $mysqli = getMysqliConnection();
     date_default_timezone_set('Africa/Nairobi');
     $accountsopening = getAccountsOpeningDate();
     //$startdate = date("Y-m-d", strtotime($accountsopening));
 
-    $end = DateTime::createFromFormat("d/m/Y", $enddate);
-    $enddate = $end->format("Y-m-d");
-    $start = DateTime::createFromFormat("d/m/Y", $fromdate);
-    $startdate = $start->format("Y-m-d");
+    $end=DateTime::createFromFormat("d/m/Y",$enddate);
+     $enddate=$end->format("Y-m-d");
+      $start=DateTime::createFromFormat("d/m/Y",$fromdate);
+     $startdate=$start->format("Y-m-d");
     $invoicenos = array();
     $invoicedetails = array();
     $allinvoicedetails = array();
@@ -8448,10 +6349,9 @@ function fetcharrearsprepayment($tenantid, $propid, $fromdate, $enddate, $count,
         $entity = 'ALL';
         $property = findpropertybyid($propid);
     }
-    echo '
-<table class="treport" border="0">
- <tr><td ><img src="../images/cursors/logo.jpeg" style="height:auto;width:140px;"></td><td colspan="9" style="background-color:beige"><h3><center>' . strtoupper($arrearsprepayments) . ' REPORT FOR <u>' . $entity . '</u> OF <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr></table>  
-    <table class=" sortable treport" ><thead>
+    echo '<table class="treport" ><thead>
+       
+<tr><td><img src="../images/cursors/anjuman.png" style="height:100px;width:140px;"></td><td colspan="8" style="background-color:beige"><h3><center>' . strtoupper($arrearsprepayments) . ' REPORT FOR <u>' . $entity . '</u> OF <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr>
 <tr>
 <th><center><u>Invoice No</u></center></th>
 <th><center><u>Date</u></center></th>
@@ -8461,21 +6361,21 @@ function fetcharrearsprepayment($tenantid, $propid, $fromdate, $enddate, $count,
 <th><center><u>Narration</u></center></th>
 <th><center><u>Credit</center></u></th>
 <th><center><u>Debit</center></u></th>
-<th><center><u>' . $arrearsprepayments . '</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
+<th><center><u>' . $arrearsprepayments . '</center></u></th></tr></thead><tbody>';
     while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
+//get all payments from recptrans for a given invoice 
 
         $invoicedetails['invoiceno'] = $row['invoiceno'];
         $invoicedetails['invoicedate'] = $row['invoicedate'];
         $invoicedetails['propertyname'] = findpropertybyid($row['property_id']);
         $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'] . '(' . $tenantdetails['phone'] . ':' . $tenantdetails['email'] . 'N/Kin:' . $tenantdetails['kinsname'] . '-' . $tenantdetails['kinstel'] . ')';
+       $invoicedetails['name'] = $tenantdetails['name'].'('.$tenantdetails['phone'].':'.$tenantdetails['email'].'N/Kin:'.$tenantdetails['kinsname'].'-'.$tenantdetails['kinstel'].')';
         $aptid = getApartmentFromTenant($row['idno']);
         $aptdetails = getApartmentDetails($aptid);
         $invoicedetails['aptname'] = $aptdetails[0]['apt_tag'];
         $invoicedetails['remarks'] = $row['narration'];
         $invoicedetails['credit'] = $row['credit'];
-        $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
+               $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
         array_push($allinvoicedetails, $invoicedetails);
         unset($invoicedetails);
     }
@@ -8483,27 +6383,22 @@ function fetcharrearsprepayment($tenantid, $propid, $fromdate, $enddate, $count,
     foreach ($allinvoicedetails as $invoicedetail) {
         $paidamount = $invoicedetail['paidamount'];
         $bal = $invoicedetail['credit'] - $paidamount;
-        $credit = $invoicedetail['credit'];
-        if ($bal <= 0) {
-            $percent = 100;
-        } else {
-            $percent = $paidamount / $credit * 100;
-        }
+
         //arrears
-        if ($flag == 'A') {
+        if ( $flag == 'A') {
             array_push($suminvoiceamount, $invoicedetail['credit']);
             array_push($sumpaidamount, $paidamount);
             array_push($sumbal, $bal);
-            if ($bal > 0) {
-                echo '<tr><td>' . $invoicedetail['invoiceno'] . '</td><td>' . date('d-m-Y', strtotime($invoicedetail['invoicedate'])) . '</td><td>' . $invoicedetail['propertyname'] . '</td><td>' . $invoicedetail['name'] . '</td><td>' . $invoicedetail['aptname'] . '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;' . $invoicedetail['remarks'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($invoicedetail['credit']) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($paidamount) . '</td><td>&nbsp;&nbsp;' . $bal . '</td><td>' . $percent . '</td></tr>';
-            }
+            if($bal>0){
+            echo '<tr><td>' . $invoicedetail['invoiceno'] . '</td><td>' . date('d-m-Y', strtotime($invoicedetail['invoicedate'])) . '</td><td>' . $invoicedetail['propertyname'] . '</td><td>' . $invoicedetail['name'] . '</td><td>' . $invoicedetail['aptname'] . '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;' . $invoicedetail['remarks'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($invoicedetail['credit']) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($paidamount) . '</td><td>&nbsp;&nbsp;' . $bal . '</td></tr>';
+        }
         } else if ($flag == 'P') {
             array_push($suminvoiceamount, $invoicedetail['credit']);
             array_push($sumpaidamount, $paidamount);
             array_push($sumbal, $bal);
-            if ($bal > 0) {
-                echo '<tr><td>' . $invoicedetail['invoiceno'] . '</td><td>' . date('d-m-Y', strtotime($invoicedetail['invoicedate'])) . '<td>' . $invoicedetail['propertyname'] . '</td></td><td>' . $invoicedetail['name'] . '</td><td>' . $invoicedetail['aptname'] . '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;' . $invoicedetail['remarks'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($invoicedetail['credit']) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($paidamount) . '</td><td>&nbsp;&nbsp;' . $bal . '</td></tr>';
-            }
+            if($bal>0){
+            echo '<tr><td>' . $invoicedetail['invoiceno'] . '</td><td>' . date('d-m-Y', strtotime($invoicedetail['invoicedate'])) . '<td>' . $invoicedetail['propertyname'] . '</td></td><td>' . $invoicedetail['name'] . '</td><td>' . $invoicedetail['aptname'] . '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;' . $invoicedetail['remarks'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($invoicedetail['credit']) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($paidamount) . '</td><td>&nbsp;&nbsp;' . $bal . '</td></tr>';
+        }
         }
     }
     echo '</tbody>';
@@ -8513,520 +6408,8 @@ function fetcharrearsprepayment($tenantid, $propid, $fromdate, $enddate, $count,
     $mysqli->close();
 }
 
-//performance
-function fetchplotperformanceAll($propid, $fromdate, $enddate, $flag)
-{
-    $fdate = $fromdate;
-    $edate = $enddate;
-//    // die(var_dump($flag));
-//     if($flag=="four"){
-//         // die('dd');
-//     }
-    include_once '../includes/config.php';
-    $mysqli = getMysqliConnection();
-    date_default_timezone_set('Africa/Nairobi');
-    $accountsopening = getAccountsOpeningDate();
-    //$startdate = date("Y-m-d", strtotime($accountsopening));
-
-    $end = DateTime::createFromFormat("m/d/Y", $enddate);
-    $enddate = $end->format("Y-m-d");
-    $start = DateTime::createFromFormat("m/d/Y", $fromdate);
-    $startdate = $start->format("Y-m-d");
-    $invoicenos = array();
-    $invoicedetails = array();
-    $allinvoicedetails = array();
-    $suminvoiceamount = array();
-    $sumpaidamount = array();
-    $sumbal = array();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    //die($startdate);
-
-    // $res = $mysqli->query
-    //    ("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
-    //    $entity = 'ALL';
-    $property = findpropertybyid($propid);
-
-    echo '
-<table class="treport" border="0">
- <tr><td ><img src="../images/cursors/logo.jpeg" style="height:auto;width:140px;"></td><td colspan="8" style="background-color:beige"><h3><center>' . strtoupper($arrearsprepayments) . ' REPORT FOR <u>' . $entity . '</u> OF <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr></table>  
-    <table class=" sortable treport" ><thead>
-<tr>
-<th><center><u>No</u></center></th>
-
-<th><center><u>Property</u></center></th>
-
-
-<th><center><u>Debit</center></u></th>
-<th><center><u>Credit</center></u></th>
-<th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
-
-//die(print_r($allproperties));
-    if ($flag == "four") {
-        $agent_id = $_REQUEST['agentid'];
-        $res = $mysqli->query("select prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno)  prop where prop.property_id in(SELECT property_id FROM `agentproperty` WHERE  agent_id= $agent_id ) group by prop.property_id") or die($mysqli->error);
-        $total = $mysqli->query("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop where prop.property_id in(SELECT property_id FROM `agentproperty` WHERE  agent_id= $agent_id )");
-
-    } else {
-        $res = $mysqli->query("select prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop  group by prop.property_id") or die($mysqli->error);
-        $total = $mysqli->query("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop");
-
-    }
-    //select ag.agent_id as agents,prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND invoicedate )x group by x.idno) prop inner join agentproperty ag on ag.property_id=prop.property_id group by prop.property_id       //
-    $totals = $total->fetch_assoc();
-    $entity = 'ALL';
-    $i = 1;
-    while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
-
-        //  $invoicedetails['invoiceno'] = $row['invoiceno'];
-        //  $invoicedetails['invoicedate'] = $row['invoicedate'];
-        $prop_name = findpropertybyid($row['property_id']);
-
-
-        $debit = $row['debit'];
-        $credit = $row['credit'];
-        $bal = $row['bal'];
-        if ($bal <= 0) {
-            $percent = 100;
-        } else {
-            $percent = number_format($credit / $debit * 100, 1);
-        }
-        //         $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
-        //  array_push($allinvoicedetails, $invoicedetails);
-        //  unset($invoicedetails);
-
-        echo '<tr><td>' . ($i++) . '</td><td><a href="./defaultreports.php?report=fetchplotperformance&fromdate=' . $fdate . '&enddate=' . $edate . '&flag=one&propid=' . $row['property_id'] . '"> 
-        ' . $prop_name . '</a></td><td style="color:red">&nbsp;&nbsp;' . number_format($debit) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($credit) . '</td><td>&nbsp;&nbsp;' . number_format($row['bal']) . '</td><td>' . $percent . '</td></tr>';
-    }
-
-
-    echo '</tbody>';
-    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td><b>' . number_format(($totals['debit']), 2) . '</b></td><td><b>' . number_format(($totals['credit']), 2) . '</b></td>
-
-    <td><b>' . number_format(($totals['bal']), 2) . '</b></td>
-<td><b>' . number_format((($totals['credit'] / $totals['debit']) * 100), 1) . '%</b></td>
-
-    </tr></tfoot>';
-
-    echo '</table>';
-    $mysqli->close();
-}
-
-function fetchplotperformanceAgent($propid, $fromdate, $enddate)
-{
-    $fdate = $fromdate;
-    $edate = $enddate;
-
-    include_once '../includes/config.php';
-    $mysqli = getMysqliConnection();
-    date_default_timezone_set('Africa/Nairobi');
-    $accountsopening = getAccountsOpeningDate();
-    //$startdate = date("Y-m-d", strtotime($accountsopening));
-
-    $end = DateTime::createFromFormat("m/d/Y", $enddate);
-    $enddate = $end->format("Y-m-d");
-    $start = DateTime::createFromFormat("m/d/Y", $fromdate);
-    $startdate = $start->format("Y-m-d");
-    $invoicenos = array();
-    $invoicedetails = array();
-    $allinvoicedetails = array();
-    $suminvoiceamount = array();
-    $sumpaidamount = array();
-    $sumbal = array();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    //die($startdate);
-
-    // $res = $mysqli->query
-    //    ("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
-    //    $entity = 'ALL';
-    $property = findpropertybyid($propid);
-
-    echo '
-<table class="treport" border="0">
- <tr><td ><img src="../images/cursors/logo.jpeg" style="height:auto;width:140px;"></td><td colspan="8" style="background-color:beige"><h3><center>' . strtoupper($arrearsprepayments) . ' REPORT FOR <u>' . $entity . '</u> OF <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr></table>  
-    <table class=" sortable treport" ><thead>
-<tr>
-<th><center><u>No</u></center></th>
-<th><center><u>Agent Name</u></center></th>
-<th><center><u>Debit</center></u></th>
-<th><center><u>Credit</center></u></th>
-<th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
-
-//die(print_r($allproperties));
-
-    $res = $mysqli->query("select ag.agent_id as agents,a.agentname as name,prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND invoicedate )x group by x.idno) prop inner join agentproperty ag on ag.property_id=prop.property_id inner join agents a on ag.agent_id=a.agentid group by `agent_id`") or die($mysqli->error);
-    $total = $mysqli->query("select  sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop");
-    //select ag.agent_id as agents,prop.property_id , sum(prop.debit)as debit,sum(prop.credit) as credit,sum(prop.bal) as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0 ) as debit FROM invoices where invoices.revsd=0 AND invoicedate )x group by x.idno) prop inner join agentproperty ag on ag.property_id=prop.property_id group by prop.property_id       //
-    $totals = $total->fetch_assoc();
-    $entity = 'ALL';
-    $i = 1;
-    while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
-
-        //  $invoicedetails['invoiceno'] = $row['invoiceno'];
-        //  $invoicedetails['invoicedate'] = $row['invoicedate'];
-        $prop_name = findpropertybyid($row['property_id']);
-
-
-        $debit = $row['debit'];
-        $credit = $row['credit'];
-        $bal = $row['bal'];
-        if ($bal <= 0) {
-            $percent = 100;
-        } else {
-            $percent = number_format($credit / $debit * 100, 1);
-        }
-        //         $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
-        //  array_push($allinvoicedetails, $invoicedetails);
-        //  unset($invoicedetails);
-
-        echo '<tr><td>' . ($i++) . '</td><td><a href="./defaultreports.php?report=fetchplotperformance&agentid=' . $row['agents'] . '&fromdate=' . $fdate . '&enddate=' . $edate . '&flag=four&propid=' . $row['property_id'] . '"> 
-        ' . $row['name'] . '</a></td><td style="color:red">&nbsp;&nbsp;' . number_format($debit) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($credit) . '</td><td>&nbsp;&nbsp;' . number_format($row['bal']) . '</td><td>' . $percent . '</td></tr>';
-    }
-
-
-    echo '</tbody>';
-//     echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td><b>' . number_format(($totals['debit']), 2) . '</b></td><td><b>' .number_format(($totals['credit']), 2) . '</b></td>
-
-//     <td><b>' . number_format(($totals['bal']), 2)  . '</b></td>
-// <td><b>'.number_format((($totals['credit']/$totals['debit'])*100),1).'%</b></td>
-
-//     </tr></tfoot>';
-
-    echo '</table>';
-    $mysqli->close();
-}
-
-function fetchplotperformanceOne($propid, $fromdate, $enddate)
-{
-    // die("hee");
-    $fdate = $fromdate;
-    $edate = $enddate;
-    include_once '../includes/config.php';
-    $mysqli = getMysqliConnection();
-    date_default_timezone_set('Africa/Nairobi');
-    $accountsopening = getAccountsOpeningDate();
-    //$startdate = date("Y-m-d", strtotime($accountsopening));
-
-    $end = DateTime::createFromFormat("m/d/Y", $enddate);
-    $enddate = $end->format("Y-m-d");
-    $start = DateTime::createFromFormat("m/d/Y", $fromdate);
-    $startdate = $start->format("Y-m-d");
-    $invoicenos = array();
-    $invoicedetails = array();
-    $allinvoicedetails = array();
-    $suminvoiceamount = array();
-    $sumpaidamount = array();
-    $sumbal = array();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    //die($startdate);
-
-    // $res = $mysqli->query
-    //    ("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
-    //    $entity = 'ALL';
-    $property = findpropertybyid($propid);
-
-    echo '
-<table class="treport" border="0">
- <tr><td ><img src="../images/cursors/logo.jpeg" style="height:auto;width:140px;"></td><td colspan="9" style="background-color:beige"><h3><center>' . strtoupper($arrearsprepayments) . ' REPORT FOR <u>' . $entity . '</u> OF <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr></table>  
-    <table class=" sortable treport" ><thead>
-<tr>
-<th><center><u>No</u></center></th>
-
-<th><center><u>Appartment</u></center></th>
-<th><center><u>Customer/Tenant Name</u></center></th>
-<th><center><u>House</u></center></th>
-<th><center><u>Debit</center></u></th>
-<th><center><u>Credit</center></u></th>
-
-<th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
-
-//die(print_r($allproperties));
-
-    $res = $mysqli->query("select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where  property_id='$propid'  and invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno") or die($mysqli->error);
-    $total = $mysqli->query("select sum(prop.debit) as debit,sum(prop.credit)as credit,sum(prop.bal)as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where  property_id='$propid'  and invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop");
-    $totals = $total->fetch_assoc();
-    //  die(print_r($totals));
-    $entity = 'ALL';
-    $i = 1;
-    while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
-
-        //  $invoicedetails['invoiceno'] = $row['invoiceno'];
-        //  $invoicedetails['invoicedate'] = $row['invoicedate'];
-        $prop_name = findpropertybyid($row['property_id']);
-
-        $invoicedetails = [];
-        $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'] . '(' . $tenantdetails['phone'] . ':' . $tenantdetails['email'] . 'N/Kin:' . $tenantdetails['kinsname'] . '-' . $tenantdetails['kinstel'] . ')';
-        //  die( $invoicedetails['name']);
-        $aptid = getApartmentFromTenant($row['idno']);
-        $aptdetails = getApartmentDetails($aptid);
-        $invoicedetails['aptname'] = $aptdetails[0]['apt_tag'];
-        //  die( $invoicedetails['aptname'] );
-        $invoicedetails['remarks'] = $row['narration'];
-        $debit = $row['debit'];
-        $credit = $row['credit'];
-        $bal = $row['bal'];
-        if ($bal <= 0) {
-            $percent = 100;
-        } else {
-            $percent = number_format($credit / $debit * 100, 1);
-        }
-        //         $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
-        //  array_push($allinvoicedetails, $invoicedetails);
-        //  unset($invoicedetails);
-// report=fetchstatement&startdate=07/04/2022&enddate=07/13/2022&clientid=256&count=0&propid=3
-        echo '<tr><td>' . ($i++) . '</td><td><a href="./defaultreports.php?report=fetchstatement&startdate=' . $fdate . '&enddate=' . $edate . '&clientid=' . $row['idno'] . '&count=0&propid=' . $row['property_id'] . '"> 
-        ' . $aptid . '</a></td><td>' . $invoicedetails['name'] . '</td><td>' . $invoicedetails['aptname'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($debit) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($credit) . '</td><td>&nbsp;&nbsp;' . $row['bal'] . '</td><td>' . $percent . '</td></tr>';
-    }
-
-
-    echo '</tbody>';
-    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td><b>' . number_format(($totals['debit']), 2) . '</b></td><td><b>' . number_format(($totals['credit']), 2) . '</b></td>
-
-    <td><b>' . number_format(($totals['bal']), 2) . '</b></td>
-<td><b>' . number_format((($totals['credit'] / $totals['debit']) * 100), 1) . '%</b></td>
-
-    </tr></tfoot>';
-
-    echo '</table>';
-    $mysqli->close();
-
-}
-
-function fetchplotperformancebypercentageOne($propid, $fromdate, $enddate, $percentage, $percentangeto)
-{
-    //die($percentangeto);
-    $fdate = $fromdate;
-    $edate = $enddate;
-    include_once '../includes/config.php';
-    $mysqli = getMysqliConnection();
-    date_default_timezone_set('Africa/Nairobi');
-    $accountsopening = getAccountsOpeningDate();
-    //$startdate = date("Y-m-d", strtotime($accountsopening));
-
-    $end = DateTime::createFromFormat("m/d/Y", $enddate);
-    $enddate = $end->format("Y-m-d");
-    $start = DateTime::createFromFormat("m/d/Y", $fromdate);
-    $startdate = $start->format("Y-m-d");
-    $invoicenos = array();
-    $invoicedetails = array();
-    $allinvoicedetails = array();
-    $suminvoiceamount = array();
-    $sumpaidamount = array();
-    $sumbal = array();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    //die($startdate);
-
-    // $res = $mysqli->query
-    //    ("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
-    //    $entity = 'ALL';
-    $property = findpropertybyid($propid);
-
-    echo '
-<table class="treport" border="0">
- <tr><td ><img src="../images/cursors/logo.jpeg" style="height:auto;width:140px;"></td><td colspan="9" style="background-color:beige"><h3><center>' . strtoupper($arrearsprepayments) . ' REPORT FOR <u>' . $entity . '</u> OF <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr></table>  
-    <table class=" sortable treport" ><thead>
-<tr>
-<th><center><u>No</u></center></th>
-
-<th><center><u>Property</u></center></th>
-<th><center><u>Customer/Tenant Name</u></center></th>
-<th><center><u>House</u></center></th>
-
-<th><center><u>Debit</center></u></th>
-<th><center><u>Credit</center></u></th>
-<th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
-
-//die(print_r($allproperties));
-
-    $res = $mysqli->query("select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where  property_id='$propid'  and invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno") or die($mysqli->error);
-    $total = $mysqli->query("select sum(prop.debit) as debit,sum(prop.credit)as credit,sum(prop.bal)as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where  property_id='$propid'  and invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop");
-    $totals = $total->fetch_assoc();
-    //  die(print_r($totals));
-    $entity = 'ALL';
-    $i = 1;
-    $total_credit = array();
-    $total_debit = array();
-    while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
-
-        //  $invoicedetails['invoiceno'] = $row['invoiceno'];
-        //  $invoicedetails['invoicedate'] = $row['invoicedate'];
-        $prop_name = findpropertybyid($row['property_id']);
-
-        $invoicedetails = [];
-        $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'] . '(' . $tenantdetails['phone'] . ':' . $tenantdetails['email'] . 'N/Kin:' . $tenantdetails['kinsname'] . '-' . $tenantdetails['kinstel'] . ')';
-        //  die( $invoicedetails['name']);
-        $aptid = getApartmentFromTenant($row['idno']);
-        $aptdetails = getApartmentDetails($aptid);
-        $invoicedetails['aptname'] = $aptdetails[0]['apt_tag'];
-        //  die( $invoicedetails['aptname'] );
-        $invoicedetails['remarks'] = $row['narration'];
-        $debit = $row['debit'];
-        $credit = $row['credit'];
-        $bal = $row['bal'];
-        if ($bal <= 0) {
-            $percent = 100;
-        } else {
-            $percent = $credit / $debit * 100;
-        }
-
-        if (round($percent, 0) >= $percentage && round($percent, 0) <= $percentangeto) {
-
-            array_push($total_credit, $credit);
-            array_push($total_debit, $debit);
-
-            //         $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
-            //  array_push($allinvoicedetails, $invoicedetails);
-            //  unset($invoicedetails);
-// report=fetchstatement&startdate=07/04/2022&enddate=07/13/2022&clientid=256&count=0&propid=3
-            echo '<tr><td>' . ($i++) . '</td><td><a href="./defaultreports.php?report=fetchstatement&startdate=' . $fdate . '&enddate=' . $edate . '&clientid=' . $row['idno'] . '&count=0&propid=' . $row['property_id'] . '"> 
-        ' . $prop_name . '</a></td><td>' . $invoicedetails['name'] . '</td><td>' . $invoicedetails['aptname'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($debit) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($credit) . '</td><td>&nbsp;&nbsp;' . $row['bal'] . '</td><td>' . number_format($percent, 1) . '</td></tr>';
-        }
-    }
-
-
-    echo '</tbody>';
-    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td><b>' . number_format(array_sum($total_debit), 2) . '</b></td><td><b>' . number_format(array_sum($total_credit), 2) . '</b></td>
-
-    <td><b>' . number_format((array_sum($total_debit) - array_sum($total_credit)), 2) . '</b></td>
-
-
-    </tr></tfoot>';
-
-    echo '</table>';
-    $mysqli->close();
-
-}
-
-function fetchplotperformancebypercentageall($propid, $fromdate, $enddate, $flag, $percentage, $percentangeto)
-{
-    //die($percentangeto);
-    $fdate = $fromdate;
-    $edate = $enddate;
-    include_once '../includes/config.php';
-    $mysqli = getMysqliConnection();
-    date_default_timezone_set('Africa/Nairobi');
-    $accountsopening = getAccountsOpeningDate();
-    //$startdate = date("Y-m-d", strtotime($accountsopening));
-
-    $end = DateTime::createFromFormat("m/d/Y", $enddate);
-    $enddate = $end->format("Y-m-d");
-    $start = DateTime::createFromFormat("m/d/Y", $fromdate);
-    $startdate = $start->format("Y-m-d");
-    $invoicenos = array();
-    $invoicedetails = array();
-    $allinvoicedetails = array();
-    $suminvoiceamount = array();
-    $sumpaidamount = array();
-    $sumbal = array();
-
-    if ($mysqli->connect_errno) {
-        echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    //die($startdate);
-
-    // $res = $mysqli->query
-    //    ("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration FROM invoices WHERE property_id='$propid' AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
-    //    $entity = 'ALL';
-    $property = findpropertybyid($propid);
-
-    echo '
-<table class="treport" border="0">
- <tr><td ><img src="../images/cursors/logo.jpeg" style="height:auto;width:140px;"></td><td colspan="9" style="background-color:beige"><h3><center>' . strtoupper($arrearsprepayments) . ' REPORT FOR <u>' . $entity . '</u> OF <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . $startdate . '&nbsp;TO&nbsp;' . $enddate . '</center></h3></td></tr></table>  
-    <table class=" sortable treport" ><thead>
-<tr>
-<th><center><u>No</u></center></th>
-
-<th><center><u>Property</u></center></th>
-<th><center><u>Customer/Tenant Name</u></center></th>
-<th><center><u>House</u></center></th>
-<th><center><u>Debit</center></u></th>
-<th><center><u>Credit</center></u></th>
-
-<th><center><u>Balance</center></u></percent></th><th>Percent</th></tr></thead><tbody>';
-
-//die(print_r($allproperties));
-
-    $res = $mysqli->query("select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x where x.credit > 0 group by x.idno ") or die($mysqli->error);
-    $total = $mysqli->query("select sum(prop.debit) as debit,sum(prop.credit)as credit,sum(prop.bal)as bal from (select property_id,x.idno,ifnull(sum(x.credit),0) as debit,ifnull(sum(x.debit),0) as credit,(ifnull(sum(x.credit),0)-ifnull(sum(x.debit),0)) as bal from (SELECT property_id,invoices.idno,invoices.amount as credit,(SELECT sum(amount) as debit FROM recptrans WHERE invoicenopaid=invoices.invoiceno AND revsd=0  ) as debit FROM invoices  where   invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate' )x group by x.idno) prop");
-    $totals = $total->fetch_assoc();
-    //  die(print_r($totals));
-    $entity = 'ALL';
-    $i = 1;
-    $total_credit = array();
-    $total_debit = array();
-    while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
-
-        //  $invoicedetails['invoiceno'] = $row['invoiceno'];
-        //  $invoicedetails['invoicedate'] = $row['invoicedate'];
-        $prop_name = findpropertybyid($row['property_id']);
-        $invoicedetails = [];
-        $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'] . '(' . $tenantdetails['phone'] . ':' . $tenantdetails['email'] . 'N/Kin:' . $tenantdetails['kinsname'] . '-' . $tenantdetails['kinstel'] . ')';
-        //  die( $invoicedetails['name']);
-        $aptid = getApartmentFromTenant($row['idno']);
-        $aptdetails = getApartmentDetails($aptid);
-        $invoicedetails['aptname'] = $aptdetails[0]['apt_tag'];
-        //  die( $invoicedetails['aptname'] );
-        $invoicedetails['remarks'] = $row['narration'];
-        $debit = $row['debit'];
-        $credit = $row['credit'];
-        $bal = $row['bal'];
-        if ($bal <= 0) {
-            $percent = 100;
-        } else {
-            $percent = $credit / $debit * 100;
-        }
-// die($credit/$debit);
-        if (floor($percent) >= $percentage && floor($percent) <= $percentangeto) {
-
-            array_push($total_credit, $credit);
-            array_push($total_debit, $debit);
-
-            //         $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
-            //  array_push($allinvoicedetails, $invoicedetails);
-            //  unset($invoicedetails);
-// report=fetchstatement&startdate=07/04/2022&enddate=07/13/2022&clientid=256&count=0&propid=3
-            echo '<tr><td>' . ($i++) . '</td><td><a href="./defaultreports.php?report=fetchstatement&startdate=' . $fdate . '&enddate=' . $edate . '&clientid=' . $row['idno'] . '&count=0&propid=' . $row['property_id'] . '"> 
-        ' . $prop_name . '</a></td><td>' . $invoicedetails['name'] . '</td><td>' . $invoicedetails['aptname'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($debit) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($credit) . '</td><td>&nbsp;&nbsp;' . $row['bal'] . '</td><td>' . number_format($percent, 1) . '</td></tr>';
-        }
-    }
-
-
-    echo '</tbody>';
-    echo '<tfoot><tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td><b>' . number_format(array_sum($total_debit), 2) . '</b></td><td><b>' . number_format(array_sum($total_credit), 2) . '</b></td>
-
-    <td><b>' . number_format((array_sum($total_debit) - array_sum($total_credit)), 2) . '</b></td>
-
-
-    </tr></tfoot>';
-
-    echo '</table>';
-    $mysqli->close();
-
-}
-
-
 //penalty
-function fetchpenalty($tenantid, $propid, $enddate, $count)
-{
+function fetchpenalty($tenantid, $propid, $enddate, $count) {
     include_once '../includes/config.php';
     $mysqli = getMysqliConnection();
     date_default_timezone_set('Africa/Nairobi');
@@ -9048,7 +6431,7 @@ function fetchpenalty($tenantid, $propid, $enddate, $count)
         $entity = strtoupper(findtenantbyid($tenantid));
     }
 //    else if($count==2){
-//
+//        
 //    }
     else {
         $res = $mysqli->query("SELECT invoices.invoiceno,invoices.idno,invoices.invoicedate,invoices.amount as credit,invoices.remarks as narration,invoices.is_penalty,invoices.recpno FROM invoices WHERE property_id='$propid' AND invoices.is_penalty=1 AND invoices.revsd=0 AND invoicedate between '$startdate' AND '$enddate'") or die($mysqli->error);
@@ -9066,7 +6449,7 @@ function fetchpenalty($tenantid, $propid, $enddate, $count)
 <th><center><u>Debit</center></u></th>
 <th><center><u>Penalty</center></u></th></tr></thead><tbody>';
     while ($row = $res->fetch_assoc()) {
-//get all payments from recptrans for a given invoice
+//get all payments from recptrans for a given invoice 
 
         $invoicedetails['invoiceno'] = $row['invoiceno'];
         $invoicedetails['invoicedate'] = $row['invoicedate'];
@@ -9100,8 +6483,7 @@ function fetchpenalty($tenantid, $propid, $enddate, $count)
 }
 
 //all penalties (unpaid)
-function fetchUnPaidPenalties($enddate, $count)
-{
+function fetchUnPaidPenalties($enddate, $count) {
 
     include_once '../includes/config.php';
     $mysqli = getMysqliConnection();
@@ -9124,8 +6506,7 @@ function fetchUnPaidPenalties($enddate, $count)
 }
 
 //get paid penalties
-function fetchPaidPenalties($startdate, $enddate, $count)
-{
+function fetchPaidPenalties($startdate, $enddate, $count) {
     include_once '../includes/config.php';
     $mysqli = getMysqliConnection();
     date_default_timezone_set('Africa/Nairobi');
@@ -9145,9 +6526,8 @@ function fetchPaidPenalties($startdate, $enddate, $count)
     return $penalties;
 }
 
-//get receipts for an invoice
-function getInvoiceReceipts($invoiceno)
-{
+//get receipts for an invoice 
+function getInvoiceReceipts($invoiceno) {
     $mysqli = getMysqliConnection();
     $paidamount = array();
     $results = $mysqli->query("SELECT amount as debit FROM recptrans WHERE invoicenopaid='$invoiceno' AND revsd=0 ") or die($mysqli->error);
@@ -9157,13 +6537,11 @@ function getInvoiceReceipts($invoiceno)
     }
     return array_sum($paidamount);
 }
-
-//get receipts for an invoice
-function getTenantRecptrans($tid)
-{
+//get receipts for an invoice 
+function getTenantRecptrans($tid) {
     $mysqli = getMysqliConnection();
     $paidamount = array();
-    // die("SELECT amount as debit FROM recptrans WHERE idno='$tid' AND revsd=0 ")
+   // die("SELECT amount as debit FROM recptrans WHERE idno='$tid' AND revsd=0 ")
     $results = $mysqli->query("SELECT amount as debit FROM recptrans WHERE idno='$tid' AND revsd=0 ") or die($mysqli->error);
 //paid amounts
     while ($rows = $results->fetch_assoc()) {
@@ -9171,19 +6549,17 @@ function getTenantRecptrans($tid)
     }
     return array_sum($paidamount);
 }
-
-function getReceiptsFromInvoice($invoiceno, $yearmonthday = NULL)
-{
+function getReceiptsFromInvoice($invoiceno,$yearmonthday=NULL) {
     $mysqli = getMysqliConnection();
     $receipts = array();
-    $yearmonth = date("Y-m", strtotime($yearmonthday));
-    // echo "SELECT * FROM recptrans WHERE invoicenopaid='$invoiceno' AND revsd=0 AND DATE_FORMAT(`rdate`,'%Y-%m') //='$yearmonth' ";
-    if ($yearmonth) {
+    $yearmonth=date("Y-m",strtotime($yearmonthday));
+   // echo "SELECT * FROM recptrans WHERE invoicenopaid='$invoiceno' AND revsd=0 AND DATE_FORMAT(`rdate`,'%Y-%m') //='$yearmonth' ";
+    if($yearmonth){
         $results = $mysqli->query("SELECT * FROM recptrans WHERE invoicenopaid='$invoiceno' AND revsd=0 AND DATE_FORMAT(`rdate`,'%Y-%m') ='$yearmonth' AND  is_deleted=0 ") or die($mysqli->error);
-    } else {
-        // die("dsdsd");
-        $results = $mysqli->query("SELECT * FROM recptrans WHERE invoicenopaid='$invoiceno' AND revsd=0 AND  is_deleted=0 ") or die($mysqli->error);
-    }
+    } else{
+       // die("dsdsd");
+    $results = $mysqli->query("SELECT * FROM recptrans WHERE invoicenopaid='$invoiceno' AND revsd=0 AND  is_deleted=0 ") or die($mysqli->error);
+}
 //paid amounts
     while ($rows = $results->fetch_assoc()) {
         array_push($receipts, $rows);
@@ -9192,8 +6568,7 @@ function getReceiptsFromInvoice($invoiceno, $yearmonthday = NULL)
 }
 
 //tenant deposit
-function getTenantDeposit($id, $startdate = "", $enddate = "")
-{
+function getTenantDeposit($id, $startdate = "", $enddate = "") {
     $mysqli = getMysqliConnection();
     $deposits = array();
     $receiptstable = getReceiptsTable();
@@ -9209,8 +6584,7 @@ function getTenantDeposit($id, $startdate = "", $enddate = "")
 }
 
 //tenant receipts
-function getTenantReceipts($id, $startdate = "", $enddate = "")
-{
+function getTenantReceipts($id, $startdate = "", $enddate = "") {
     $mysqli = getMysqliConnection();
     $deposits = array();
     $receiptstable = getReceiptsTable();
@@ -9226,8 +6600,7 @@ function getTenantReceipts($id, $startdate = "", $enddate = "")
 }
 
 //income statement
-function incomestatement($propid, $startdate, $enddate)
-{
+function incomestatement($propid, $startdate, $enddate) {
     include_once '../includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     date_default_timezone_set('Africa/Nairobi');
@@ -9242,7 +6615,7 @@ function incomestatement($propid, $startdate, $enddate)
 
 
     echo '<table class="treport" ><thead>
-<tr><td><img src="../images/cursors/logo1.png" style="height:100px;width:140px;"></td><td colspan="5" style="background-color:beige"><h3><center>INCOME STATEMENT FOR ' . strtoupper(findpropertybyid($propid)) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . date("d-m-Y", strtotime($startdate)) . '&nbsp;TO&nbsp;' . date("d-m-Y", strtotime($enddate)) . '</center></h3></td></tr>
+<tr><td><img src="../images/cursors/anjuman.png" style="height:100px;width:140px;"></td><td colspan="5" style="background-color:beige"><h3><center>INCOME STATEMENT FOR ' . strtoupper(findpropertybyid($propid)) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . date("d-m-Y", strtotime($startdate)) . '&nbsp;TO&nbsp;' . date("d-m-Y", strtotime($enddate)) . '</center></h3></td></tr>
 <tr>
 <th><center><u>Recp No/Pay No</u></center></th>
 <th><center><u>Date</u></center></th>
@@ -9273,8 +6646,7 @@ function incomestatement($propid, $startdate, $enddate)
 
 //bankstatement
 //acctid,$acctype,from,to
-function getBankStatement($detailsarray)
-{
+function getBankStatement($detailsarray) {
     $mysqli = getMysqliConnection();
     $receiptstable = getReceiptsTable();
     $paytrans = getPaymentsListTable();
@@ -9295,8 +6667,7 @@ function getBankStatement($detailsarray)
 }
 
 //accts
-function findAccountById($id)
-{
+function findAccountById($id) {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $accountstable = getAccountsTable();
@@ -9309,8 +6680,7 @@ function findAccountById($id)
     return $accountdetails;
 }
 
-function getGlAccounts()
-{
+function getGlAccounts() {
     $mysqli = getMysqliConnection();
     $accountdetails = array();
     $accountstable = getAccountsTable();
@@ -9324,8 +6694,7 @@ function getGlAccounts()
 }
 
 //get paymodes
-function getPayMode($id)
-{
+function getPayMode($id) {
     $mysqli = getMysqliConnection();
     $res = $mysqli->query("SELECT * FROM paymodes WHERE id='$id'") or die($mysqli->error);
     $paymodes = array();
@@ -9336,8 +6705,7 @@ function getPayMode($id)
     return $paymodes;
 }
 
-function get_commissions_list($fromdate, $todate)
-{
+function get_commissions_list($fromdate, $todate) {
     include '../includes/config.php';
     $mysqli = getMysqliConnection();
     $propertiestable = getPropertiesTable();
@@ -9357,8 +6725,7 @@ function get_commissions_list($fromdate, $todate)
 
 //get property commission
 
-function getPropertyCommissionRate($propid)
-{
+function getPropertyCommissionRate($propid) {
 
     $mysqli = getMysqliConnection();
     $propertiestable = getPropertiesTable();
@@ -9371,8 +6738,7 @@ function getPropertyCommissionRate($propid)
 }
 
 //commissions list
-function get_commissions_listProperty($propid, $fromdate, $todate)
-{
+function get_commissions_listProperty($propid, $fromdate, $todate) {
     include '../includes/config.php';
     $mysqli = getMysqliConnection();
     $propertiestable = getPropertiesTable();
@@ -9392,8 +6758,7 @@ function get_commissions_listProperty($propid, $fromdate, $todate)
 
 //get commission
 //get property commission between dates
-function getPropertyCommission($propid, $startdate, $enddate)
-{
+function getPropertyCommission($propid, $startdate, $enddate) {
 
     $mysqli = getMysqliConnection();
     $invoicetable = getInvoiceTable();
@@ -9412,29 +6777,21 @@ function getPropertyCommission($propid, $startdate, $enddate)
     return array_sum($rentsum);
 }
 
-function getRentItemFromInvoice($invoiceno)
-{
+function getRentItemFromInvoice($invoiceno) {
     $mysqli = getMysqliConnection();
     $invoiceitemstable = invoiceitemsTable();
     $res = $mysqli->query("SELECT item_name,amount FROM {$invoiceitemstable} WHERE invoiceno like '$invoiceno' AND item_name like 'rent' LIMIT 1");
     if ($res) {
-        $rent = 0;
         while ($row = $res->fetch_assoc()) {
             $rent = $row['amount'];
         }
-        if ($rent) {
-            return $rent;
-        } else {
-            return 0;
-        }
-        // return $rent;
+        return $rent;
     } else {
         return 0;
     }
 }
 
-function fetchaccountdetails()
-{
+function fetchaccountdetails() {
     include_once '../includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     if ($mysqli->connect_errno) {
@@ -9461,14 +6818,12 @@ function fetchaccountdetails()
 }
 
 //account management
-function manageaccts($action, $id, $accname = '', $type = 'default', $user = 'default')
-{
+function manageaccts($action, $id, $accname = '', $type = 'default', $user = 'default') {
     include_once '../includes/config.php';
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     if ($mysqli->connect_errno) {
         echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
-    }
-    if ($action == 'edit') {
+    }if ($action == 'edit') {
         $res = $mysqli->query("UPDATE bkaccounts SET accname='$accname',type='$type',user='$user' WHERE acno='$id'") or die($mysqli->error);
     } else {
         $res = $mysqli->query("DELETE FROM bkaccounts WHERE acno='$id'") or die($mysqli->error);
@@ -9477,8 +6832,7 @@ function manageaccts($action, $id, $accname = '', $type = 'default', $user = 'de
 }
 
 //billing
-function getsuppliersdropdown($propid)
-{
+function getsuppliersdropdown($propid) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_NAME, 3306);
     $tablename = getSupplierListTable();
     if ($mysqli->connect_errno) {
@@ -9499,8 +6853,7 @@ function getsuppliersdropdown($propid)
 
 //supplier acct
 //@param array('startdate',enddate,$propid,$suppid)
-function getSupplierAcctStatement($arraydetails)
-{
+function getSupplierAcctStatement($arraydetails) {
     $supplierstable = getSupplierListTable();
     $paymentstable = getPaymentsListTable();
     $mysqli = getMysqliConnection();
@@ -9525,8 +6878,7 @@ function getSupplierAcctStatement($arraydetails)
 }
 
 //create supplier bill
-function create_supplier_bill($supp_id, $billdate, $items, $billamount, $rmks, $propid, $fperiod, $glcode)
-{
+function create_supplier_bill($supp_id, $billdate, $items, $billamount, $rmks, $propid, $fperiod, $glcode) {
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/nairobi');
     $db->open_connection();
@@ -9558,8 +6910,7 @@ function create_supplier_bill($supp_id, $billdate, $items, $billamount, $rmks, $
 }
 
 //fetch bill details
-function fetchbilldetails($glcode)
-{
+function fetchbilldetails($glcode) {
     $mysqli = getMysqliConnection();
     $tablename = "bills";
     $gltable = getAccountsTable();
@@ -9601,9 +6952,8 @@ function fetchbilldetails($glcode)
     mysqli_close($mysqli);
 }
 
-//payment
-function pay_bill($billdate, $payamounts, $paymode, $expenseacct, $chequedetails, $chequeno, $chequedate, $remarks, $supp_id, $billnos, $user, $propid, $fperiod, $isrefund = 0, $cashacct)
-{
+//payment 
+function pay_bill($billdate, $payamounts, $paymode, $expenseacct, $chequedetails, $chequeno, $chequedate, $remarks, $supp_id, $billnos, $user, $propid, $fperiod, $isrefund = 0, $cashacct) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "paytrans";
@@ -9621,8 +6971,7 @@ function pay_bill($billdate, $payamounts, $paymode, $expenseacct, $chequedetails
         $db->query("UPDATE $tablename1 SET bill_paid_amnt=$payamountssplit[$i] WHERE bill_no=$billnossplit[$i]") or die(mysql_error());
 
         array_push($totalpaid, $payamountssplit[$i]);
-    }
-    unset($i);
+    }unset($i);
     header('Content-Type: application/json');
     if ($count > 1) {
         $response_array['status'] = $payno;
@@ -9643,15 +6992,14 @@ function pay_bill($billdate, $payamounts, $paymode, $expenseacct, $chequedetails
     $db->close_connection();
 }
 
-function pay_refund($billdate, $payamount, $paymode, $expenseacct, $chequedetails, $chequeno, $chequedate, $remarks, $supp_id, $billno, $user, $propid, $fperiod, $isrefund = 0, $recpno)
-{
+function pay_refund($billdate, $payamount, $paymode, $expenseacct, $chequedetails, $chequeno, $chequedate, $remarks, $supp_id, $billno, $user, $propid, $fperiod, $isrefund = 0, $recpno) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "paytrans";
     $tablename1 = 'bills';
     $tablename2 = getSupplierListTable();
     $receipts = getReceiptsTable();
-    $billdate = str_replace("/", "-", $billdate);
+	$billdate=str_replace("/","-",$billdate);
     $newentrydate = DateTime::createFromFormat('d-m-Y', $billdate);
     $entrydate = trim($newentrydate->format('Y-m-d'));
 
@@ -9670,22 +7018,8 @@ function pay_refund($billdate, $payamount, $paymode, $expenseacct, $chequedetail
     $db->close_connection();
 }
 
-// function actual_payed_refund($payedRefund,$reasonForPayed){
-//     $db = new MySQLDatabase();
-//     $db->open_connection();
-//     header('Content-Type: application/json');
-//     $response_array['tenant'] = $supp_id;
-//     $response_array['count'] = 0;
-//     $response_array['status'] = $payno;
-
-//     echo json_encode($response_array);
-
-//     $db->close_connection();
-// }
-
 //landlord payment
-function makeLandlordpayment($params)
-{
+function makeLandlordpayment($params) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "landlordpayments";
@@ -9704,10 +7038,9 @@ function makeLandlordpayment($params)
     $remarks = "Landlord Payment";
     $user = $params["user"];
     $propid = $params["property_id"];
-    $reason = $params["reason"];
     $fperiod = getPeriodByDate($paydateperiod);
 
-    $query = $db->query("INSERT into $tablename(`paydate`,`amount`,`pmode`,`payno`,`chqdet`,`chqno`,`chequedate`,`rmks`,`us`,`property_id`,`revsd`,`idclose_periods`,`reason`) VALUES ('$entrydate','$amount','$paymode','$payno','$chequedetails','$chequeno','$chequedate','$remarks','$user','$propid',0,'$fperiod','$reason') ") or die(mysql_error());
+    $query = $db->query("INSERT into $tablename(`paydate`,`amount`,`pmode`,`payno`,`chqdet`,`chqno`,`chequedate`,`rmks`,`us`,`property_id`,`revsd`,`idclose_periods`) VALUES ('$entrydate','$amount','$paymode','$payno','$chequedetails','$chequeno','$chequedate','$remarks','$user','$propid',0,'$fperiod') ") or die(mysql_error());
 
     //deduct from bank account
     $bank = getBankDetails($bank);
@@ -9723,8 +7056,7 @@ function makeLandlordpayment($params)
     $db->close_connection();
 }
 
-function getLandLordPaidAmountsForMonth($yearmonth, $propid)
-{
+function getLandLordPaidAmountsForMonth($yearmonth, $propid) {
     $tablename = "landlordpayments";
     $mysqli = getMysqliConnection();
     $allpayments = array();
@@ -9744,8 +7076,7 @@ function getLandLordPaidAmountsForMonth($yearmonth, $propid)
     return $allpayments;
 }
 
-function getDepositRefundList($startdate, $enddate, $propid)
-{
+function getDepositRefundList($startdate, $enddate, $propid) {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "paytrans";
@@ -9778,8 +7109,7 @@ function getDepositRefundList($startdate, $enddate, $propid)
 //get payment ledger
 
 
-function printdepositvoucher($payno, $propid, $user, $tenantid, $reciept_no)
-{
+function printdepositvoucher($payno, $propid, $user, $tenantid) {
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/Nairobi');
     $date = date("d/m/y");
@@ -9788,7 +7118,6 @@ function printdepositvoucher($payno, $propid, $user, $tenantid, $reciept_no)
     $tablename = "paytrans";
     $tablename1 = "bkaccounts";
     $tablename2 = "bills";
-    $tablename3 = "recptrans_deposit_refunded";
     $tableitems = [];
     $sql = $db->query("SELECT * FROM $tablename WHERE `payno` like '$payno'") or die(mysql_error());
     if (mysql_numrows($sql) > 0) {
@@ -9827,24 +7156,14 @@ function printdepositvoucher($payno, $propid, $user, $tenantid, $reciept_no)
     }
     $settings = getSettings();
     $tenant = getTenantDetails($tenantid);
-
-    $sql4 = $db->query("SELECT * FROM $tablename3 where `reciept_no`=$reciept_no ");
-    while ($row4 = mysql_fetch_array($sql4)) {
-        $amount_refunded = $row4['deposit_payed'];
-        $reason_for_amount = $row4['reason'];
-    }
     echo '<center><table class="printable" style="width:800px;"><div id="printheader">
         <tr><td colspan="3" ><span id="copy"></span><center><h2>' . $settings['company_name'] . '</h2></center></td></tr>
         <tr><td colspan="3" ><span id="copy"></span><center><span id="invoice">PAYMENT VOUCHER</span></center></td></tr>
 </div>';
     echo '<tr><td style="width:50%"><span id="invoiceno">PAYMENT NO&nbsp;' . $payno . '</span></td><td colspan="3">Date  ' . date('d-m-Y', strtotime($paydate)) . '</td><td></td></tr>';
     echo '<tr><td colspan="3"><br/><td></tr>';
-    echo '<tr><td style="width:50%"><b>CREDITOR :&nbsp;</b> ' . ucwords($tenant['name']) . '<br/><br/><b>PAYER: </b>' . $settings['company_name']
-        . '</tr>';
-    echo '<tr></td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td>'
-        . '</td><td><b>PAYED AMOUNT: Kshs ' . number_format($amount_refunded, 2) . '</b></td></tr>';
-    echo '<tr><td colspan="1"></td><td> <b></br>INITIAL DEPOSIT: Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
-    echo '<tr><td colspan="1"></td><td> <b>PAYED DEPOSIT: Ksh&nbsp;' . convert_number_to_words($amount_refunded) . ' only</b></td></tr>';
+    echo '<tr><td style="width:50%"><b>CREDITOR :&nbsp;</b> ' . ucwords($tenant['name']) . '<br/><br/><b>PAYER: </b>' . $settings['company_name'] . '</td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td></tr>';
+    echo '<tr><td colspan="1"></td><td><b>Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
     echo '<tr><td width="50%" style="font-size:11px;color:grey"><b>being payment for: </b>' . @$rmks . '</td></tr>';
     echo '<tr><td width="80%" style="font-size:11px;color:grey">' . @$chequecash . '&nbsp;|&nbsp;' . @$chequeno1 . '&nbsp;' . @$chequedate1 . '&nbsp;&nbsp;' . @$chqdate . '</td></tr>';
     echo '<tr><td colspan="3"><hr/>Authorised by.......................................................................................</td></tr>';
@@ -9856,8 +7175,7 @@ function printdepositvoucher($payno, $propid, $user, $tenantid, $reciept_no)
 }
 
 //deposit voucher
-function printvoucher($payno, $propid, $user)
-{
+function printvoucher($payno, $propid, $user) {
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/Nairobi');
     $date = date("d/m/y");
@@ -9921,8 +7239,7 @@ function printvoucher($payno, $propid, $user)
 }
 
 //landlord payment voucher
-function printlandlordvoucher($payno, $propid, $user)
-{
+function printlandlordvoucher($payno, $propid, $user) {
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/Nairobi');
     $date = date("d/m/y");
@@ -9943,7 +7260,7 @@ function printlandlordvoucher($payno, $propid, $user)
 
             $chequeno = $row['chqno'];
             $chequedate = $row['chequedate'];
-            $reason = $row['reason'];
+
             $chequecash = 'Cheque Payment';
             $chequeno1 = 'Cheque No&nbsp;&nbsp;' . $chequeno . '&nbsp;|&nbsp;';
             $chqdate = $chequedate;
@@ -9960,7 +7277,7 @@ function printlandlordvoucher($payno, $propid, $user)
     echo '<tr><td colRspan="3"><br/><td></tr>';
     echo '<tr><td style="width:50%"><b>CREDITOR :&nbsp;</b> ' . strtoupper(str_replace('_', " ", findpropertybyid($propid))) . '<br/><br/><b>PAYER: </b>' . $sname . '</td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td></tr>';
     echo '<tr><td colspan="1"></td><td><b>Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
-    echo '<tr><td width="50%" style="font-size:11px;color:grey"><b>Remarks: </b>' . $remarks . '(' . $reason . ')</td></tr>';
+    echo '<tr><td width="50%" style="font-size:11px;color:grey"><b>Remarks: </b>' . $remarks . '</td></tr>';
     echo '<tr><td width="80%" style="font-size:11px;color:grey">' . $chequecash . '&nbsp;|&nbsp;' . $chequeno1 . '&nbsp;' . $chequedate1 . '&nbsp;&nbsp;' . $chqdate . '</td></tr>';
     echo '<tr><td colspan="3"><hr/>Authorised by.......................................................................................</td></tr>';
     echo '<tr><td colspan="3">Authority Signature....................................................... |&nbsp;&nbsp;&nbsp; Recepient Signature...............................................</td></tr>';
@@ -9971,17 +7288,16 @@ function printlandlordvoucher($payno, $propid, $user)
 }
 
 //payments list
-function paymentslistsupplier($startdate, $enddate, $propid, $user, $officeexpense, $filterexpense)
-{
+function paymentslistsupplier($startdate, $enddate, $propid, $user, $officeexpense, $filterexpense) {
     include_once '../includes/config.php';
     @session_start();
     $mysqli = getMysqliConnection();
     date_default_timezone_set('Africa/Nairobi');
     $startdate = date("Y-m-d", strtotime($startdate));
     $enddate = date("Y-m-d", strtotime($enddate));
-
-
-    //  die($startdate."ssdfsd".$enddate);
+    
+    
+  //  die($startdate."ssdfsd".$enddate);
     if ($mysqli->connect_errno) {
         echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") ";
     }
@@ -9991,16 +7307,18 @@ function paymentslistsupplier($startdate, $enddate, $propid, $user, $officeexpen
     }
 
     if ($officeexpense == 1) {
-
+        
         $res = $mysqli->query("SELECT DISTINCT (paytrans.payno),paytrans.billnopaid,paytrans.property_id,paytrans.amount,paytrans.payno,paytrans.pmode,paytrans.paydate,paytrans.rmks,bkaccounts.acname,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.remarks FROM paytrans LEFT JOIN bkaccounts ON paytrans.supp_id=bkaccounts.glcode LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE paytrans.property_id='0'  AND `is_refund`=0 AND  DATE_FORMAT(paytrans.paydate,'%Y-%m-%d') between '$startdate' AND '$enddate' $addquery GROUP BY payno") or die($mysqli->error);
         $entity = "OFFICE";
         $property = '';
-    } else if ($officeexpense == 2) {
-
-        $res = $mysqli->query("SELECT DISTINCT (paytrans.payno),paytrans.billnopaid,paytrans.revsd,paytrans.property_id,paytrans.amount,paytrans.payno,paytrans.pmode,paytrans.paydate,paytrans.rmks,bkaccounts.acname,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.remarks FROM paytrans LEFT JOIN bkaccounts ON paytrans.supp_id=bkaccounts.glcode LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE `is_refund`=0  AND DATE_FORMAT(paytrans.paydate,'%Y-%m-%d') between '$startdate' AND '$enddate' GROUP BY payno") or die($mysqli->error);
-        $entity = "ALL EXPENSES";
+    } 
+    else if ($officeexpense == 2) {
+        
+       $res = $mysqli->query("SELECT DISTINCT (paytrans.payno),paytrans.billnopaid,paytrans.revsd,paytrans.property_id,paytrans.amount,paytrans.payno,paytrans.pmode,paytrans.paydate,paytrans.rmks,bkaccounts.acname,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.remarks FROM paytrans LEFT JOIN bkaccounts ON paytrans.supp_id=bkaccounts.glcode LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE `is_refund`=0  AND DATE_FORMAT(paytrans.paydate,'%Y-%m-%d') between '$startdate' AND '$enddate' GROUP BY payno") or die($mysqli->error);
+        $entity ="ALL EXPENSES";
         $property = "FOR ALL PROPERTIES";
-    } else if ($suppid && $officeexpense == 0) {
+    } 
+    else if ($suppid && $officeexpense == 0) {
         $res = $mysqli->query("SELECT DISTINCT (paytrans.payno),paytrans.billnopaid,paytrans.revsd,paytrans.property_id,paytrans.amount,paytrans.payno,paytrans.pmode,paytrans.paydate,paytrans.rmks,bkaccounts.acname,bills.bill_amnt,bills.bill_paid_amnt,(bills.bill_amnt -bills.bill_paid_amnt) as balance,bills.remarks FROM paytrans LEFT JOIN bkaccounts ON paytrans.supp_id=bkaccounts.glcode LEFT JOIN bills ON paytrans.billnopaid=bills.bill_no  WHERE paytrans.property_id='$propid' AND bills.supp_id='$suppid' AND `is_refund`=0  AND DATE_FORMAT(paytrans.paydate,'%Y-%m-%d') between '$startdate' AND '$enddate' $addquery GROUP BY payno") or die($mysqli->error);
         $entity = strtoupper(findSupplieryById($suppid));
         $property = "OF " . findpropertybyid($propid);
@@ -10011,7 +7329,7 @@ function paymentslistsupplier($startdate, $enddate, $propid, $user, $officeexpen
         $property = "OF " . findpropertybyid($propid);
     }
     echo '<table class="treport1 width70" ><thead>
-<tr><td><img src="../images/cursors/logo1.png" style="height:60px;width:90px;"></td><td colspan=10 style="background-color:beige"><h3><center>PAYMENTS LIST FOR <u>' . $entity . '</u> <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . date('d-m-Y', strtotime($startdate)) . '&nbsp;TO&nbsp;' . date('d-m-Y', strtotime($enddate)) . '</center></h3></td></tr>
+<tr><td><img src="../images/cursors/anjuman.png" style="height:60px;width:90px;"></td><td colspan=10 style="background-color:beige"><h3><center>PAYMENTS LIST FOR <u>' . $entity . '</u> <i>' . strtoupper($property) . '</i>&nbsp;FOR THE PERIOD&nbsp;' . date('d-m-Y', strtotime($startdate)) . '&nbsp;TO&nbsp;' . date('d-m-Y', strtotime($enddate)) . '</center></h3></td></tr>
 <tr>
 <th><center><u>s/No</u></center></th>
 <th><center><u>Property</u></center></th>
@@ -10026,47 +7344,47 @@ function paymentslistsupplier($startdate, $enddate, $propid, $user, $officeexpen
 <th><center><u>Balance</center></u></th></tr></thead><tbody>';
     $counter = 1;
     while ($row = $res->fetch_assoc()) {
-        $propid = $row['property_id'];
-
-        $property = findpropertybyid($propid);
-
-        $reversed = $row['revsd'];
-        if ($reversed) {
-            $payno = "R" . $row['payno'];
-            $billno = "R" . $row['billnopaid'];
-            $billamount = 0;
-            $paidamount = 0;
-            $balance = 0;
-            $sumbillamount[] = ($billamount);
-            $sumpaidamount[] = $paidamount;
-            $sumbal[] = $balance;
-        } else {
-            $payno = $row['payno'];
-            $billno = $row['billnopaid'];
-            $billamount = $row['amount'];
-            $paidamount = $row['bill_paid_amnt'];
-            $balance = $row['balance'];
-            $sumbillamount[] = ($billamount);
-            $sumpaidamount[] = $paidamount;
-            $sumbal[] = $balance;
-        }
+       $propid = $row['property_id'];
+     
+           $property=  findpropertybyid($propid);
+          
+       $reversed=$row['revsd'];
+       if($reversed){
+        $payno = "R".$row['payno'];
+        $billno = "R".$row['billnopaid'];
+        $billamount = 0;
+        $paidamount = 0;
+        $balance = 0;
+        $sumbillamount[] = ($billamount);
+        $sumpaidamount[] = $paidamount;
+        $sumbal[] = $balance;
+       }else {
+        $payno = $row['payno'];
+        $billno=$row['billnopaid'];
+        $billamount = $row['amount'];
+        $paidamount = $row['bill_paid_amnt'];
+        $balance = $row['balance'];
+        $sumbillamount[] = ($billamount);
+        $sumpaidamount[] = $paidamount;
+        $sumbal[] = $balance;
+       }
         $paydate = $row['paydate'];
         $paymode = getPayMode($row['pmode']);
         $rmks = $row['remarks'];
-
-
-        echo '<tr><td>' . $counter++ . '</td><td>' . $property . '</td><td>' . $billno . '</td><td><a href="defaultreports.php?report=printvoucher&voucherno=' . $payno . '&propid=' . $propid . '&user=' . $_SESSION['username'] . '" target="blank">' . $payno . '</a></td><td>' . $paymode[0]['paymode'] . '</td><td>' . date('F j,Y', strtotime($paydate)) . '</td><td>' . $row['acname'] . '</td><td>&nbsp;' . $rmks . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($billamount) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($paidamount) . '</td><td>&nbsp;&nbsp;' . $balance . '</td></tr>';
+       
+        
+        
+        echo '<tr><td>' . $counter++ . '</td><td>'.$property.'</td><td>'.$billno.'</td><td><a href="defaultreports.php?report=printvoucher&voucherno=' . $payno . '&propid=' . $propid . '&user=' . $_SESSION['username'] . '" target="blank">' . $payno . '</a></td><td>' . $paymode[0]['paymode'] . '</td><td>' . date('F j,Y', strtotime($paydate)) . '</td><td>' . $row['acname'] . '</td><td>&nbsp;' . $rmks . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($billamount) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($paidamount) . '</td><td>&nbsp;&nbsp;' . $balance . '</td></tr>';
     }
     echo '</tbody><tfoot>'
-        . '<tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><b>' . number_format(@array_sum($sumbillamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumpaidamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumbal), 2) . '</b></td></tr>';
+    . '<tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><b>' . number_format(@array_sum($sumbillamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumpaidamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumbal), 2) . '</b></td></tr>';
     echo '</tfoot></table>';
     unset($counter);
     $mysqli->close($mysqli);
 }
 
 //daily cash movement
-function getDailyCash($date)
-{
+function getDailyCash($date) {
     date_default_timezone_set('Africa/Nairobi');
     $time = date('h:i A');
     $mysqli = getMysqliConnection();
@@ -10079,9 +7397,9 @@ function getDailyCash($date)
 
     $allproperties = getProperties();
     echo '<table class="treport1 width70" ><thead>
-<tr><td><img src="../images/cursors/logo1.png" style="height:60px;width:90px;"></td><td colspan="9"><center><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
+<tr><td><img src="../images/cursors/anjuman.png" style="height:60px;width:90px;"></td><td colspan="9"><center><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
 <br/><span style="font-size:16px;font-weight:normal;"><centreceiptlier>' . str_repeat('&nbsp;', 25) . 'CASH RECEIVED ON <b> ' . date("d-m-Y", strtotime($date)) . '</b> </center></span></td></tr>';
-    echo '<tr>
+    echo'<tr>
 <u><th>S/no</th><th>Property</th> <th>Receipt No</th><th>Receipt Date</th> <th>House No</th><th>Tenant/Other Name</th><th>Narration</th><th>Paymode</th><th>Total Amount</th></u></tr>';
     echo '</thead><tbody>';
     $i = 1;
@@ -10091,9 +7409,9 @@ function getDailyCash($date)
         while ($row = $query->fetch_assoc()) {
 
             echo '<tr><td>' . $i++ . '</td><td>' . findpropertybyid($propid) . '</td><td><a class="whitetext"  href="defaultreports.php?report=printreceipt&receiptno=' . $row['recpno'] . '" target="blank"><span style="color:blue">' . $row['recpno'] . '</span></a></td><td>' . $row['rdate'] . '</td><td>' . $row['Apartment_tag'] . '</td><td>' . $row['tenant_name'] . '</td><td>' . $row['rmks'] . '</td><td>' . $row['paymode'] . '</td><td>' . number_format($row['amount'], 2) . '</td></tr>';
-            array_push($sumamount, (float)$row['amount']);
-            array_push($sumvatamount, (float)($row['amount']));
-            array_push($sumtotalamount, (float)($row['amount']));
+            array_push($sumamount, (float) $row['amount']);
+            array_push($sumvatamount, (float) ($row['amount']));
+            array_push($sumtotalamount, (float) ($row['amount']));
         }
     }
 
@@ -10103,8 +7421,11 @@ function getDailyCash($date)
     echo '<hr/>';
 
 
+
+
+
     echo '<table class="treport1 width70" ><thead>
-<tr><td><img src="../images/cursors/logo1.png" style="height:60px;width:90px;"></td><td colspan="9"><h3><center>PAYMENTS LIST FOR ' . date('d-m-Y', strtotime($date)) . '&nbsp;</center></h3></td></tr>
+<tr><td><img src="../images/cursors/anjuman.png" style="height:60px;width:90px;"></td><td colspan="9"><h3><center>PAYMENTS LIST FOR ' . date('d-m-Y', strtotime($date)) . '&nbsp;</center></h3></td></tr>
 <tr>
 <th><center><u>S/No</u></center></th>
 <th><center><u>Property</u></center></th>
@@ -10138,7 +7459,7 @@ function getDailyCash($date)
         }
     }
     echo '</tbody><tfoot>'
-        . '<tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td></td><td></td><td><b>' . number_format(@array_sum($sumbillamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumpaidamount), 2) . '</b></td><td></td><td><b>' . number_format(@array_sum($sumbal), 2) . '</b></td></tr>';
+    . '<tr><td><b>GRAND TOTAL</b></td><td></td><td></td><td></td><td></td><td></td><td><b>' . number_format(@array_sum($sumbillamount), 2) . '</b></td><td><b>' . number_format(@array_sum($sumpaidamount), 2) . '</b></td><td></td><td><b>' . number_format(@array_sum($sumbal), 2) . '</b></td></tr>';
     echo '</tfoot></table>';
     echo '<hr/>';
     echo '<i>Printed by:</i> ' . $_SESSION['username'] . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
@@ -10147,8 +7468,7 @@ function getDailyCash($date)
 }
 
 //@param array('startdate','enddate','propid','user','count','suppid')
-function getPaymentsForProperty($arraydetails)
-{
+function getPaymentsForProperty($arraydetails) {
     $mysqli = getMysqliConnection();
     $startdate = date("Y-m-d", strtotime($arraydetails['startdate']));
     $enddate = date("Y-m-d", strtotime($arraydetails['enddate']));
@@ -10177,8 +7497,7 @@ function getPaymentsForProperty($arraydetails)
 }
 
 //manage system users
-function get_system_users()
-{
+function get_system_users() {
     $db = new MySQLDatabase();
     $db->open_connection();
     $tablename = "accesslevels";
@@ -10208,18 +7527,17 @@ function get_system_users()
         }
 
         echo "<tr><td><input type='hidden' id='accessgrpid$id' class='input1' value='$id'/><input type='hidden' id='userid$id' readonly='true' class='input1' value='$userid'/></td><td><input id='username$id' type='text' class='username' class='input1'  value='$username'/></td><td><input type='password' id='userpassword$id'  class='input1' value='$password'/></td><td><input type='text' id='usergroup$id' class='usergroup input1' value='$group'/></td><td><select type='text' id='userstatus$id' class='input1 selectstatus'>"
-            . "<option selected value='$status'>$status</option>"
-            . $statusfield
-            . "</select>"
-            . "</td><td><a href='#' title='$id' class='edituser'><img src='./images/grid.png'/></a></td><td><a href='#' title='$id' id='deleteuser'><img src='./images/close.png'/></a></td></tr>";
+        . "<option selected value='$status'>$status</option>"
+        . $statusfield
+        . "</select>"
+        . "</td><td><a href='#' title='$id' class='edituser'><img src='./images/grid.png'/></a></td><td><a href='#' title='$id' id='deleteuser'><img src='./images/close.png'/></a></td></tr>";
     }
     echo '</table>';
     $db->close_connection();
 }
 
 //update users
-function updateUser($userdetails)
-{
+function updateUser($userdetails) {
     $mysqli = getMysqliConnection();
     $userstable = getUsersTable();
     $userid = $userdetails['user_id'];
@@ -10238,8 +7556,7 @@ function updateUser($userdetails)
     echo json_encode($response_array);
 }
 
-function getUserById($id)
-{
+function getUserById($id) {
     $mysqli = getMysqliConnection();
     $userstable = getUsersTable();
     $userdetails = array();
@@ -10257,152 +7574,15 @@ function getUserById($id)
  * @param:recepient addresses
  */
 
-function emailrecepient($recepients, $content)
-{
-
+function emailrecepient($recepients, $content) {
+    
 }
 
 //get date and time
-function getDateAndTime()
-{
+function getDateAndTime() {
     date_default_timezone_set('Africa/Nairobi');
     $date = date("Y-m-d");
     $time = date('h:i A');
     $datetime = date('Y-m-d h:i A');
     return array('todaysdate' => $date, 'time' => $time, 'datetime' => $datetime);
 }
-
-//Generate access token -c2b
-function generateToken()
-{
-
-    $url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
-
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    $credentials = base64_encode('ESGePLx5jBT1NLSGm27qs8bj3OcyaTzs:Gr7kyLeb7ia2O7Gd');
-    curl_setopt($curl, CURLOPT_HTTPHEADER, array('Authorization: Basic ' . $credentials)); // setting a custom header
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-    $curl_response = curl_exec($curl);
-
-    $json_decode = json_decode($curl_response);
-
-    $access_token = $json_decode->access_token;
-
-    return $access_token;
-}
-
-//Register validation and confirmation urls
-function registerURL()
-{
-    $url = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl';
-
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type:application/json', 'Authorization:Bearer:Glle59RuBRmUYKnNsIzBK08XJCPj  ' . generateToken()));
-
-    $curl_post_data = array(
-        //Fill in the request parameters with valid values
-        'ShortCode' => '600000',
-        'ResponseType' => 'Completed',
-        'ConfirmationURL' => 'https://4fd5-41-90-111-246.eu.ngrok.io/property-rivercourt/modules/confirmation/',
-        'ValidationURL' => 'https://4fd5-41-90-111-246.eu.ngrok.io/property-rivercourt/modules/validation/'
-    );
-
-    $data_string = json_encode($curl_post_data);
-
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_POST, true);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-
-    $curl_response = curl_exec($curl);
-
-    return $curl_response;
-}
-
-//Simulate c2b
-function simulateC2B($amount, $msisdn)
-{
-    $url = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v1/simulate';
-
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type:application/json', 'Authorization:Bearer ' . generateToken()));
-
-
-    $curl_post_data = array(
-        'ShortCode' => '600000',
-        'CommandID' => 'CustomerPayBillOnline',
-        'Amount' => $amount,
-        'Msisdn' => $msisdn,
-        'BillRefNumber' => 'test'
-    );
-
-    $data_string = json_encode($curl_post_data);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_POST, true);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-    $curl_response = curl_exec($curl);
-
-    return $curl_response;
-}
-
-//insert mpesa response to database
-// function insert_response($callbackData){
-//     $db = new MySQLDatabase();
-//     $db->open_connection();
-//     $tablename = "mobile_payments";
-
-//     // $query = $db->query("INSERT INTO $tablename(`TransactionType`, `TransID`, `TransTime`, `TransAmount`, `BusinessShortCode`, `BillRefNumber`, `InvoiceNumber`, `OrgAccountBalance`, `ThirdPartyTransID`, `MSISDN`, `FirstName`, `MiddleName`, `LastName)
-//     //              VALUES ($TransactionType, $TransID, $TransTime, $TransAmount, $BusinessShortCode, $BillRefNumber, $InvoiceNumber, $OrgAccountBalance, $ThirdPartyTransID, $MSISDN, $FirstName, $MiddleName, $LastName)") or die(mysql_error());
-
-//       $query = $db->query("INSERT into $tablename(`TransactionType`, `TransID`, `TransTime`, `TransAmount`, `BusinessShortCode`, `BillRefNumber`, `InvoiceNumber`, `OrgAccountBalance`, `ThirdPartyTransID`, `MSISDN`, `FirstName`, `MiddleName`, `LastName`) VALUES (TransactionType, TransID, TransTime, TransAmount, BusinessShortCode, BillRefNumber, InvoiceNumber, OrgAccountBalance, ThirdPartyTransID, MSISDN, FirstName, MiddleName, LastName) ") or die(mysql_error());
-//       $query->execute((array)($callbackData));
-
-//     $db->close_connection();
-// }
-
-function insert_response($callbackData)
-{
-
-    $dbName = DB_NAME;
-    $dbHost = DB_SERVER;
-    $dbUser = DB_USER;
-    $dbPass = DB_PASS;
-
-    # establish a connection
-    try {
-        $con = new PDO("mysql:dbhost=$dbHost;dbname=$dbName", $dbUser, $dbPass);
-        echo "Connection was successful";
-    } catch (PDOException $e) {
-        die("Error Connecting " . $e->getMessage());
-    }
-
-    # 1.1.2 Insert Response to Database
-    try {
-        $insert = $con->prepare("INSERT INTO `mobile_payments`(`TransactionType`, `TransID`, `TransTime`, `TransAmount`, `BusinessShortCode`, `BillRefNumber`, `InvoiceNumber`, `OrgAccountBalance`, `ThirdPartyTransID`, `MSISDN`, `FirstName`, `MiddleName`, `LastName`) 
-                   VALUES (:TransactionType, :TransID, :TransTime, :TransAmount, :BusinessShortCode, :BillRefNumber, :InvoiceNumber, :OrgAccountBalance, :ThirdPartyTransID, :MSISDN, :FirstName, :MiddleName, :LastName)");
-        $insert->execute((array)($callbackData));
-
-        # 1.1.2o Optional - Log the transaction to a .txt or .log file(May Expose your transactions if anyone gets the links, be careful with this. If you don't need it, comment it out or secure it)
-        $Transaction = fopen('Transaction.txt', 'a');
-        fwrite($Transaction, json_encode($callbackData));
-        fclose($Transaction);
-    } catch (PDOException $e) {
-
-        # 1.1.2b Log the error to a file. Optionally, you can set it to send a text message or an email notification during production.
-        $errLog = fopen('error.txt', 'a');
-        fwrite($errLog, $e->getMessage());
-        fclose($errLog);
-
-        # 1.1.2o Optional. Log the failed transaction. Remember, it has only failed to save to your database but M-PESA Transaction itself was successful.
-        $logFailedTransaction = fopen('failedTransaction.txt', 'a');
-        fwrite($logFailedTransaction, json_encode($callbackData));
-        fclose($logFailedTransaction);
-    }
-}
-
-
-?>

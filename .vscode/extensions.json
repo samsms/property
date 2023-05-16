@@ -1,5 +1,6 @@
 {
     "recommendations": [
-        "aiassistedcoding.ai-assisted-coding"
+        "aiassistedcoding.ai-assisted-coding",
+        "shreeruparel.chatgpt-unit-test-generator"
     ]
 }
