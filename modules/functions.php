@@ -4224,7 +4224,7 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
             $query1 = "INSERT into $tablename2 (`invoiceno`,`item_name`,`amount`,`priority`) VALUES ('$result2','$chargename','$charges[$i]','$priority')";
             $db->query($query1) or die($db->error());}
         }
-        return "created";
+        // return "created";
         //empty counter,charge items,charges
         unset($counter);
         unset($chargenames);
@@ -4267,6 +4267,9 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
 
         $queryy = $db->query("SELECT tenant_name FROM $tablenam WHERE id='$id' ") or die($db->error());
         $rowtenant = mysql_fetch_array($queryy);
+        $headers = array(
+            'Authorization: Basic ' . base64_encode('api-user:admin'),
+        );
         $tnt = $rowtenant['tenant_name'];
         
          if($creditamount > 0){
@@ -4332,7 +4335,7 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
          ));
         
          $response2 = curl_exec($curl2);
-        
+        // die(print_r($response2));
          curl_close($curl2);
         
          $new_id2 = json_decode($response2)->id;
@@ -6242,44 +6245,44 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
                 $response_array['status'] =  $response_array['status'].','.$recpno;
             }
            
-            // $datereceipt = date("Y-m-d", strtotime($receiptdate));
-            //$idno
-            // //$json = array();
-            // $data2 = array(
-            //     "CustId" => 5998,
-            //     "TransactionRef" => $reference,
-            //     "TransDate" => $datereceipt,
-            //     "BankAcct" => 20000001,
-            //     "Amount" => $recpamount
-            // );
-            // $json[] = $data2;
-            // $json_data = json_encode($json);
-            // $username = "api-user";
-            // $password = "admin";
-            // $headers = array(
-            //     'Authorization: Basic ' . base64_encode($username . ':' . $password),
-            // );
+            $datereceipt = date("Y-m-d", strtotime($receiptdate));
+            // $idno
+            //$json = array();
+            $data2 = array(
+                "CustId" => 5998,
+                "TransactionRef" => $reference,
+                "TransDate" => $datereceipt,
+                "BankAcct" => 20000001,
+                "Amount" => $recpamount
+            );
+            $json[] = $data2;
+            $json_data = json_encode($json);
+            $username = "api-user";
+            $password = "admin";
+            $headers = array(
+                'Authorization: Basic ' . base64_encode($username . ':' . $password),
+            );
 
 
-            // //Perform curl post request to add item to the accounts erp
-            // $curl = curl_init();
+            //Perform curl post request to add item to the accounts erp
+            $curl = curl_init();
 
-            // curl_setopt_array($curl, array(
-            //     CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER",
-            //     CURLOPT_RETURNTRANSFER => true,
-            //     CURLOPT_ENCODING => "",
-            //     CURLOPT_MAXREDIRS => 10,
-            //     CURLOPT_TIMEOUT => 0,
-            //     CURLOPT_FOLLOWLOCATION => true,
-            //     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            //     CURLOPT_CUSTOMREQUEST => "POST",
-            //     CURLOPT_POSTFIELDS => $json_data,
-            //     CURLOPT_HTTPHEADER => $headers,
-            // ));
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => "",
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => "POST",
+                CURLOPT_POSTFIELDS => $json_data,
+                CURLOPT_HTTPHEADER => $headers,
+            ));
 
-            // $response = curl_exec($curl);
+            $response = curl_exec($curl);
 
-            // curl_close($curl);
+            curl_close($curl);
              echo json_encode($response_array);
         }
     } else {
