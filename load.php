@@ -10,9 +10,6 @@ if(isset($_FILES['import_file'])){
     // Fork a child process to handle the file upload and processing in the background
     // $pid = pcntl_fork();
 
-    if ($pid == -1) {
-        die("Failed to fork a new process.");
-    } elseif ($pid == 0) {
         // Child process - perform the file upload and processing
 
         $fname = $_FILES['import_file']['tmp_name'];
@@ -25,6 +22,7 @@ if(isset($_FILES['import_file'])){
         $result = array();
 
         while ($row = fgetcsv($fp, 1024, ",")) {
+            
             $propid = getPropertyId(($row[1]));
             $invoice_date = $row[0];
             $date = DateTime::createFromFormat('d/m/y', trim($invoice_date));
@@ -37,6 +35,7 @@ if(isset($_FILES['import_file'])){
             } else if ($row[3] == 0) {
                 continue;
             } else {
+                die(print_r($row));
                 // Property and tenant found, create invoice
                 $debit = $row[3];
                 $credit = 0;
@@ -47,7 +46,7 @@ if(isset($_FILES['import_file'])){
                 $double_number = floatval($number_without_comma);
                 $charges = array($double_number);
                 $chargesname = array("rent");
-                $invoiceno = create_invoice(
+                $invoiceno = create_invoice_Bulky(
                     $tenant->Id,
                     $date->format("d/m/Y"),
                     0,
@@ -70,10 +69,10 @@ if(isset($_FILES['import_file'])){
         fclose($fp);
 
         // Delete the not_found.csv file
-        unlink('invoices_errors.csv');
-
-        exit(); // Exit the child process
-    } else {
+        // unlink('invoices_errors.csv');
+        shell_exec("python invoice_sync.py > /dev/null 2>&1 &");   
+        //exit(); // Exit the child process
+    
         // Parent process - continue execution without waiting for the child process
         // Download the not_found.csv file
         ob_end_clean();
@@ -84,4 +83,4 @@ if(isset($_FILES['import_file'])){
         // Delete the not_found.csv file
         unlink('invoices_errors.csv');
     }
-}
+
