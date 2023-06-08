@@ -54,7 +54,7 @@ function sync_invoices(){
     $path=shell_exec("pwd   2>&1 &");
     $output=shell_exec("cd $path  2>&1 &");
     shell_exec("cd ..   2>&1 &");
-    $output=shell_exec("python3 invoice_sync.py  2>&1 &");
+    $output=shell_exec("python3 invoice_sync.py >> sync.log 2>&1 &");
     
 }
 
