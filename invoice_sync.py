@@ -19,6 +19,7 @@ def sync_invoices():
         db = pymysql.connect(
         host='localhost',
         user='root',
+        port=3306,
         password='Trymenot#123$',
         database='prop_management',
         cursorclass=pymysql.cursors.DictCursor
