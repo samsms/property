@@ -35,7 +35,7 @@ if(isset($_FILES['import_file'])){
             } else if ($row[3] == 0) {
                 continue;
             } else {
-                die(print_r($row));
+                // die(print_r($row));
                 // Property and tenant found, create invoice
                 $debit = $row[3];
                 $credit = 0;
