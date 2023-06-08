@@ -70,7 +70,7 @@ if(isset($_FILES['import_file'])){
 
         // Delete the not_found.csv file
         // unlink('invoices_errors.csv');
-        shell_exec("python invoice_sync.py > /dev/null 2>&1 &");   
+        sync_invoices();   
         //exit(); // Exit the child process
     
         // Parent process - continue execution without waiting for the child process

@@ -7,7 +7,7 @@ include 'functions.php'; // die(json_encode($_POST));
 // error_reporting(-1);
 if(isset($_GET['sync'])){
   //  die("hello");
-    echo sync_invoices();
+    echo sync_tenant();
 }else
 {
     if (isset($_FILES['tenants'])) {

@@ -168,12 +168,14 @@ if (isset($_REQUEST['newinvoice'])) {
         foreach (getProperties() as $prop) {
             if ($prop != 'Vacated') {
                 echo create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $_SESSION['username'], $prop['property_id'], $_REQUEST['remarks'], $fperiod);
+                sync_invoices();
             }
             // =$prop['property_id'];
         }
     } else {
 
         echo create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $_SESSION['username'], $_SESSION['propertyid'], $_REQUEST['remarks'], $fperiod);
+        sync_invoices();
     }
 } elseif (isset($_REQUEST['reverseinvoice'])) {
 

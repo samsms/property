@@ -50,6 +50,13 @@ function gettenants_temp()
     return json_encode($data);
 }
 
+function sync_invoices(){
+    $path=shell_exec("pwd   2>&1 &");
+    $output=shell_exec("cd $path  2>&1 &");
+    shell_exec("cd ..   2>&1 &");
+    $output=shell_exec("python invoice_sync.py  2>&1 &");
+    
+}
 
 function getfeedbacks()
 {
