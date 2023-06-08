@@ -85,7 +85,7 @@ class MySQLDatabase {
 			// if magic quotes are active, then the slashes already exist
 		}
 		return $value;
-	}DB_USER
+	}
   public function affected_rows() {
     return mysql_affected_rows($this->connection);
   }
