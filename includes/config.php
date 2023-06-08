@@ -9,6 +9,7 @@ defined('DB_USER')   ? null : define("DB_USER", "root");
 defined('DB_PASS')   ? null : define("DB_PASS", "Trymenot#123$");
 //defined('DB_NAME')   ? null : define("DB_NAME", "techsava_property_htest");
 defined('DB_NAME')   ? null : define("DB_NAME", "rivercourt_prop_management");
+defined('DB_PORT')?     null: define("DB_PORT","6603");
 
 //die("local");
 }else{

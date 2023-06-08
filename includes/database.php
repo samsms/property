@@ -18,7 +18,7 @@ class MySQLDatabase {
   }
 
   public function open_connection() {
-	$this->connection = @mysql_connect(DB_SERVER, DB_USER, DB_PASS);
+	$this->connection = @mysql_connect(DB_SERVER, DB_USER, DB_PASS,DB_PORT);
 	if (!$this->connection) {
 		die("Database connection failed: " . mysql_error());
 	} else {
