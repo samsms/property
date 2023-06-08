@@ -18,7 +18,7 @@ defined('DB_PORT')?     null: define("DB_PORT","6603");
     defined('DB_USER')   ? null : define("DB_USER","sam");
     defined('DB_PASS')   ? null : define("DB_PASS", "samsaf");
     //defined('DB_NAME')   ? null : define("DB_NAME", "techsava_property_htest");
-    defined('DB_NAME')   ? null : define("DB_NAME", "prop_management");
+    defined('DB_NAME')   ? null : define("DB_NAME", "rivercourt_prop_management");
     
 }
 date_default_timezone_set("Africa/Nairobi");

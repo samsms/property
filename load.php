@@ -25,8 +25,8 @@ if(isset($_FILES['import_file'])){
             
             $propid = getPropertyId(($row[1]));
             $invoice_date = $row[0];
-            $date = DateTime::createFromFormat('d/m/y', trim($invoice_date));
-
+            $date = DateTime::createFromFormat('d/m/Y', trim($invoice_date));
+          //  die($date);
             if ($propid == null || getTenantfromApt($propid, $row[2]) == null || $date == false) {
                 // Property or tenant not found, write row to new CSV file
                 $newfp = fopen("invoices_errors.csv", "a");
