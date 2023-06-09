@@ -18,7 +18,7 @@ if (isset($_FILES['receipt_file'])) {
     while ($row = fgetcsv($fp, 1024, ",")) {
         $tenant = getTenantfromApt(getPropertyId($row[1]), $row[2]);
      
-     $date = DateTime::createFromFormat('d/m/y', trim($row[0]));
+     $date = DateTime::createFromFormat('d/m/Y', trim($row[0]));
          //  die(print_r($row));
      $invoices =false;
      if($tenant!==null){
@@ -36,7 +36,7 @@ if (isset($_FILES['receipt_file'])) {
         //    die(print_r( $tenant));
            
             $amount_paid = floatval(str_replace(",", "", $row[3]));
-            create_mpesa_receipt($row[0],$tenant->Id, $amount_paid, "imported");
+            create_mpesa_receipt($date->format("d/m/y"),$tenant->Id, $amount_paid, "imported");
         }
     }
 

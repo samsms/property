@@ -33,22 +33,21 @@ else if($_REQUEST["addfloorplan"]){
             $data= array_combine($key, $row);
             //die(print_r($data));
            
-           
             $propname =  $data["prop"];
             $propid = getPropertyId((strip_tags($propname)));
         
            if($propid!=null){
-            $floordetails=array(
-            "propertyid"=>$propid,
-            "floornumber"=>strip_tags($data["floornumber"]),
-            "apt_tag"=>strip_tags($data["apt_tag"]),
-            "monthlyincome"=>strip_tags($data["monthlyincome"]),
-            "marketvalue"=>strip_tags($data["marketvalue"]),
-            "elecmeter"=>strip_tags($data["elec_meter"]),
-            "watermeter"=>strip_tags($data["water_meter"]),
-            "metereading"=>strip_tags($data["current_water_reading"]),
-            "receipt_due"=>strip_tags($data["receipt_due"]));
-            $result[]=  addapartments($floordetails);
+                $floordetails=array(
+                "propertyid"=>$propid,
+                "floornumber"=>strip_tags($data["floornumber"]),
+                "apt_tag"=>strip_tags($data["apt_tag"]),
+                "monthlyincome"=>strip_tags($data["monthlyincome"]),
+                "marketvalue"=>strip_tags($data["marketvalue"]),
+                "elecmeter"=>strip_tags($data["elec_meter"]),
+                "watermeter"=>strip_tags($data["water_meter"]),
+                "metereading"=>strip_tags($data["current_water_reading"]),
+                "receipt_due"=>strip_tags($data["receipt_due"]));
+                $result[]=  addapartments($floordetails);
 
         }else{
             fputcsv($fps, $data);
