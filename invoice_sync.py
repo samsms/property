@@ -5,8 +5,18 @@ import pymysql
 import base64
 from datetime import date
 import time
+import sys
 
+env = {}
+with open('.env', 'r') as file:
+    for line in file:
+        line = line.strip()
+        if line and '=' in line:
+            key, value = line.split('=', 1)
+            env[key] = value
 
+# print(env)
+# sys.exit("Something went wrong. Exiting...")
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, date):
@@ -17,10 +27,10 @@ def sync_invoices():
     
     while True:   
         db = pymysql.connect(
-        host='localhost',
-        user='root',
-        password='Trymenot#123$',
-        database='rivercourt_prop_management',
+        host= env.get('HOST'),
+        user= env.get('USER'),
+        password= env.get('PASSWORD'),
+        database= env.get('DATABASE'),
         cursorclass=pymysql.cursors.DictCursor
         )
         cursor = db.cursor()

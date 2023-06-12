@@ -16,6 +16,7 @@ if (isset($_FILES['receipt_file'])) {
     $result = array();
 
     while ($row = fgetcsv($fp, 1024, ",")) {
+       
         $tenant = getTenantfromApt(getPropertyId($row[1]), $row[2]);
      
      $date = DateTime::createFromFormat('d/m/Y', trim($row[0]));
@@ -25,12 +26,13 @@ if (isset($_FILES['receipt_file'])) {
        $invoices=  fetchinvoicedetailsPlain($tenant->Id);
 
      }
-             
-        if (!$tenant|| $date==false||$invoices==false) {
+      //   die("hello".count($invoices));
+        if (!$tenant|| $date==false||count($invoices)==0) {
             // Property or tenant not found, write row to new CSV file
             $newfp = fopen("receipts_errors.csv", "a");
             fputcsv($newfp, $row);
             fclose($newfp);
+          
         } else {
             // Property and tenant found, create receipt
         //    die(print_r( $tenant));
@@ -38,8 +40,9 @@ if (isset($_FILES['receipt_file'])) {
             $amount_paid = floatval(str_replace(",", "", $row[3]));
             create_mpesa_receipt($date->format("d/m/y"),$tenant->Id, $amount_paid, "imported");
         }
+     
     }
-
+  
     fclose($fp);
 
     // Download the not_found.csv file
@@ -50,13 +53,14 @@ if (isset($_FILES['receipt_file'])) {
 
     // Delete the not_found.csv file
     unlink('receipts_errors.csv');
+    sync_receipt();
 }
 
 function create_mpesa_receipt($date,$id , $paid_amount, $reference) {
      //$tenant = getTenantDetailsFromId($id);
     
     $invoices = fetchinvoicedetailsPlain($id);
-
+    
     $last_invoice = end($invoices);
 
     foreach ($invoices as $invoice) {
@@ -104,6 +108,6 @@ function pay($date,$id, $invoice, $amount, $reference) {
         $fperiod = $period['idclose_periods'];
     }
 
-    echo update_invoice($invoicenos, $amount, $idno, $receiptdate, $paymode, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $counter, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit, $reference);
+    echo update_invoice($invoicenos, $amount, $idno, $receiptdate, $paymode, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $counter, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit, $invoicenos);
 }
 

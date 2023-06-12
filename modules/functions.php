@@ -2,9 +2,9 @@
 
 if ($_SERVER['REMOTE_ADDR'] == "::1" || $_SERVER['REMOTE_ADDR'] == "127.0.0.1") {
 
-    // ini_set('display_errors',1);
-    // ini_set('display_startup_errors',1);
-    // error_reporting(-1);
+    ini_set('display_errors',1);
+    ini_set('display_startup_errors',1);
+    error_reporting(-1);
 }
 @session_start();
 @include '../includes/database.php';
@@ -51,10 +51,9 @@ function gettenants_temp()
 }
 
 function sync_invoices(){
-    $path=shell_exec("pwd   2>&1 &");
-    $output=shell_exec("cd $path  2>&1 &");
-    shell_exec("cd ..   2>&1 &");
-    $output=shell_exec("python3 invoice_sync.py >> sync.log 2>&1 &");
+    $path= getSiteRoot();
+    chdir($path);
+    $output=shell_exec("python3 $path/invoice_sync.py >> sync.log 2>&1 &");
     
 }
 
@@ -291,7 +290,7 @@ function getSiteRoot()
 
         $parent = $_SERVER["DOCUMENT_ROOT"]; //. '/property-rivercourt';
     } else {
-        $parent = $_SERVER["DOCUMENT_ROOT"] . '/property-rivercourt';
+        $parent = $_SERVER["DOCUMENT_ROOT"] ;
     }
     return $parent;
 }
@@ -453,7 +452,7 @@ function getIP()
     if ($_SERVER['REMOTE_ADDR'] != "127.0.0.1" &&$_SERVER['REMOTE_ADDR']!="::1" ) {
         return "https://" . $_SERVER["HTTP_HOST"];
     } else {
-        return "http://" . $_SERVER["HTTP_HOST"] . "/property-rivercourt";
+        return "http://" . $_SERVER["HTTP_HOST"];
     }
 }
 
@@ -3229,86 +3228,20 @@ function addtenant($aptid, $aptname, $propertyid, $propertyname, $name, $phone, 
 }
 function sync_tenant()
 {
-// Connect to the database
-$db = new MySQLDatabase();
-$db->open_connection();
-// Prepare the query
-$sql = "SELECT * FROM `tenants` WHERE `sync` = 0";
-// Execute the query
-$result = $db->query($sql);
-// Loop through the results and prepare the data
-$json = array();
-while ($row = mysql_fetch_assoc($result)) {
-    $name = $row['tenant_name'];
-    $lastid = $row['Id'];
-    $physcaddress = $row['physcaladdress'];
-
-    $data = array(
-        'CustName' => $name,
-        'CustId' => $lastid,
-        'Address' => $physcaddress,
-        'TaxId' => '',
-        'CurrencyCode' => 'KS',
-        'SalesType' => '1',
-        'CreditStatus' => '0',
-        'PaymentTerms' => '7',
-        'Discount' => '0',
-        'paymentDiscount' => '0',
-        'CreditLimit' => '0',
-        'Notes' => ''
-    );
-
-    $json[] = $data;
+        $path= getSiteRoot();
+        chdir($path);
+        $output=shell_exec("python3 $path/sync_tenants.py >> sync_tenat.log 2>&1 &");
+        
+    
 }
-// Encode the data as JSON
-if (count($json) > 0) {
-$json_data = json_encode($json);
-
-// Set up the cURL request
-$url = 'https://techsavanna.technology/river-court-palla/api/endpoints/customers.php?action=add-customer&company-id=RIVER';
-$username = 'api-user';
-$password = 'admin';
-$headers = array(
-    'Authorization: Basic '. base64_encode($username.':'.$password),
-    'Content-Type: application/json'
-);
-
-$curl = curl_init();
-curl_setopt($curl, CURLOPT_URL, $url);
-curl_setopt($curl, CURLOPT_USERPWD, $username . ':' . $password);
-curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curl, CURLOPT_POST, true);
-curl_setopt($curl, CURLOPT_POSTFIELDS, $json_data);
-curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-
-// Execute the cURL request and process the response
-$response = curl_exec($curl);
-$http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-if ($http_code === 200) {
-    // If the request was successful, update the `sync` column in the database
-    foreach ($json as $data) {
-        $lastid = $data['CustId'];
-        $db->query("UPDATE `tenants` SET `sync` = 1 WHERE `Id` = '$lastid'");
-    }
-    $message = 'Data synced successfully.';
-} else {
-    // If the request failed, log the error message
-    $error_msg = curl_error($curl);
-    $message = "Error syncing data: $error_msg";
-}
-
-
-// Close the cURL request and database connection
-curl_close($curl);
-}else{
-    $message="No data to sync";
-}
-$db->close_connection();
-
-// Return the result message
-return $message;
+function sync_receipt()
+{
+    
+        $path= getSiteRoot();
+        chdir($path);
+        $output=shell_exec("python3 $path/receipt_sync.py >> receipt.log 2>&1 &");
+        
+    
 }
 function addtenantBulk($aptid, $aptname, $propertyid, $propertyname, $name, $phone, $email, $pin, $work, $idno, $photo, $leasestart, $leaseend, $leasedoc, $agentname, $physcaddress, $postaddress, $kinsname, $kinstel, $kinsemail, $regdate)
 {
@@ -6234,8 +6167,13 @@ function fetchinvoicedetailsPlain($tenantid)
     }
 
     if (count($data) == 0) {
+       
         $res = $mysqli->query("SELECT $tablename.*,$tablename1.tenant_name FROM $tablename  LEFT JOIN $tablename1 ON $tablename.idno=$tablename1.Id WHERE  $tablename.revsd=0 AND $tablename.idno like '$tenantid' order by $tablename.invoicedate DESC LIMIT 1") or die($mysqli->error);
-        $data[] = $res->fetch_assoc();
+        while ($row = $res->fetch_assoc()) {
+            $data[] = $row;
+        }
+    }else{
+        return array();
     }
 
     return $data;
