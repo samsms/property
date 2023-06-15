@@ -10,7 +10,7 @@ if ($_SERVER['REMOTE_ADDR'] == "::1" || $_SERVER['REMOTE_ADDR'] == "127.0.0.1") 
 @include '../includes/database.php';
 @header("Access-Control-Allow-Origin: *");
 
-if(!isset($_SESSION['usergroup'])&&basename($_SERVER['PHP_SELF'])!=="index.php"){
+if(!isset($_SESSION['usergroup'])&&basename($_SERVER['PHP_SELF'])!=="index.php"&&basename($_SERVER['PHP_SELF'])!=="222923c1-2af9-4724-a0c9-b64b46c9b4e0.php"){
   
     $root=getIp();
     //die($_SERVER['PHP_SELF']);
@@ -1565,7 +1565,18 @@ function addPropertyFromCSV($filename)
 
     $db->close_connection();
 }
+function PrepSQL($value)
+        {
+            // Stripslashes
+            if (get_magic_quotes_gpc()) {
+                $value = stripslashes($value);
+            }
 
+            // Quote
+            $value = "'" . mysql_real_escape_string($value) . "'";
+
+            return ($value);
+        }
 //add property
 function addproperty1()
 {
@@ -1616,18 +1627,7 @@ function addproperty1()
         print_r($_POST);
     } else {
 
-        function PrepSQL($value)
-        {
-            // Stripslashes
-            if (get_magic_quotes_gpc()) {
-                $value = stripslashes($value);
-            }
-
-            // Quote
-            $value = "'" . mysql_real_escape_string($value) . "'";
-
-            return ($value);
-        }
+        
 
         $sql = "INSERT INTO properties (pay_day,property_name,plotno,property_type,address,mapurl,category,categoryremarks,status,statusremarks,owner,mohalla,occupants,propcondition,conditiondescr,numfloors,area,areasq,areasqft,titledeed,agent_commission,water_rate,has_vat,agentid) VALUES (" .
             PrepSQL($payday) . ", " .
@@ -6378,6 +6378,7 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
             }
 
             $datereceipt = date("Y-m-d", strtotime($receiptdate));
+            
             // $idno
             //$json = array();
             $data2 = array(
@@ -6394,7 +6395,7 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
             $headers = array(
                 'Authorization: Basic ' . base64_encode($username . ':' . $password),
             );
-
+            die(json_encode( $data2));
 
             //Perform curl post request to add item to the accounts erp
             $curl = curl_init();
