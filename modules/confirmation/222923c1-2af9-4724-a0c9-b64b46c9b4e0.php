@@ -43,8 +43,8 @@ require '../functions.php';
 
     
   
-    $tenant=getTenantDetailsFromApt($id)
-    ($BillRefNumber);
+    $tenant=getTenantDetailsFromApt($BillRefNumber);
+   
     if(!$tenant){
         
     }

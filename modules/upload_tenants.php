@@ -53,9 +53,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             if(!$result){
                                 fputcsv($fps, $row);
                             }  else{
-                             
-                                echo (addtenantBulk($apt_id, $apt_tag, $lastInsertId, $prop_name, mysql_real_escape_string($_POST['TenantName']), $_POST['TenantPhone'], $_POST['TenantEmail'], $_POST['PIN'], $_POST['work'], $_POST['IDNO'], $photo, $_POST['LeaseStart'], $_POST['LeaseEnd'], $_POST['Leasedoc'], $_POST['AgentName'], $_POST['Address'], $_POST['PostAddress'], $_POST['kinsName'], $_POST['KinsTel'], $_POST['kinsEmail'], $_POST['Date']));
+                                $apt_id = mysql_insert_id();
+                                $tenant = getTenantDetailsFromApt($apt_id);
+                                if($tenant){
+                                    fputcsv($fps, $row);
+                                }else{
+                                    echo (addtenantBulk($apt_id, $apt_tag, $lastInsertId, $prop_name, mysql_real_escape_string($_POST['TenantName']), $_POST['TenantPhone'], $_POST['TenantEmail'], $_POST['PIN'], $_POST['work'], $_POST['IDNO'], $photo, $_POST['LeaseStart'], $_POST['LeaseEnd'], $_POST['Leasedoc'], $_POST['AgentName'], $_POST['Address'], $_POST['PostAddress'], $_POST['kinsName'], $_POST['KinsTel'], $_POST['kinsEmail'], $_POST['Date']));
                            
+                                }
+                             
                             }
                 }
                 
@@ -69,8 +75,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $apt_id = $result['apt_id'];
                     $prop_name = mysql_real_escape_string($result['property_name']);
                     $propertyid = $result['propertyid'];
-                    echo (addtenantBulk($apt_id, $apt_tag, $propertyid, $prop_name, mysql_real_escape_string($_POST['TenantName']), $_POST['TenantPhone'], $_POST['TenantEmail'], $_POST['PIN'], $_POST['work'], $_POST['IDNO'], $photo, $_POST['LeaseStart'], $_POST['LeaseEnd'], $_POST['Leasedoc'], $_POST['AgentName'], $_POST['Address'], $_POST['PostAddress'], $_POST['kinsName'], $_POST['KinsTel'], $_POST['kinsEmail'], $_POST['Date']));
+                    $tenant = getTenantDetailsFromApt($apt_id);
+                    if($tenant){
+                        fputcsv($fps, $row);
+                    }else{
+                        echo (addtenantBulk($apt_id, $apt_tag, $propertyid, $prop_name, mysql_real_escape_string($_POST['TenantName']), $_POST['TenantPhone'], $_POST['TenantEmail'], $_POST['PIN'], $_POST['work'], $_POST['IDNO'], $photo, $_POST['LeaseStart'], $_POST['LeaseEnd'], $_POST['Leasedoc'], $_POST['AgentName'], $_POST['Address'], $_POST['PostAddress'], $_POST['kinsName'], $_POST['KinsTel'], $_POST['kinsEmail'], $_POST['Date']));
                 
+                    }
+                 
                 
                }else{
                 // die(print_r());
@@ -83,11 +95,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if(  !$result){
                     fputcsv($fps, $row);
                 }else{
-                    $apt_id = $result['apt_id'];
+                    $apt_id = mysql_insert_id();
                     $prop_name = mysql_real_escape_string($result['property_name']);
                     $propertyid = $result['propertyid'];
-                    echo (addtenantBulk($apt_id, $apt_tag, $propertyid, $prop_name, mysql_real_escape_string($_POST['TenantName']), $_POST['TenantPhone'], $_POST['TenantEmail'], $_POST['PIN'], $_POST['work'], $_POST['IDNO'], $photo, $_POST['LeaseStart'], $_POST['LeaseEnd'], $_POST['Leasedoc'], $_POST['AgentName'], $_POST['Address'], $_POST['PostAddress'], $_POST['kinsName'], $_POST['KinsTel'], $_POST['kinsEmail'], $_POST['Date']));
-                
+                    $tenant = getTenantDetailsFromApt($apt_id);
+                    if($tenant){
+                        fputcsv($fps, $row);
+                    }else{
+                        echo (addtenantBulk($apt_id, $apt_tag, $propertyid, $prop_name, mysql_real_escape_string($_POST['TenantName']), $_POST['TenantPhone'], $_POST['TenantEmail'], $_POST['PIN'], $_POST['work'], $_POST['IDNO'], $photo, $_POST['LeaseStart'], $_POST['LeaseEnd'], $_POST['Leasedoc'], $_POST['AgentName'], $_POST['Address'], $_POST['PostAddress'], $_POST['kinsName'], $_POST['KinsTel'], $_POST['kinsEmail'], $_POST['Date']));
+                 }
+                  
                 }
             }
             sync_tenant();
