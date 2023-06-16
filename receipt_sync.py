@@ -41,6 +41,8 @@ while True:
     if not result:
         break
     # Print the fetched data
+    request=[]
+    invoiceno=[]
     for row in result:
        
         receiptdate = row["rdate"]
@@ -48,6 +50,7 @@ while True:
         recpamount = row["amount"]
         customerId=row["idno"]
         tno=row["tno"]
+        invoiceno.append(tno)
         datereceipt = receiptdate
         data2 = {
             "CustId": customerId,
@@ -57,30 +60,43 @@ while True:
             "Amount": recpamount
         }
         
-        json_data = json.dumps(data2, cls=CustomJSONEncoder)  # Use CustomJSONEncoder
-        print(json_data)
-        exit
-        username = "api-user"
-        password = "admin"
-        headers = {
-            'Authorization': 'Basic ' + base64.b64encode((username + ':' + password).encode()).decode()
-        }
-        print(headers)
-        url = "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER"
+        request.append(data2)
+    request = json.dumps(request, cls=CustomJSONEncoder)  # Use CustomJSONEncoder
+    username = "api-user"
+    password = "admin"
+    headers = {
+        'Authorization': 'Basic ' + base64.b64encode((username + ':' + password).encode()).decode()
+    }
+  
+    url = "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment-bulk&company-id=RIVER"
 
-        response = requests.post(url, data=json_data, headers=headers)
-        
-        if response.status_code == 200:
-            response = response.json()
-            status = response[0]['Status']
-            success = response[0]['Success']
-            payment_id = response[0]['id']
-            if status == 'ok' and success == 'Payment added':
-                print('Payment added successfully. Payment ID:', payment_id)
-                cursor.execute(f"UPDATE `recptrans` SET `sync` = 1 WHERE `tno` = '{tno}'")
-                db.commit()
+    response = requests.post(url, data=request, headers=headers)
+    
+    if response.status_code == 200:
+        response_text = response.text.strip()
+    
+        data_str = response_text.replace('}][{', '},{')
+       
+        json_array= json.loads(data_str)
+        print(json_array)
+
+        # Process each array separately
+        for index, response in enumerate(json_array):
+            print(response)
+            # Accessing the response data
+            if response:
+                status = response['Status']
+                success = response['Success']
+                payment_id = response['id']
+
+                if status == 'ok' and success == 'Payment added':
+                    print('Payment added successfully. Payment ID:', payment_id)
+                    
+                    # Perform necessary database operations
+                    cursor.execute(f"UPDATE `recptrans` SET `sync` = 1 WHERE `tno` = '{invoiceno[index]}'")
+                    db.commit()
+                else:
+                    print('Payment addition failed.')
             else:
-                print('Payment addition failed.')
-        else:
-            print('Invalid response format.')
-            break
+                print('Invalid response format.')
+      
