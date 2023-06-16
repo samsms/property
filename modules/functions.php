@@ -3590,15 +3590,20 @@ function getallSystemtenants($propertyid, $parameter, $asc_desc, $user = "")
 
 function getalltenants($propertyid, $parameter, $asc_desc, $user, $options)
 {
+  
     $db = new MySQLDatabase();
     $db->open_connection();
     date_default_timezone_set('Africa/Nairobi');
     $date = date("d/m/y");
     $time = date('h:i A');
     $tablename = 'tenants';
+    if($parameter==null){
+        $parameter="Id";
+    }
     if ($propertyid != "all") {
 
         $q = "SELECT * FROM $tablename WHERE property_id like '$propertyid' AND vacated='0' ORDER BY $parameter $asc_desc";
+       
     } else {
         if ($options["tenant_name"] && $options["houseno"]) {
             $tenantname = $options["tenant_name"];
@@ -3616,17 +3621,19 @@ function getalltenants($propertyid, $parameter, $asc_desc, $user, $options)
             $q = "SELECT * FROM $tablename ORDER BY $parameter $asc_desc";
         }
     }
+
     $query = $db->query($q) or die($db->error());
     $db->close_connection();
     echo '<table class="treport1 exportlist" style="width:900px"><br>
 <tr><td colspan="15">
 <h3><center>TENANT LIST REPORT - ' . $_SESSION['clientname'] . '</center></h3></td></tr>
 <tr>
+<th><center><u>Tenant Id</u></center></th>
 <th><center><u>S/no</u></center></th>
 <th><center><u>Apartment tag</u></center></th>
 <th><center><u>Property Name</u></center></th>
 <th><center>|</center></th>
-<th><center><u>Tenant Photo</u></center></th>
+
 <th><center><u>Tenant Name</u></center></th>
 <th><center><u>Tenant Phone</u></center></th>
 <th><center><u>Tenant Email</u></center></th>
@@ -3657,8 +3664,8 @@ function getalltenants($propertyid, $parameter, $asc_desc, $user, $options)
         $leaseend = $row['todate'];
         $array = array("apartmentid" => "$apartmentid", "apartmenttag" => "$apartmenttag", "propertyname" => "$propertyname", "tenantname" => "$tenantname", "tenantphone" => "$tenantphone", "tenantemail" => "$tenantemail", "tenantphoto" => "$tenantphoto", "tenantpin" => "$tenantpin", "id" => "$id", "leasestart" => "$leasestart", "leaseend" => "$leaseend");
 
-        //echo '<div id="valuerow">'.$array ["apartmentid"].'<span id="values"></span>'.$array ["apartmenttag"].'<span id="values"></span>'.$array ["propertyname"].'<span id="values"></span>'.str_repeat('&nbsp;',15).$array ["tenantname"].'</div><br/>';
-        echo '<tr><td>' . $array["apartmentid"] . '</td><td>' . $array["apartmenttag"] . '</td><td>' . $array["propertyname"] . '</td><td>|</td><td><center>' . $array["tenantphoto"] . '</center></td><td>' . $array["tenantname"] . '</td><td>' . $array["tenantphone"] . '</td><td>' . $array["tenantemail"] . '</td><td>' . $array["tenantpin"] . '</td>' . '<td>' . $array["id"] . '</td><td>' . $address . '</td><td>' . $kinsname . '</td><td>' . $kinstel . '</td><td>' . $array["leasestart"] . '</td><td>' . $array["leaseend"] . '</td></tr>';
+        //echo '<div id="vauerow">'.$array ["apartmentid"].'<span id="values"></span>'.$array ["apartmenttag"].'<span id="values"></span>'.$array ["propertyname"].'<span id="values"></span>'.str_repeat('&nbsp;',15).$array ["tenantname"].'</div><br/>';
+        echo '<tr><td>' .  $row["Id"] . '</td><td>' . $array["apartmentid"] . '</td><td>' . $array["apartmenttag"] . '</td><td>' . $array["propertyname"] . '</td><td>' . $array["tenantname"] . '</td><td>' . $array["tenantphone"] . '</td><td>' . $array["tenantemail"] . '</td><td>' . $array["tenantpin"] . '</td>' . '<td>' . $array["id"] . '</td><td>' . $address . '</td><td>' . $kinsname . '</td><td>' . $kinstel . '</td><td>' . $array["leasestart"] . '</td><td>' . $array["leaseend"] . '</td></tr>';
     }
     echo '</table>';
     echo '<hr/>';
