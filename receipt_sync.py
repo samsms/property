@@ -3,7 +3,7 @@ import json
 import pymysql
 import base64
 from datetime import date
-
+import time
 env_file = '.env'
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -31,7 +31,7 @@ while True:
     cursor = db.cursor()
     # Create a cursor to execute SQL queries with DictCursor
     # Define the SQL query
-    query = "SELECT tno,idno,rdate,invoicenopaid, rmks, amount FROM recptrans WHERE sync = 0 limit 500"
+    query = "SELECT tno,idno,rdate,invoicenopaid, rmks, amount FROM recptrans WHERE sync = 0 limit 10"
 
     # Execute the SQL query
     cursor.execute(query)
@@ -99,4 +99,5 @@ while True:
                     print('Payment addition failed.')
             else:
                 print('Invalid response format.')
+        time.sleep(10)
       
