@@ -17047,3 +17047,6 @@ Payment added successfully. Payment ID: 35914
 {"CustId": "31715", "TransactionRef": 108402, "TransDate": "2023-06-16", "BankAcct": 20000001, "Amount": 200.0}
 {'Authorization': 'Basic YXBpLXVzZXI6YWRtaW4='}
 Payment added successfully. Payment ID: 35915
+{"CustId": "31715", "TransactionRef": 108402, "TransDate": "2023-06-16", "BankAcct": 20000001, "Amount": 10.0}
+{'Authorization': 'Basic YXBpLXVzZXI6YWRtaW4='}
+Payment added successfully. Payment ID: 35916
