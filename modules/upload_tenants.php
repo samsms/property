@@ -73,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 
                }else{
+                // die(print_r());
                 $prop_name= $pre_result['property_name'];
                 $prop_id= $pre_result['propertyid'];
              
@@ -89,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 }
             }
+            sync_tenant();
         }
         fclose($fps);
 
