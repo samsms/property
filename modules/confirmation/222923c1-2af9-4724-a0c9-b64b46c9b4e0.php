@@ -43,7 +43,7 @@ require '../functions.php';
 
     
   
-    $tenant=getTenantDetailsFromId($accountNo);
+    $tenant=getTenantDetailsFromId($BillRefNumber);
     if(!$tenant){
         
     }
@@ -64,7 +64,7 @@ require '../functions.php';
     function create_mpesa_receipt($id,$paid_amount,$reference){
         $tenant = getTenantDetailsFromId($id);
         $invoices = fetchinvoicedetailsPlain($tenant['Id']);
-        
+    //die(json_encode($invoices));
         $last_invoice = end($invoices);
         
         foreach ($invoices as $invoice) {
@@ -84,7 +84,7 @@ require '../functions.php';
         }
         function pay($id, $invoice, $amount, $reference) {
             $invoicenos = $invoice['invoiceno'];
-            $fperiod = $fperiod;
+            $fperiod = "";
             $penalty = null;
             $penaltygl = null;
             $idno = $id;
@@ -98,18 +98,18 @@ require '../functions.php';
             $remarks = $reference;
             $recpamount = $amount;
             $propid = $invoice['property_id'];
-            $user = $_SESSION['username'];
+            $user = "mpesa";
             $paidby = '0';
             $period = getPeriodByDate(date('d/m/Y'));
             $fperiod;
-        
-            if (is_array($period)) {
-                $fperiod = $period[0]['idclose_periods'];
-            } else {
-                $fperiod = $period['idclose_periods'];
-            }
+          
+            // if (is_array($period)) {
+            //     $fperiod = $period[0]['idclose_periods'];
+            // } else {
+            //     $fperiod = $period['idclose_periods'];
+            // }
         ob_start();
-             update_invoice($invoicenos, $amount, $idno, $receiptdate, $paymode, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $counter, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit, $reference);
+             update_invoice($invoicenos, $amount, $idno, $receiptdate, $paymode, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, 0, $propid, $penalty, $penaltygl, $fperiod, null, $reference);
         return  ob_get_clean();
 
             }

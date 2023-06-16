@@ -17035,3 +17035,15 @@ Traceback (most recent call last):
   File "/usr/local/lib/python3.8/dist-packages/requests/adapters.py", line 547, in send
     raise ConnectionError(err, request=request)
 requests.exceptions.ConnectionError: ('Connection aborted.', OSError(101, 'Network is unreachable'))
+{"CustId": "31715", "TransactionRef": 108402, "TransDate": "2023-06-16", "BankAcct": 20000001, "Amount": 10.0}
+{'Authorization': 'Basic YXBpLXVzZXI6YWRtaW4='}
+Payment added successfully. Payment ID: 35912
+{"CustId": "31715", "TransactionRef": 108402, "TransDate": "2023-06-16", "BankAcct": 20000001, "Amount": 10.0}
+{'Authorization': 'Basic YXBpLXVzZXI6YWRtaW4='}
+Payment added successfully. Payment ID: 35913
+{"CustId": "31715", "TransactionRef": 108402, "TransDate": "2023-06-16", "BankAcct": 20000001, "Amount": 10.0}
+{'Authorization': 'Basic YXBpLXVzZXI6YWRtaW4='}
+Payment added successfully. Payment ID: 35914
+{"CustId": "31715", "TransactionRef": 108402, "TransDate": "2023-06-16", "BankAcct": 20000001, "Amount": 200.0}
+{'Authorization': 'Basic YXBpLXVzZXI6YWRtaW4='}
+Payment added successfully. Payment ID: 35915

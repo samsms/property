@@ -6172,8 +6172,6 @@ function fetchinvoicedetailsPlain($tenantid)
         while ($row = $res->fetch_assoc()) {
             $data[] = $row;
         }
-    }else{
-        return array();
     }
 
     return $data;
@@ -6303,9 +6301,15 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
     //if item is deposit
     $recpno = incrementnumber("recpno");
     foreach ($invoiceitems as $item) {
-
+      
         $invoiceitemdetails = getChargeItemByName($item['name'], $propid);
-        if ($invoiceitemdetails['is_deposit'] == 1) {
+        if($invoiceitemdetails==[]){
+            continue;
+        }
+        $is_deposit=$invoiceitemdetails['is_deposit'];
+    
+      
+        if ( $is_deposit == 1) {
             $deposit_amount = min($recpamount, $item['amount']);
             $recpamount = $recpamount - $deposit_amount;
 
@@ -6316,10 +6320,10 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
             //bank amount
             if ($paymode == 0) {
                 $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => "UC", "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
-                saveUndepositedCash($data);
+               
             } //bank deposits
             else if ($paymode == 3) {
-                $bank = getBankDetails($bankdeposit);
+              
                 $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => $bank["bank_code"], "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
                 saveUndepositedCash($data);
             }
@@ -6338,19 +6342,13 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
             echo $db->error();
         } else {
             // credit entry for apartment gl
-            $glaccount = getGLCodeForAccount(array('gl' => 'HouseGL', 'apt_id' => $aptid));
-            $glcode4 = $glaccount['glcode'];
-            $entry = createJournalEntry(array('glcode' => $glcode4, 'document_ref' => $recpno, 'credit' => $recpamount, 'ttype' => 'RECP', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-
+      
             //debit entry for agent bank
             //if not penalty calculate commission
             if (!$penalty) {
                 $commission = getPropertyCommissionRate($propid);
                 $creditamount = round((($commission * $recpamount) / 100), 2);
-                $glaccountal = getGLCodeForAccount(array('gl' => 'AgentBank'));
-                $glcode5 = $glaccountal['glcode'];
-                $entry = createJournalEntry(array('glcode' => $glcode5, 'document_ref' => $recpno, 'debit' => $recpamount, 'ttype' => 'RECP', 'property_id' => $propid, 'desc' => $remarks, 'idclose_period' => $fperiod));
-                //debit entry for bank
+              
             }
 
 
@@ -6364,12 +6362,12 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
             //process cash deposits
             if ($paymode == 0) {
                 $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => "UC", "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
-                saveUndepositedCash($data);
+               
             } //bank deposits
             else if ($paymode == 3) {
                 $bank = getBankDetails($bankdeposit);
                 $data = array("recpno" => $recpno, "amount" => $recpamount, "date" => date("Y-m-d H:i:s", strtotime($receiptdate)), "bank_type" => $bank["bank_code"], "is_credit" => 1, "is_debit" => 0, "narration" => $remarks);
-                saveUndepositedCash($data);
+               
             }
             if ($response_array['status'] == "") {
                 $response_array['status'] = $recpno;
@@ -6377,52 +6375,16 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
                 $response_array['status'] =  $response_array['status'] . ',' . $recpno;
             }
 
-            $datereceipt = date("Y-m-d", strtotime($receiptdate));
             
-            // $idno
-            //$json = array();
-            $data2 = array(
-                "CustId" => 5998,
-                "TransactionRef" => $reference,
-                "TransDate" => $datereceipt,
-                "BankAcct" => 20000001,
-                "Amount" => $recpamount
-            );
-            $json[] = $data2;
-            $json_data = json_encode($json);
-            $username = "api-user";
-            $password = "admin";
-            $headers = array(
-                'Authorization: Basic ' . base64_encode($username . ':' . $password),
-            );
-            die(json_encode( $data2));
-
-            //Perform curl post request to add item to the accounts erp
-            $curl = curl_init();
-
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => "https://techsavanna.technology/river-court-palla/api/endpoints/payment.php?action=make-payment&company-id=RIVER",
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "POST",
-                CURLOPT_POSTFIELDS => $json_data,
-                CURLOPT_HTTPHEADER => $headers,
-            ));
-
-            $response = curl_exec($curl);
-
-            curl_close($curl);
-            echo json_encode($response_array);
+           echo  json_encode($response_array);
+           
         }
     } else {
         header('Content-Type: application/json');
         $response_array['status'] = 0;
         echo json_encode($response_array);
     }
+    sync_receipt();
 }
 
 //other receipt

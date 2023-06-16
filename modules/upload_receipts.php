@@ -9,17 +9,12 @@ if (isset($_FILES['receipt_file'])) {
     if (!($fp = fopen($fname, 'r'))) {
         die("Can't open file...");
     }
-
-   
     // parse csv rows into array
     $data = array();
     $result = array();
-
-    while ($row = fgetcsv($fp, 1024, ",")) {
-       
-        $tenant = getTenantfromApt(getPropertyId($row[1]), $row[2]);
-     
-     $date = DateTime::createFromFormat('d/m/Y', trim($row[0]));
+    while ($row = fgetcsv($fp, 1024, ",")) {    
+    $tenant = getTenantfromApt(getPropertyId($row[1]), $row[2]);    
+    $date = DateTime::createFromFormat('d/m/Y', trim($row[0]));
          //  die(print_r($row));
      $invoices =false;
      if($tenant!==null){
