@@ -43,7 +43,7 @@ require '../functions.php';
 
     
   
-    $tenant=getTenantDetailsFromId($BillRefNumber);
+    $tenant=getTenantDetailsFromIdno($BillRefNumber);
     if(!$tenant){
         
     }
@@ -62,7 +62,7 @@ require '../functions.php';
 
 
     function create_mpesa_receipt($id,$paid_amount,$reference){
-        $tenant = getTenantDetailsFromId($id);
+        $tenant = getTenantDetailsFromIdno($id);
         $invoices = fetchinvoicedetailsPlain($tenant['Id']);
     //die(json_encode($invoices));
         $last_invoice = end($invoices);

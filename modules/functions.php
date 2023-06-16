@@ -6773,6 +6773,16 @@ function getTenantDetailsFromId($tenantid)
 
     return $row;
 }
+function getTenantDetailsFromIdno($id)
+{
+    $tenantstable = getTenantTable();
+    $db = getMysqliConnection();
+    $result = $db->query("SELECT * FROM {$tenantstable} WHERE Id='$tenantid' AND vacated=0 ") or die($db->error());
+    // die("SELECT * FROM {$tenantstable} WHERE idno='$tenantid' AND vacated=0 ");
+    $row = $result->fetch_array();
+
+    return $row;
+}
 
 //tenant table
 function getTenantTable()
