@@ -96,6 +96,8 @@ while True:
                     cursor.execute(f"UPDATE `recptrans` SET `sync` = 1 WHERE `tno` = '{invoiceno[index]}'")
                     db.commit()
                 else:
+                    cursor.execute(f"UPDATE `recptrans` SET `sync` = -1 WHERE `tno` = '{invoiceno[index]}'")
+                    db.commit()
                     print('Payment addition failed.')
             else:
                 print('Invalid response format.')

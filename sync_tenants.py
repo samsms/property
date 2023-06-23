@@ -97,6 +97,8 @@ def sync_tenants():
                     message = 'Data synced successfully.'
                 else:
                     # If the request failed, log the error message
+                    cursor.execute(f"UPDATE `tenants` SET `sync` = -1 WHERE `Id` = '{lastid}'")
+                    db.commit()
                     error_msg = response.text
                     message = f"Error syncing data: {error_msg}"
             else:
