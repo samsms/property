@@ -191,7 +191,7 @@ a.export, a.export:visited {
             echo '<tr><td colspan="24"><center><span style="font-size:13px;font-weight:normal;"> <b>LANDLORD STATEMENT -' . $accname . '</b></span><span style="font-size:18px;font-weight:normal; ">' . findpropertybyid($propid) . '</span><br/><span style="font-size:12px;font-weight:normal;float:right">' . str_repeat('&nbsp;', 25) . 'Statement From <b> ' . date('d-m-Y', strtotime($startdate)) . '</b>  To  <b>' . date('d-m-Y', strtotime($enddate)) . '</b></span><center></tr>';
 
             echo '<tr>
-    <u><td>S/no</td><td>House</td><td>Name</td><td>Rent/PM</td><td>Invoiced amt</td><td>Deposit Paid</td><td>RCP</td>';
+    <u><td>S/no</td><td>House</td><td>Name</td><td>Rent/PM</td><td>Invoiced Rent</td><td>Deposit Paid</td><td>RCP</td>';
             foreach ($chargeables as $value) {
                 array_push($itemnames, strtolower($value['accname']));
                 echo '<td>' . strtoupper($value['accname']) . '</td>';
@@ -280,10 +280,10 @@ a.export, a.export:visited {
                 }
 
                 //bbf
-                $balanceminuslastrentinvoice = getCorrectBalance($tenantid,null,$enddate,null);// - $rentbalance;
-//                if ($balanceminuslastrentinvoice < 0) {
-//                    $balanceminuslastrentinvoice = 0;//-$balanceminuslastrentinvoice;
-//                }
+                $balanceminuslastrentinvoice = getCorrectBalance($tenantid,null,$enddate,null)-$tenant_invoice['TAmount'];// - $rentbalance;
+            //    if ($balanceminuslastrentinvoice < 0) {
+            //        $balanceminuslastrentinvoice = 0;//-$balanceminuslastrentinvoice;
+            //    }
 
                 echo '</td><td>' . number_format($balanceminuslastrentinvoice, 2) . '</td>' .
                 //amount due
@@ -384,15 +384,16 @@ a.export, a.export:visited {
             echo '<tr><td><b>Other Chargables</b></td><td></td><td></td><td></td><td><b>' . ($total_rent - $total_invoices) . '</b></td></tr>';
 
             $data = json_decode(getPrepayment($propid));
+             //die( getPrepayment($propid) );
             $prep = 0;
             $houses = "";
             foreach ($data as $dt) {
                 $prep += $dt->monthlyincome;
-
-                $houses .= $dt->aptid;
                 if ($houses != "") {
                     $houses .= " and ";
                 }
+                $houses .= $dt->apt_tag;
+               
             }
             echo '<tr>
             
@@ -459,7 +460,7 @@ a.export, a.export:visited {
                 // }
                 //add paid amounts to array
                 $paidamounts = $paidamounts + $payment["amount"];
-                echo '<td></td><td></td><td></td><td><b>' . number_format($payment["amount"], 2) . '</b></td><td>Cheque No' . $payment["chequeno"] . '</td><td>Cheque Date' . $payment["chequedate"] . '</td></tr>';
+                echo '<td></td><td></td><td></td><td><b>' . number_format($payment["amount"], 2) . '</b><td>' . $payment["chequedate"] . '</td></tr>';
             }
             echo '<tr><td><b>Balance as at end of' . $todate->format("m-Y") . ' </b>'; //. str_repeat('<td></td>', 9);
             // foreach ($chargeables as $value) {

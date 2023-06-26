@@ -1,0 +1,286 @@
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 703, in urlopen
+    httplib_response = self._make_request(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 386, in _make_request
+    self._validate_conn(conn)
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 1042, in _validate_conn
+    conn.connect()
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connection.py", line 414, in connect
+    self.sock = ssl_wrap_socket(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/util/ssl_.py", line 449, in ssl_wrap_socket
+    ssl_sock = _ssl_wrap_socket_impl(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/util/ssl_.py", line 493, in _ssl_wrap_socket_impl
+    return ssl_context.wrap_socket(sock, server_hostname=server_hostname)
+  File "/usr/lib/python3.8/ssl.py", line 500, in wrap_socket
+    return self.sslsocket_class._create(
+  File "/usr/lib/python3.8/ssl.py", line 1040, in _create
+    self.do_handshake()
+  File "/usr/lib/python3.8/ssl.py", line 1309, in do_handshake
+    self._sslobj.do_handshake()
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/requests/adapters.py", line 489, in send
+    resp = conn.urlopen(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 787, in urlopen
+    retries = retries.increment(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/util/retry.py", line 550, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/packages/six.py", line 769, in reraise
+    raise value.with_traceback(tb)
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 703, in urlopen
+    httplib_response = self._make_request(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 386, in _make_request
+    self._validate_conn(conn)
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 1042, in _validate_conn
+    conn.connect()
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connection.py", line 414, in connect
+    self.sock = ssl_wrap_socket(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/util/ssl_.py", line 449, in ssl_wrap_socket
+    ssl_sock = _ssl_wrap_socket_impl(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/util/ssl_.py", line 493, in _ssl_wrap_socket_impl
+    return ssl_context.wrap_socket(sock, server_hostname=server_hostname)
+  File "/usr/lib/python3.8/ssl.py", line 500, in wrap_socket
+    return self.sslsocket_class._create(
+  File "/usr/lib/python3.8/ssl.py", line 1040, in _create
+    self.do_handshake()
+  File "/usr/lib/python3.8/ssl.py", line 1309, in do_handshake
+    self._sslobj.do_handshake()
+urllib3.exceptions.ProtocolError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/www/html/property-rivercourt/invoice_sync.py", line 181, in <module>
+    sync_invoices()
+  File "/var/www/html/property-rivercourt/invoice_sync.py", line 154, in sync_invoices
+    response2 = requests.post(url2, data=json_data2, headers=headers)
+  File "/usr/local/lib/python3.8/dist-packages/requests/api.py", line 115, in post
+    return request("post", url, data=data, json=json, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/api.py", line 59, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/sessions.py", line 587, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/sessions.py", line 701, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/adapters.py", line 547, in send
+    raise ConnectionError(err, request=request)
+requests.exceptions.ConnectionError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connection.py", line 174, in _new_conn
+    conn = connection.create_connection(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/util/connection.py", line 72, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+  File "/usr/lib/python3.8/socket.py", line 918, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 703, in urlopen
+    httplib_response = self._make_request(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 386, in _make_request
+    self._validate_conn(conn)
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 1042, in _validate_conn
+    conn.connect()
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connection.py", line 358, in connect
+    self.sock = conn = self._new_conn()
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connection.py", line 186, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPSConnection object at 0x7fa01a13caf0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/requests/adapters.py", line 489, in send
+    resp = conn.urlopen(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 787, in urlopen
+    retries = retries.increment(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/util/retry.py", line 592, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='techsavanna.technology', port=443): Max retries exceeded with url: /river-court-palla/api/endpoints/journal.php?action=add-journal-bulk&company-id=RIVER (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa01a13caf0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/www/html/property-rivercourt/invoice_sync.py", line 181, in <module>
+    sync_invoices()
+  File "/var/www/html/property-rivercourt/invoice_sync.py", line 154, in sync_invoices
+    response2 = requests.post(url2, data=json_data2, headers=headers)
+  File "/usr/local/lib/python3.8/dist-packages/requests/api.py", line 115, in post
+    return request("post", url, data=data, json=json, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/api.py", line 59, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/sessions.py", line 587, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/sessions.py", line 701, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/adapters.py", line 565, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='techsavanna.technology', port=443): Max retries exceeded with url: /river-court-palla/api/endpoints/journal.php?action=add-journal-bulk&company-id=RIVER (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa01a13caf0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connection.py", line 174, in _new_conn
+    conn = connection.create_connection(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/util/connection.py", line 72, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+  File "/usr/lib/python3.8/socket.py", line 918, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 703, in urlopen
+    httplib_response = self._make_request(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 386, in _make_request
+    self._validate_conn(conn)
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 1042, in _validate_conn
+    conn.connect()
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connection.py", line 358, in connect
+    self.sock = conn = self._new_conn()
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connection.py", line 186, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPSConnection object at 0x7f2424529af0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/requests/adapters.py", line 489, in send
+    resp = conn.urlopen(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/connectionpool.py", line 787, in urlopen
+    retries = retries.increment(
+  File "/usr/local/lib/python3.8/dist-packages/urllib3/util/retry.py", line 592, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='techsavanna.technology', port=443): Max retries exceeded with url: /river-court-palla/api/endpoints/journal.php?action=add-journal-bulk&company-id=RIVER (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7f2424529af0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/www/html/property-rivercourt/invoice_sync.py", line 181, in <module>
+    sync_invoices()
+  File "/var/www/html/property-rivercourt/invoice_sync.py", line 154, in sync_invoices
+    response2 = requests.post(url2, data=json_data2, headers=headers)
+  File "/usr/local/lib/python3.8/dist-packages/requests/api.py", line 115, in post
+    return request("post", url, data=data, json=json, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/api.py", line 59, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/sessions.py", line 587, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/sessions.py", line 701, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/adapters.py", line 565, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='techsavanna.technology', port=443): Max retries exceeded with url: /river-court-palla/api/endpoints/journal.php?action=add-journal-bulk&company-id=RIVER (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7f2424529af0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+{'checkoutid': '108572', 'response': {'0': 'Response GL Item Has been added', 'id': '130005'}}
+1
+{'checkoutid': '108573', 'response': {'0': 'Response GL Item Has been added', 'id': '130007'}}
+1
+{'checkoutid': '108572', 'response': {'0': 'Response GL Item Has been added', 'id': '130009'}}
+0
+{'checkoutid': '108573', 'response': {'0': 'Response GL Item Has been added', 'id': '130011'}}
+0
+{'checkoutid': '108574', 'response': {'0': 'Response GL Item Has been added', 'id': '130013'}}
+1
+{'checkoutid': '108575', 'response': {'0': 'Response GL Item Has been added', 'id': '130015'}}
+1
+{'checkoutid': '108576', 'response': {'0': 'Response GL Item Has been added', 'id': '130021'}}
+1
+{'checkoutid': '108577', 'response': {'0': 'Response GL Item Has been added', 'id': '130024'}}
+1
+{'checkoutid': '108578', 'response': {'0': 'Response GL Item Has been added', 'id': '130027'}}
+1
+{'checkoutid': '108579', 'response': {'0': 'Response GL Item Has been added', 'id': '130030'}}
+1
+{'checkoutid': '108580', 'response': {'0': 'Response GL Item Has been added', 'id': '130033'}}
+1
+{'checkoutid': '108581', 'response': {'0': 'Response GL Item Has been added', 'id': '130036'}}
+1
+{'checkoutid': '108582', 'response': {'0': 'Response GL Item Has been added', 'id': '130039'}}
+1
+{'checkoutid': '108583', 'response': {'0': 'Response GL Item Has been added', 'id': '130042'}}
+1
+{'checkoutid': '108584', 'response': {'0': 'Response GL Item Has been added', 'id': '130045'}}
+1
+{'checkoutid': '108585', 'response': {'0': 'Response GL Item Has been added', 'id': '130048'}}
+1
+{'checkoutid': '108586', 'response': {'0': 'Response GL Item Has been added', 'id': '130051'}}
+1
+{'checkoutid': '108587', 'response': {'0': 'Response GL Item Has been added', 'id': '130054'}}
+1
+{'checkoutid': '108588', 'response': {'0': 'Response GL Item Has been added', 'id': '130057'}}
+1
+{'checkoutid': '108589', 'response': {'0': 'Response GL Item Has been added', 'id': '130060'}}
+1
+{'checkoutid': '108590', 'response': {'0': 'Response GL Item Has been added', 'id': '130063'}}
+1
+{'checkoutid': '108591', 'response': {'0': 'Response GL Item Has been added', 'id': '130066'}}
+1
+{'checkoutid': '108592', 'response': {'0': 'Response GL Item Has been added', 'id': '130069'}}
+1
+{'checkoutid': '108593', 'response': {'0': 'Response GL Item Has been added', 'id': '130072'}}
+1
+{'checkoutid': '108594', 'response': {'0': 'Response GL Item Has been added', 'id': '130075'}}
+1
+{'checkoutid': '108595', 'response': {'0': 'Response GL Item Has been added', 'id': '130078'}}
+1
+{'checkoutid': '108596', 'response': {'0': 'Response GL Item Has been added', 'id': '130081'}}
+1
+{'checkoutid': '108597', 'response': {'0': 'Response GL Item Has been added', 'id': '130084'}}
+1
+{'checkoutid': '108598', 'response': {'0': 'Response GL Item Has been added', 'id': '130152'}}
+1
+{'checkoutid': '108599', 'response': {'0': 'Response GL Item Has been added', 'id': '130155'}}
+1
+{'checkoutid': '108600', 'response': {'0': 'Response GL Item Has been added', 'id': '130158'}}
+1
+{'checkoutid': '108601', 'response': {'0': 'Response GL Item Has been added', 'id': '130161'}}
+1
+{'checkoutid': '108602', 'response': {'0': 'Response GL Item Has been added', 'id': '130164'}}
+1
+{'checkoutid': '108603', 'response': {'0': 'Response GL Item Has been added', 'id': '130167'}}
+1
+{'checkoutid': '108604', 'response': {'0': 'Response GL Item Has been added', 'id': '130170'}}
+1
+{'checkoutid': '108605', 'response': {'0': 'Response GL Item Has been added', 'id': '130173'}}
+1
+{'checkoutid': '108606', 'response': {'0': 'Response GL Item Has been added', 'id': '130176'}}
+1
+{'checkoutid': '108607', 'response': {'0': 'Response GL Item Has been added', 'id': '130179'}}
+1
+{'checkoutid': '108608', 'response': {'0': 'Response GL Item Has been added', 'id': '130182'}}
+1
+{'checkoutid': '108609', 'response': {'0': 'Response GL Item Has been added', 'id': '130185'}}
+1
+{'checkoutid': '108610', 'response': {'0': 'Response GL Item Has been added', 'id': '130188'}}
+1
+{'checkoutid': '108611', 'response': {'0': 'Response GL Item Has been added', 'id': '130191'}}
+1
+{'checkoutid': '108612', 'response': {'0': 'Response GL Item Has been added', 'id': '130194'}}
+1
+{'checkoutid': '108613', 'response': {'0': 'Response GL Item Has been added', 'id': '130197'}}
+1
+{'checkoutid': '108614', 'response': {'0': 'Response GL Item Has been added', 'id': '130200'}}
+1
+{'checkoutid': '108615', 'response': {'0': 'Response GL Item Has been added', 'id': '130203'}}
+1
+{'checkoutid': '108616', 'response': {'0': 'Response GL Item Has been added', 'id': '130206'}}
+1
+{'checkoutid': '108617', 'response': {'0': 'Response GL Item Has been added', 'id': '130209'}}
+1
+{'checkoutid': '108618', 'response': {'0': 'Response GL Item Has been added', 'id': '130212'}}
+1
+{'checkoutid': '108619', 'response': {'0': 'Response GL Item Has been added', 'id': '130277'}}
+1
+{'checkoutid': '108620', 'response': {'0': 'Response GL Item Has been added', 'id': '130279'}}
+1
+{'checkoutid': '108621', 'response': {'0': 'Response GL Item Has been added', 'id': '130281'}}
+1
+{'checkoutid': '108622', 'response': {'0': 'Response GL Item Has been added', 'id': '130283'}}
+1
+{'checkoutid': '108623', 'response': {'0': 'Response GL Item Has been added', 'id': '130285'}}
+1
+{'checkoutid': '108624', 'response': {'0': 'Response GL Item Has been added', 'id': '130287'}}
+1

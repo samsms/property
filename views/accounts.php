@@ -1239,7 +1239,7 @@ $user =  getUserById($_SESSION['userid']);
         //     return false
          if($("#prepayment-select option:selected").text()!="Select Apartment"){
             
-            var jqxhrpost = $.get("../modules/accountsprocess.php?report_prepayment=true&id=" + $("#prepayment-select option:selected").val()+"&amount="+ $("#preamount").val(), function() {
+            var jqxhrpost = $.get("../modules/accountsprocess.php?report_prepayment=true&id=" + $("#prepayment-select option:selected").val()+"&apt_id="+$("#prepayment-select option:selected").attr("class")+"&amount="+ $("#preamount").val(), function() {
 
             })
             .done(function(data) {
@@ -3904,22 +3904,21 @@ echo '</body>';
         <?php //echo print_r($_SESSION);
         ?>
         <?php
-        require '../loan/admin_class.php';
-        $crud = new Action();
-        $loan = json_decode($crud->loan_next($_SESSION['propertyid']));
-        ?>
-        <?php
-        if ($loan->success) {
-            echo '<tr><td>Total Loan :</td><td>' . $loan->total_loan . '</td></tr>';
-            echo '<tr><td>Total Amount Remaining:</td><td>' . $loan->balance . '</td></tr>';
-            if (!$loan->ispaid) {
-                echo '<tr><td>Loan Monthly Deduction:</td><td>' . $loan->amount . '</td></tr>';
-            } else {
-                echo '<tr><td>Loan Monthly Deduction:</td><td>Cleared</td></tr>';
-            }
-        } else {
-            echo '<tr><td>Loan:</td><td>' . $loan->message . '</td></tr>';
-        }
+        // require '../loan/admin_class.php';
+        // $crud = new Action();
+        // $loan = json_decode($crud->loan_next($_SESSION['propertyid']));
+      
+        // if ($loan->success) {
+        //     echo '<tr><td>Total Loan :</td><td>' . $loan->total_loan . '</td></tr>';
+        //     echo '<tr><td>Total Amount Remaining:</td><td>' . $loan->balance . '</td></tr>';
+        //     if (!$loan->ispaid) {
+        //         echo '<tr><td>Loan Monthly Deduction:</td><td>' . $loan->amount . '</td></tr>';
+        //     } else {
+        //         echo '<tr><td>Loan Monthly Deduction:</td><td>Cleared</td></tr>';
+        //     }
+        // } else {
+        //     echo '<tr><td>Loan:</td><td>' . $loan->message . '</td></tr>';
+        // }
         ?>
 
         <tr>
@@ -3953,36 +3952,13 @@ echo '</body>';
                 echo '<td> <a href="javascript:void(0)" onclick="addpayment()" style="font-size:30px"> +</a></td>';
             } ?>
         </tr>
-        <tr>
-            <td>Payment Source</td>
-            <td><select id='banktopayfrom' name='bankdepositpay' style='width:250px;'>
-                    <option value='0' selected='selected'>Select Bank Account</option>
-                    <?php
-                    $bankspays =  getBanks("b");
-
-                    foreach ($bankspays as $value) {
-                        echo "<option value='" . $value['id'] . "' >" . htmlspecialchars($value['bank_name']) . "</option>";
-                    }
-                    ?>
-            </td>
-        </tr>
+       
         <tr>
             <td>Payment Date</td>
             <td><input id="paymentdatelandlord" class="datepicker" name="paymentdatelandlord" readonly placeholder="todate" value="<?= date("d-m-Y") ?>" style="height:20px; border:1px solid green " /></td>
         </tr>
-        <tr>
-            <td><label id="chequedate">Cheque Date &nbsp;</label></td>
-            <td><input id="paymentdatecheque" class="datepicker" name="paymentdatecheque" placeholder="todate" value="<?= date("d-m-Y") ?>" style="height:20px; border:1px solid green " /></td>
-        </tr>
-        <tr>
-            <td id="chequenotd" style="color:grey;font-weight:bold;">CHEQUE NO ====></td>
-            <td><input id="cheqnopay" style="width:245px; height:20px;" />
-            </td>
-        </tr>
-        <tr>
-            <td><label id="chequedetailslabel">Cheque Details &nbsp;</label></td>
-            <td><textarea id="chequedetailspay" style="width:245px; height:60px; text-wrap:normal;"></textarea></td>
-        </tr>
+      
+       
 
 
         <tr>

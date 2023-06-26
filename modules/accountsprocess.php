@@ -21,10 +21,10 @@ if ($_REQUEST['getInvpoiceDetails']) {
 else if ($_REQUEST['report_prepayment']) {
     header("content-type:application/json");
     $propid = $_SESSION['propertyid'];
-    $apartment = ($_REQUEST['id']);
+    $apartment = ($_REQUEST['apt_id']);
     $amount = ($_REQUEST['amount']);
-    $tenant = ($_REQUEST['amount']);
-    $msg = reportPrepayment($propid, $apartment, $amount);
+    $tenant =($_REQUEST['id']);
+    $msg = reportPrepayment($propid, $apartment,$tenant, $amount);
     echo json_encode(array("success" => true, "msg" => $msg));
 }
 // .......pending

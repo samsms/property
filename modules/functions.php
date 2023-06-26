@@ -122,6 +122,8 @@ function getPrepayment($prop_id)
     //    die('ddk');
     $mysqli = getMysqliConnection();
     $date = date("Y-m-d");
+    // $sql ="select * from prepayments p  join floorplan f on(p.aptid=f.apt_id) where p.status='Approved' and p.propid=$prop_id   and MONTH(p.date)=MONTH('$date') AND YEAR(p.date)=YEAR('$date')";
+    
     $exits = $mysqli->query("select * from prepayments p  join floorplan f on(p.aptid=f.apt_id) where p.status='Approved' and p.propid=$prop_id   and MONTH(p.date)=MONTH('$date') AND YEAR(p.date)=YEAR('$date') ") or die(mysqli_error($mysqli));
     //  die($sql);
     if (mysqli_num_rows($exits) < 1) {
@@ -179,15 +181,15 @@ function AprovePrepayments($id)
     }
 }
 
-function reportPrepayment($prop_id, $tenantid, $amount)
+function reportPrepayment($prop_id,$apt_id, $tenantid, $amount)
 {
     $mysqli = getMysqliConnection();
     $date = date("Y-m-d");
 
     if ($_SESSION['usergroup'] == 1) {
 
-        $sql = "INSERT into prepayments (`propid`,`tenantid`,`date`,`status`,amount) 
-    values($prop_id,'$tenantid','$date','pending','$amount') ";
+        $sql = "INSERT into prepayments (`propid`,`tenantid`,`date`,`status`,amount,aptid) 
+    values($prop_id,'$tenantid','$date','Approved','$amount','$apt_id') ";
         $exits = $mysqli->query("select * from prepayments where propid=$prop_id and tenantid='$tenantid'  and date='$date'") or die(mysqli_error($mysqli));
         //  die($sql);
         if (mysqli_num_rows($exits) < 1) {
@@ -199,8 +201,8 @@ function reportPrepayment($prop_id, $tenantid, $amount)
         }
     } else {
 
-        $sql = "insert into prepayments (`propid`,`tenantid`,`date`) values
-    ($prop_id,'$apt_id','$date') ";
+        $sql = "insert into  prepayments (`propid`,`tenantid`,`date`,`status`,amount,aptid) 
+        values($prop_id,'$tenantid','$date','pending','$amount','$apt_id') ";
         $exits = $mysqli->query("select * from prepayments where propid=$prop_id and tenantid='$tenantid'  and date='$date'") or die(mysqli_error($mysqli));
         //  die($sql);
         if (mysqli_num_rows($exits) < 1) {
@@ -4107,7 +4109,8 @@ function set_charge_items($propertyid)
     $db->open_connection();
     $chargeitems = array();
     $total12 = 0;
-    $sql = $db->query("SELECT id,accname,amount FROM chargeitems WHERE propertyid='$propertyid'") or die($db->error());
+    $sql = $db->query("SELECT id,accname,amount FROM chargeitems WHERE propertyid='$propertyid' and accname!='RENT'") or die($db->error());
+    //die("SELECT id,accname,amount FROM chargeitems WHERE propertyid='$propertyid'");
     echo '<table>';
     while ($row = mysql_fetch_array($sql)) {
         $id = $row['id'];
@@ -4118,9 +4121,10 @@ function set_charge_items($propertyid)
         } else {
             echo '<tr><td><img src="../images/cursors/available.png"></td><td>' . htmlspecialchars($row['accname']) . '</td><td><input type="text" id="chargeitem' . $id . '" class="chargeitem" title="' . $row['accname'] . '"/></td></tr>';
         }
-
+      //  echo '<tr><td><img src="../images/cursors/available.png"></td><td>' . htmlspecialchars($row['accname']) . '</td><td><input type="text" id="chargeitem' . $id . '" class="chargeitem" title="' . $row['accname'] . '"/></td></tr>';
         array_push($chargeitems, $id . '&');
     }
+    echo '<tr><td><img src="../images/cursors/available.png"></td><td>Rent</td><td><input type="text"  class="chargeitem" title="RENT"/></td></tr>';
     $chargeitems_string = implode($chargeitems);
     echo '<input type="hidden" id="chargeitemsarray" value="' . $chargeitems_string . '"/>';
     echo '</table>';
@@ -4266,8 +4270,11 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
     }
     //invoice amount is now gotten from sum of charges
     $invoiceamount = array_sum($charges);
-
-    $query = "INSERT into $tablename(`invoiceno`,`paidamount`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2','$invoicebbf','$entrydate','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
+    $paid=0;
+    if($invoicebbf<0){
+        $paid=-$invoicebbf;
+    }
+    $query = "INSERT into $tablename(`invoiceno`,`paidamount`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2','$paid','$entrydate','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
     //   die($query);
     $resultquery = $db->query("SELECT current_water_reading FROM floorplan WHERE apt_id='$aptid'") or die($db->error());
     while ($row = mysql_fetch_array($resultquery)) {
@@ -4567,6 +4574,7 @@ function create_invoice_Bulky($id, $entrydate, $incomeacct, $amount, $billing, $
         }
         $priority = 'Z';
         $commissionnotcharged = 0;
+        //die(json_encode( $chargenames));
         //die();
         for ($i = 0; $i <= ($counter - 1); $i++) {
             $chargename = $chargenames[$i];
@@ -4817,6 +4825,7 @@ function create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $user,
             $chargeitems = array("RENT" => $rent);
         }
         //i have all chargeable items plus their amounts at this point
+       // echo(json_encode($chargeitems));
         $allitems = array_merge($chargeitems, $charges);
         $charges1 = array_values($allitems);
         $chargenames = array_keys($allitems);
@@ -4829,6 +4838,7 @@ function create_batch_invoice($entrydate, $incomeacct, $amount, $billing, $user,
         $invoices = create_invoice_Bulky($value['idno'], $entrydate, $incomeacct, $amount, $billing, $user, $propid, $remarks, $chargenames, $charges1, sizeof($charges1), $currentreading = 0, $value['apt_id'], $fperiod,null,null);
         //  die("rent".$invoices." amount ".$amount);
     }
+    
     unset($tenantdetails);
     unset($individualdetails);
     unset($charges);
@@ -6289,7 +6299,7 @@ function update_invoice($invoiceno, $recpamount, $idno, $receiptdate, $paymode, 
 //create a receipt
 function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit = 0, $reference)
 {
-    $response_array['status'] = "";
+    $response_arFray['status'] = "";
     $db = new MySQLDatabase();
     date_default_timezone_set('Africa/nairobi');
     $db->open_connection();
@@ -6391,7 +6401,7 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
         $response_array['status'] = 0;
         echo json_encode($response_array);
     }
-    sync_receipt();
+   
 }
 
 //other receipt
@@ -9793,7 +9803,7 @@ function makeLandlordpayment($params)
     $newentrydate = DateTime::createFromFormat('d-m-Y', $params["paydate"]);
     $entrydate = trim($newentrydate->format('Y-m-d'));
     $paydateperiod = trim($newentrydate->format('d/m/Y'));
-    $chequedatenonformatted = DateTime::createFromFormat('d-m-Y', $params["chequedate"]);
+    $chequedatenonformatted = DateTime::createFromFormat('d-m-Y', date("d-m-Y"));
     $chequedate = trim($chequedatenonformatted->format('Y-m-d'));
     $payno = incrementnumber("payno");
     $amount = $params["amount"];
@@ -10055,15 +10065,16 @@ function printlandlordvoucher($payno, $propid, $user)
     echo '<center><table class="printable" style="width:800px;"><div id="printheader">
         <tr><td colspan="3" ><span id="copy"></span><center><h2>' . $settings['company_name'] . '</h2></center></td></tr>
         <tr><td colspan="3" ><span id="copy"></span><center><span id="invoice">PAYMENT VOUCHER</span></center></td></tr>
-</div>';
+    </div>';
     echo '<tr><td style="width:50%"><span id="invoiceno">PAYMENT NO&nbsp;' . $payno . '</span></td><td colspan="3">Date  ' . date('d-m-Y', strtotime($paydate)) . '</td><td></td></tr>';
     echo '<tr><td colRspan="3"><br/><td></tr>';
-    echo '<tr><td style="width:50%"><b>CREDITOR :&nbsp;</b> ' . strtoupper(str_replace('_', " ", findpropertybyid($propid))) . '<br/><br/><b>PAYER: </b>' . $sname . '</td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td></tr>';
+    echo '<tr><td style="width:50%"><b>CREDITOR :&nbsp;</b> ' . strtoupper(str_replace('_', " ", findpropertybyid($propid))) . '<br/><br/><b>PAYER: </b> RIVERCOURT </td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td></tr>';
     echo '<tr><td colspan="1"></td><td><b>Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
     echo '<tr><td width="50%" style="font-size:11px;color:grey"><b>Remarks: </b>' . $remarks . '(' . $reason . ')</td></tr>';
-    echo '<tr><td width="80%" style="font-size:11px;color:grey">' . $chequecash . '&nbsp;|&nbsp;' . $chequeno1 . '&nbsp;' . $chequedate1 . '&nbsp;&nbsp;' . $chqdate . '</td></tr>';
-    echo '<tr><td colspan="3"><hr/>Authorised by.......................................................................................</td></tr>';
-    echo '<tr><td colspan="3">Authority Signature....................................................... |&nbsp;&nbsp;&nbsp; Recepient Signature...............................................</td></tr>';
+    echo '<tr><td width="80%" style="font-size:11px;color:grey">&nbsp;Date &nbsp;&nbsp;' . $chqdate . '</td></tr>';
+    echo '<tr><td colspan="3"><hr/>Prepared by........................................................................ Sign .........................................................</td></tr><tr></tr>';
+    echo '<tr><td colspan="3">Checked by ....................................................................... Sign..........................................................</td></tr><tr></tr>';
+    echo '<tr><td colspan="3">Received by....................................................................... Sign..........................................................</td></tr><tr></tr>';
 
     $userdetail = getUserById($user);
     echo '<tr><td colspan="3"><i>' . $userdetail['username'] . '&nbsp;&nbsp;' . $date . '&nbsp;&nbsp;' . $time . '</i></td></tr>';
