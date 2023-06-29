@@ -351,6 +351,7 @@ if ($reportpost === 'tenantlist') {
                 echo '<td></td>';
             }
             //add paid amounts to array
+            
             $paidamounts = $paidamounts + $payment["amount"];
             echo '<td></td><td><b>' . number_format($payment["amount"], 2) . '</b></td><td>Cheque No' . $payment["chequeno"] . '</td><td>Cheque Date' . $payment["chequedate"] . '</td></tr>';
         }

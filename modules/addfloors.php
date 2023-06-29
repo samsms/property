@@ -1,4 +1,4 @@
 <?php
 include 'functions.php';
-// echo addfloors(52,3);
+echo addfloors(52,3);
 ?>

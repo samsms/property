@@ -1166,6 +1166,11 @@ $user =  getUserById($_SESSION['userid']);
             window.open("../modules/defaultreports.php?report=tenantdeposits&startdate=" + $("#startdatedeposit").val() + "&enddate=" + $("#enddatedeposit").val() + "&propid=" + <?php echo $_SESSION['propertyid'] ?> + "&allpropertiesflag=" + $("#depositlistform input[name='receiptproperties']:checked").val());
 
         });
+        $("#btnlandlordlist").click(function(e) {
+            e.preventDefault();
+            window.open("../modules/defaultreports.php?report=landlordpaymentlist&startdate=" + $("#startdatelpay").val() + "&enddate=" + $("#enddatelpay").val() + "&propid=" + <?php echo $_SESSION['propertyid'] ?> + "&allpropertiesflag=" + $("#depositlistform input[name='receiptproperties']:checked").val());
+
+        });
 
         $('#closedeposits').click(function(e) {
             $('#depositlist').css("display", "none");
@@ -1187,7 +1192,10 @@ $user =  getUserById($_SESSION['userid']);
         $("#statements").change(function(e) {
             if ($("#statements :selected").attr("id") == "tenantstatement") {
                 $('#tstmnt').show('body');
-            } else if ($("#statements :selected").attr("id") == "prepayment") {
+            }
+            if ($("#statements :selected").attr("id") == "landlordpayments") {
+                $('#landlordlist').show('body');}//landlodpay
+            else if ($("#statements :selected").attr("id") == "prepayment") {
                 $('#prepayment-report').show('body');
             } else if ($("#statements :selected").attr("id") == "incomestatement") {
                 $('#incomestmnt').show('body');
@@ -2224,7 +2232,7 @@ if ($_SESSION['usergroup'] != 3) {
 
 if ($_SESSION['usergroup'] != 3) {
 ?>
-    <fieldset class="fieldsetchart">
+    <!-- <fieldset class="fieldsetchart">
         <legend id="chartofaccounts">
             <h3>Chart of Accounts</h3>
         </legend>
@@ -2234,7 +2242,7 @@ if ($_SESSION['usergroup'] != 3) {
             <option id="expenseaccounts">Expense/Bank Accounts</option>
 
         </select>
-    </fieldset>
+    </fieldset> -->
 <?php } ?>
 <fieldset class="fieldsetchart">
     <legend id="chartofaccounts">
@@ -2242,6 +2250,7 @@ if ($_SESSION['usergroup'] != 3) {
     </legend>
     <select class="width50" id="statements">
         <option id=" ">Select Menu Action</option>
+        <option id="landlordpayments"> Landlord Payments</option>
         <option id="prepayment"> Report Prepayment</option>
         <option id="tenantstatement">Tenant Statement</option>
         <option id="incomestatement">Income Statement</option>
@@ -2997,6 +3006,30 @@ echo '</body>';
                 <tr>
                     <td></td>
                     <td><input type="submit" id="btndepositlist" class="text ui-widget-content ui-corner-aEll" value="DEPOSIT LIST" style="width:150px;font-weight:bold;" /></td>
+                </tr>
+            </table>
+        </fieldset>
+    </form>
+</div>
+<div id="landlordlist" class="internalwindow normalwindow displaynone" title="">
+    <p class="titletr">Landlord Payment List<a href="#" class="linkright" id="closedeposits">Close [X]</a></p>
+    <p id="rcplist" class="validateTips3">Choose start/End Date</p>
+
+    <form id="landlordlist" method="post" enctype="multipart/form-data">
+        <fieldset>
+            <table width="100">
+                <tr>
+                    <td><label>Start Date </label></td>
+                    <td><label>End Date </label></td>
+                </tr>
+                <tr>
+                    <td><input id="startdatelpay" class="datepicker" style="width:150px;" type="text"></td>
+                    <td><input id="enddatelpay" class="datepicker" style="width:150px;" type="text"></td>
+                </tr>
+               
+                <tr>
+                    <td></td>
+                    <td><input type="submit" id="btnlandlordlist" class="text ui-widget-content ui-corner-aEll" value="VIEW" style="width:150px;font-weight:bold;" /></td>
                 </tr>
             </table>
         </fieldset>

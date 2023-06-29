@@ -388,7 +388,7 @@ a.export, a.export:visited {
             $prep = 0;
             $houses = "";
             foreach ($data as $dt) {
-                $prep += $dt->monthlyincome;
+                $prep += $dt->amount;
                 if ($houses != "") {
                     $houses .= " and ";
                 }
@@ -619,7 +619,19 @@ a.export, a.export:visited {
         } else if ($_REQUEST['receiptype'] == "otherreceipts") {
             echo getreceiptlistother($startdate, $enddate, $_REQUEST['propid'], $_SESSION['username'], $allpropertiesflag);
         }
-    } elseif ($_REQUEST['report'] === 'tenantdeposits') {
+
+    } 
+    elseif($_REQUEST['report']==="landlordpaymentlist")
+    {   $startdate = date("Y-m-d", strtotime($_REQUEST['startdate']));
+        $myDateTime1 = DateTime::createFromFormat('d/m/Y', trim($_REQUEST['startdate']));
+        $startdate = $myDateTime1->format('d-m-Y');
+        // $enddate=date("Y-m-d", strtotime($_REQUEST['enddate']));
+        $myDateTime = DateTime::createFromFormat('d/m/Y', trim($_REQUEST['enddate']));
+        $enddate = $myDateTime->format('d-m-Y');
+        $allpropertiesflag = $_REQUEST['allpropertiesflag'];
+        getLandlordPayments($startdate, $enddate, $_REQUEST['propid'], $_SESSION['username'], $allpropertiesflag);
+    }
+    elseif ($_REQUEST['report'] === 'tenantdeposits') {
         $startdate = date("Y-m-d", strtotime($_REQUEST['startdate']));
         $myDateTime1 = DateTime::createFromFormat('d/m/Y', trim($_REQUEST['startdate']));
         $startdate = $myDateTime1->format('d-m-Y');

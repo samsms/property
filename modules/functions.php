@@ -7850,7 +7850,60 @@ function getreceiptlistother($startdate, $enddate, $propid, $user, $allpropertie
     echo '<hr/>';
     echo '<i>Printed by:</i> ' . $user . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
 }
+function getLandlordPayments($startdate, $enddate, $propid, $user, $allpropertiesflag = 0)
+{
+    date_default_timezone_set('Africa/Nairobi');
+    $time = date('h:i A');
+    $db = new MySQLDatabase();
+    $db->open_connection();
 
+    // die($startdate." ".$enddate);
+    $myDateTimestart = DateTime::createFromFormat('d-m-Y', trim($startdate));
+    $startdate = $myDateTimestart->format('Y-m-d');
+    $myDateTime = DateTime::createFromFormat('d-m-Y', trim($enddate));
+    $enddate = $myDateTime->format('Y-m-d');
+
+  
+   
+        $query = $db->query("SELECT * from landlordpayments WHERE (paydate BETWEEN '$startdate' AND '$enddate') AND property_id='$propid'  ORDER BY paydate desc ") or die($db->error());
+        echo '<table class="treport1 width70" ><thead>
+<tr><td colspan="10"><center><span style="font-size:15px;font-weight:normal;float:left;"> <b>Landlord Payments LIST</b></span><span style="font-size:18px;font-weight:bold">' . $_SESSION['clientname'] . '</span><span style="font-size:18px;font-weight:normal; float:right;"></span><center>
+<br/><span style="font-size:16px;font-weight:normal;"><centreceiptlier>' . str_repeat('&nbsp;', 25) . 'Landlord Payments List From <b> ' . date("d-m-Y", strtotime($startdate)) . '</b>  To  <b>' . date("d-m-Y", strtotime($enddate)) . '</b></center></span></td></tr>';
+        echo '<tr>
+<u><th>ID</th>
+<th>PAYNO</th>
+<th>Property</th> 
+<th> Date</th>
+ <th>Amount</th>
+ <th>Remarks</th>
+ <th>Reason</th> 
+ <th>Action</th>
+ </u></tr>';
+        echo '</thead><tbody>';
+        $i = 1;
+
+        while ($row = $db->fetch_array($query)) {
+
+          
+            echo '<tr><td>' . ($i++) . '</td>
+            <td>' . $row['payno'] . '</td>
+            <td>' . findpropertybyid($row['property_id']) . '</td>
+             <td>'.$row['paydate'].'</td>
+            <td>'.$row['amount'].'</td>
+            <td>'.$row['rmks'].'</td>
+            <td>'.$row['reason'].'</td>
+            <td><a class=""  href="defaultreports.php?report=printlandlordvoucher&voucherno='.$row['payno'].'&propid='.$row['property_id'].'&user=4&target="blank">print vorcher<a></td>
+           
+            </tr>';
+           
+        }
+
+        echo '</tbody>';
+        echo '</table>';
+        echo '<hr/>';
+        echo '<i>Printed by:</i> ' . $user . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
+    
+}
 function getTenantDeposits($startdate, $enddate, $propid, $user, $allpropertiesflag = 0)
 {
     date_default_timezone_set('Africa/Nairobi');
@@ -10022,7 +10075,7 @@ function printvoucher($payno, $propid, $user)
     echo '<tr><td colspan="1"></td><td><b>Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
     echo '<tr><td width="50%" style="font-size:11px;color:grey"><b>being payment for: </b>' . @$remarks . '</td></tr>';
     echo '<tr><td width="80%" style="font-size:11px;color:grey">' . @$chequecash . '&nbsp;|&nbsp;' . @$chequeno1 . '&nbsp;' . @$chequedate1 . '&nbsp;&nbsp;' . @$chqdate . '</td></tr>';
-    echo '<tr><td colspan="3"><hr/>Authorised by.......................................................................................</td></tr>';
+    echo '<tr><td colspan="3"><hr/>Authorised by......................................................................................</td></tr>';
     echo '<tr><td colspan="3">Authority Signature....................................................... |&nbsp;&nbsp;&nbsp; Recepient Signature...............................................</td></tr>';
 
     $userdetail = getUserById($user);
@@ -10064,7 +10117,7 @@ function printlandlordvoucher($payno, $propid, $user)
     $settings = getSettings();
     echo '<center><table class="printable" style="width:800px;"><div id="printheader">
         <tr><td colspan="3" ><span id="copy"></span><center><h2>' . $settings['company_name'] . '</h2></center></td></tr>
-        <tr><td colspan="3" ><span id="copy"></span><center><span id="invoice">PAYMENT VOUCHER</span></center></td></tr>
+        <tr><td colspan="3" ><span id="copy"></span><center><span id="invoice">LANDLORD PAYMENT VOUCHER</span></center></td></tr>
     </div>';
     echo '<tr><td style="width:50%"><span id="invoiceno">PAYMENT NO&nbsp;' . $payno . '</span></td><td colspan="3">Date  ' . date('d-m-Y', strtotime($paydate)) . '</td><td></td></tr>';
     echo '<tr><td colRspan="3"><br/><td></tr>';
@@ -10072,6 +10125,7 @@ function printlandlordvoucher($payno, $propid, $user)
     echo '<tr><td colspan="1"></td><td><b>Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
     echo '<tr><td width="50%" style="font-size:11px;color:grey"><b>Remarks: </b>' . $remarks . '(' . $reason . ')</td></tr>';
     echo '<tr><td width="80%" style="font-size:11px;color:grey">&nbsp;Date &nbsp;&nbsp;' . $chqdate . '</td></tr>';
+    echo '<tr><td colspan="3">Mode of Payments........................................code ....................</td></tr>';
     echo '<tr><td colspan="3"><hr/>Prepared by........................................................................ Sign .........................................................</td></tr><tr></tr>';
     echo '<tr><td colspan="3">Checked by ....................................................................... Sign..........................................................</td></tr><tr></tr>';
     echo '<tr><td colspan="3">Received by....................................................................... Sign..........................................................</td></tr><tr></tr>';
