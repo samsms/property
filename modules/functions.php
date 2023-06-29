@@ -10128,11 +10128,11 @@ function printlandlordvoucher($payno, $propid, $user)
     </div>';
     echo '<tr><td style="width:50%"><span id="invoiceno">PAYMENT NO&nbsp;' . $payno . '</span></td><td colspan="3">Date  ' . date('d-m-Y', strtotime($paydate)) . '</td><td></td></tr>';
     echo '<tr><td colRspan="3"><br/><td></tr>';
-    echo '<tr><td style="width:50%"><b>CREDITOR :&nbsp;</b> ' . strtoupper(str_replace('_', " ", findpropertybyid($propid))) . '<br/><br/><b>PAYER: </b> RIVERCOURT </td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td></tr>';
+    echo '<tr><td style="width:50%"><b>PAID TO :&nbsp;</b> ' . strtoupper(str_replace('_', " ", findpropertybyid($propid))) . '<br/><br/><b>PAID BY: </b> RIVERCOURT </td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td></tr>';
     echo '<tr><td colspan="1"></td><td><b>Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
     echo '<tr><td width="50%" style="font-size:16px;color:grey"><b>Remarks: </b>' . $remarks . '(' . $reason . ')</td></tr>';
     echo '<tr><td width="80%" style="font-size:16px;color:grey">&nbsp;Date &nbsp;&nbsp;' . $chqdate . '</td></tr>';
-    echo '<tr><td colspan="3">Mode of Payments........................................code ....................</td></tr>';
+    echo '<tr><td colspan="3">Mode of Payments........................................Details .......................................</td></tr>';
     echo '<tr><td colspan="3"><hr/>Prepared by........................................................................ Sign .........................................................</td></tr><tr></tr>';
     echo '<tr><td colspan="3">Checked by ....................................................................... Sign..........................................................</td></tr><tr></tr>';
     echo '<tr><td colspan="3">Received by....................................................................... Sign..........................................................</td></tr><tr></tr>';
