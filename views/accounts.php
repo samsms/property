@@ -1167,6 +1167,7 @@ $user =  getUserById($_SESSION['userid']);
 
         });
         $("#btnlandlordlist").click(function(e) {
+            $('#landlordlist').toggle()
             e.preventDefault();
             window.open("../modules/defaultreports.php?report=landlordpaymentlist&startdate=" + $("#startdatelpay").val() + "&enddate=" + $("#enddatelpay").val() + "&propid=" + <?php echo $_SESSION['propertyid'] ?> + "&allpropertiesflag=" + $("#depositlistform input[name='receiptproperties']:checked").val());
 
@@ -1175,7 +1176,10 @@ $user =  getUserById($_SESSION['userid']);
         $('#closedeposits').click(function(e) {
             $('#depositlist').css("display", "none");
         });
-
+        $('#closelandlordlist').click(function(e) {
+            $('#landlordlist').css("display", "none");
+        });
+        
 
 
 
@@ -3016,7 +3020,7 @@ echo '</body>';
     </form>
 </div>
 <div id="landlordlist" class="internalwindow normalwindow displaynone" title="">
-    <p class="titletr">Landlord Payment List<a href="#" class="linkright" id="closedeposits">Close [X]</a></p>
+    <p class="titletr">Landlord Payment List<a href="#" class="linkright" id="closelandlordlist">Close [X]</a></p>
     <p id="rcplist" class="validateTips3">Choose start/End Date</p>
 
     <form id="landlordlist" method="post" enctype="multipart/form-data">
