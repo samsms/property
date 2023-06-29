@@ -2047,7 +2047,7 @@ $user =  getUserById($_SESSION['userid']);
         //pay landlord
         $("#btnpaylandlord").click(function(e) {
             e.preventDefault();
-
+            $('#paylandlorddiv').toggle();
             if ($('#propertytopay').val() === "" || $('#amountpaylandlord').val() === "" || $('#banktopayfrom').val() === "" ) {
                 alert("please fill all required details");
                 $(".validateTips3").html("<span style='font size:2; color:red'>All fields required!</span>");
@@ -2055,9 +2055,12 @@ $user =  getUserById($_SESSION['userid']);
                     alert('Select valid financial period');
                 }
             } else {
+                //btnpaylandlord
+              
                 var post = $.get("../modules/accountsprocess.php?paylandlord=true&property=" + $('#propertytopay :selected').val() + "&amount=" + $('#amountpaylandlord').val() + "&bank=" + $('#banktopayfrom').val() + "&paydate=" + $("#paymentdatelandlord").val() + "&chequedate=" + $("#paymentdatecheque").val() + "&paymode=cheque" + "&chequeno=" + $('#cheqnopay').val() + "&chequedetails=" + $('#chequedetailspay').val() + "&reason=" + $('#pay-reason').val(), function() {})
 
                     .done(function(data) {
+                        
                         alert('voucher(s) generated');
                         if (data.count <= 1) {
                             window.open("../modules/defaultreports.php?report=printlandlordvoucher&voucherno=" + data.status + "&propid=" + <?php echo $_SESSION['propertyid'] ?> + "&user=" + <?php echo $_SESSION['userid'] ?>);
@@ -2071,6 +2074,7 @@ $user =  getUserById($_SESSION['userid']);
                         $("#pendingbills").empty();
                     })
                     .fail(function() {
+                        $('#paylandlorddiv').toggle();
                         $(".validateTips3").html("<font size='2' color='red'><center>Error in fetching details</center></font>");
                     });
             }
