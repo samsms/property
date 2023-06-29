@@ -4271,9 +4271,16 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
     //invoice amount is now gotten from sum of charges
     $invoiceamount = array_sum($charges);
     $paid=0;
+   
     if($invoicebbf<0){
         $paid=-$invoicebbf;
+        if($invoiceamount<$paid){
+            $paid=$invoiceamount;
+           
+        }
+
     }
+
     $query = "INSERT into $tablename(`invoiceno`,`paidamount`,`invoicedate`,`amount`,`idno`,`incomeaccount`,`us`,`invoicecredit`,`property_id`,`remarks`,`idclose_periods`,`ts`,`bbf`) VALUES ('$result2','$paid','$entrydate','$invoiceamount','$id','$incomeacct','$user','$billing','$propid','$remarks','$fperiod','$currentdate','$invoicebbf') ";
     //   die($query);
     $resultquery = $db->query("SELECT current_water_reading FROM floorplan WHERE apt_id='$aptid'") or die($db->error());
@@ -10123,8 +10130,8 @@ function printlandlordvoucher($payno, $propid, $user)
     echo '<tr><td colRspan="3"><br/><td></tr>';
     echo '<tr><td style="width:50%"><b>CREDITOR :&nbsp;</b> ' . strtoupper(str_replace('_', " ", findpropertybyid($propid))) . '<br/><br/><b>PAYER: </b> RIVERCOURT </td><td><b>AMOUNT: Kshs ' . number_format($amount, 2) . '</b></td></tr>';
     echo '<tr><td colspan="1"></td><td><b>Ksh&nbsp;' . convert_number_to_words($amount) . ' only</b></td></tr>';
-    echo '<tr><td width="50%" style="font-size:11px;color:grey"><b>Remarks: </b>' . $remarks . '(' . $reason . ')</td></tr>';
-    echo '<tr><td width="80%" style="font-size:11px;color:grey">&nbsp;Date &nbsp;&nbsp;' . $chqdate . '</td></tr>';
+    echo '<tr><td width="50%" style="font-size:16px;color:grey"><b>Remarks: </b>' . $remarks . '(' . $reason . ')</td></tr>';
+    echo '<tr><td width="80%" style="font-size:16px;color:grey">&nbsp;Date &nbsp;&nbsp;' . $chqdate . '</td></tr>';
     echo '<tr><td colspan="3">Mode of Payments........................................code ....................</td></tr>';
     echo '<tr><td colspan="3"><hr/>Prepared by........................................................................ Sign .........................................................</td></tr><tr></tr>';
     echo '<tr><td colspan="3">Checked by ....................................................................... Sign..........................................................</td></tr><tr></tr>';
