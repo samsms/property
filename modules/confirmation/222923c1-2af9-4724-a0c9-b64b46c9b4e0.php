@@ -43,8 +43,9 @@ require '../functions.php';
 
     
     $tenant_id=resolve_tenant($BillRefNumber);
+    
     $tenant=getTenantDetailsFromApt($tenant_id);
-   
+    // die(   json_encode($tenant));
     if(!$tenant){
         
     }
@@ -58,7 +59,7 @@ require '../functions.php';
    
 
     echo $response;
-    create_mpesa_receipt($BillRefNumber, $TransAmount, $TransID);
+    create_mpesa_receipt($tenant_id, $TransAmount, $TransID);
 
 
 

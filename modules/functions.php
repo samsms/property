@@ -10364,7 +10364,7 @@ function resolve_tenant($code){
     $mysqli = getMysqliConnection();
     $list=$mysqli->query($sql);
     if($list->num_rows>0){
-        $tenant=$list->fetch_assoc()['tenant_id'];
+        $tenant=$list->fetch_assoc()['apt_id'];
         return $tenant;
     }
     else{
