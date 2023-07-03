@@ -8,6 +8,8 @@ $conn = getMysqliConnection();
   <title>Agent Property Assignment</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
   <style>
     /* Add your custom CSS styles here */
     body {
@@ -49,6 +51,12 @@ $conn = getMysqliConnection();
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('#properties').select2();
+  });
+</script>
   <script>
     $(document).ready(function() {
       // Initialize DataTable
@@ -260,24 +268,20 @@ if (isset($_GET['unassign'])) {
             ?>
           </select>
         </div>
-
         <div class="form-group">
-  <label for="properties">Properties:</label>
-  <select name="properties[]" id="properties" class="form-control" multiple>
-    <?php
-      // Display property names in a multi-select dropdown
-      if ($propertiesResult->num_rows > 0) {
-        while ($property = $propertiesResult->fetch_assoc()) {
-          $propertyData = json_encode(['id' => $property['propertyid'], 'name' => $property['property_name']]);
-          echo "<option value='" . htmlspecialchars($propertyData, ENT_QUOTES) . "'>" . $property['property_name'] . "</option>";
-        }
-      }
-    ?>
-  </select>
-</div>
-
-
-
+      <label for="properties">Properties:</label>
+      <select name="properties[]" id="properties" class="form-control" multiple data-search="true">
+        <?php
+          // Display property names in the multi-select dropdown
+          if ($propertiesResult->num_rows > 0) {
+            while ($property = $propertiesResult->fetch_assoc()) {
+              $propertyData = json_encode(['id' => $property['propertyid'], 'name' => $property['property_name']]);
+              echo "<option value='" . htmlspecialchars($propertyData, ENT_QUOTES) . "'>" . $property['property_name'] . "</option>";
+            }
+          }
+        ?>
+      </select>
+    </div>
         <button type="submit" class="btn btn-primary">Assign Properties</button>
       </form>
     </div>
