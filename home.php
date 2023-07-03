@@ -281,7 +281,7 @@ if ($_SESSION['usergroup'] == 1)
     </td>
     <td>' . str_repeat("&nbsp;", 10) . '</td>
     <td>
-  <a href="#" id="assignproperty" class="button big blue"></br>Assign User Property</a>
+  <a href="views/assignproperty.php"  class="button big blue"></br>Assign User Property</a>
     </td>
 
   </tr>
