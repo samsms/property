@@ -42,8 +42,8 @@ require '../functions.php';
         // '$LastName'             => $jsoncallback['LastName']
 
     
-  
-    $tenant=getTenantDetailsFromApt($BillRefNumber);
+    $tenant_id=resolve_tenant($BillRefNumber);
+    $tenant=getTenantDetailsFromApt($tenant_id);
    
     if(!$tenant){
         

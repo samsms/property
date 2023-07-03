@@ -3534,6 +3534,7 @@ function getallproperties($true, $parameter, $asc_desc, $user)
     $db->close_connection();
 }
 
+
 //get a properties tenants
 function getPropertyTenants($propertyid)
 {
@@ -3668,6 +3669,41 @@ function getalltenants($propertyid, $parameter, $asc_desc, $user, $options)
 
         //echo '<div id="vauerow">'.$array ["apartmentid"].'<span id="values"></span>'.$array ["apartmenttag"].'<span id="values"></span>'.$array ["propertyname"].'<span id="values"></span>'.str_repeat('&nbsp;',15).$array ["tenantname"].'</div><br/>';
         echo '<tr><td>' .  $row["Id"] . '</td><td>' . $array["apartmentid"] . '</td><td>' . $array["apartmenttag"] . '</td><td>' . $array["propertyname"] . '</td><td>' . $array["tenantname"] . '</td><td>' . $array["tenantphone"] . '</td><td>' . $array["tenantemail"] . '</td><td>' . $array["tenantpin"] . '</td>' . '<td>' . $array["id"] . '</td><td>' . $address . '</td><td>' . $kinsname . '</td><td>' . $kinstel . '</td><td>' . $array["leasestart"] . '</td><td>' . $array["leaseend"] . '</td></tr>';
+    }
+    echo '</table>';
+    echo '<hr/>';
+    echo '<i>Printed by:</i> ' . $user . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
+    //  echo '<button class="sexybutton sexymedium sexyyellow excel_tb" id="tbtoexcel"><span><span><span class="cancel">Export To Excel</span></span></span></button>';
+    echo '<a href="#" id="tbtoexcel" class="export" style="float:right">Export Table data into Excel</a>  ';
+}
+function getalltenants_1($propertyid)
+{
+  
+    $db = new MySQLDatabase();
+    $db->open_connection();
+    date_default_timezone_set('Africa/Nairobi');
+    $date = date("d/m/y");
+    $time = date('h:i A');
+    $q = "SELECT  f.apt_tag as Apartment_tag,p.propertyid,p.property_name FROM properties p inner join floorplan f on p.propertyid=f.propertyid WHERE p.propertyid='$propertyid'";
+    $query = $db->query($q) or die($db->error());
+    $db->close_connection();
+    echo '<table class="treport1 exportlist" style="width:900px"><br>
+    <tr><td colspan="15">
+    <h3><center>Units LIST REPORT - ' . $_SESSION['clientname'] . '</center></h3></td></tr>
+    <tr>
+    <th><center><u>Apartment tag</u></center></th>
+    <th><center><u>Property Name</u></center></th>
+    <th><center><u>Mpesa Code</u></center></th>
+    </tr>';
+
+    while ($row = mysql_fetch_assoc($query)) {
+       
+        $apartmenttag = trim($row['Apartment_tag']);
+        $propertyname = str_replace("_", " ", $row['property_name']);
+        $propertyid=$row['propertyid'];
+        $code="$propertyid#$apartmenttag";
+        //echo '<div id="vauerow">'.$array ["apartmentid"].'<span id="values"></span>'.$array ["apartmenttag"].'<span id="values"></span>'.$array ["propertyname"].'<span id="values"></span>'.str_repeat('&nbsp;',15).$array ["tenantname"].'</div><br/>';
+        echo "<tr><td>$propertyname </td><td>$apartmenttag</td><td>$code</td></tr>";
     }
     echo '</table>';
     echo '<hr/>';
@@ -6781,9 +6817,10 @@ function getApartmentFromTenant($tenantid)
 function getTenantDetailsFromRow($tenantid)
 {
     $tenantstable = getTenantTable();
-    $db = new MySQLDatabase();
+    $db = getMysqliConnection();
+   // echo "SELECT * FROM {$tenantstable} WHERE Id='$tenantid' AND vacated=0 ";
     $result = $db->query("SELECT * FROM {$tenantstable} WHERE Id='$tenantid' AND vacated=0 ") or die($db->error());
-    $row = $db->fetch_array();
+    $row = $result->fetch_array();
     return $row;
 }
 
@@ -10317,7 +10354,23 @@ function getDailyCash($date)
     unset($counter);
     $mysqli->close($mysqli);
 }
-
+//get code from propid#apttag
+function resolve_tenant($code){
+    
+    $codes=explode("#",$code);
+    $propid=trim($codes[0]);
+    $apttag=trim($codes[1]);
+    $sql="select * from floorplan where propertyid='$propid' and apt_tag='$apttag'";
+    $mysqli = getMysqliConnection();
+    $list=$mysqli->query($sql);
+    if($list->num_rows>0){
+        $tenant=$list->fetch_assoc()['tenant_id'];
+        return $tenant;
+    }
+    else{
+        return  -1;
+    }
+}
 //@param array('startdate','enddate','propid','user','count','suppid')
 function getPaymentsForProperty($arraydetails)
 {

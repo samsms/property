@@ -3,7 +3,9 @@
 include '../views/display.php';
 include 'functions.php';
 include 'searchbyname.php';
+
 $property=  getSettings();
+//die(json_encode($_SESSION));
 echo  $htmlheaders;
 echo '<head><title>'.$property['company_name'].'|Proper Properties</title>';
 echo $meta;
@@ -243,6 +245,7 @@ echo '</div>';//property  report
 <td><a href="#" id="tenanttarget"><img src="../images/Report.png"/><br><b>Tenants list Report</b></a></td>
 <td><a href="#" id="propertytarget"><img src="../images/Report.png"/><br><b>Propertylist Report</b></a></td>
 <td><a href="#" id="unittarget"><img src="../images/Report.png"/><br><b>Unit History</b></a></td>
+<td><a href="defaultreports.php?report=unitlist&id=<?php echo $_SESSION['propertyid']?>" target="_blank"><img src="../images/Report.png"/><br><b>Unit Mpesa codes</b></a></td>
 <td><a href="defaultreports.php?report=vacancy" target="_blank" id="unittarget"><img src="../images/Report.png"/><br><b>Vacancy Report</b></a></td>
 </tr></table>
 </fieldset></div>

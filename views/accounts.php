@@ -2266,12 +2266,11 @@ if ($_SESSION['usergroup'] != 3) {
         <option id="landlordstatement">Landlord Statement</option>
         <option id="agentstatement">Agent Statement</option>
         <option id="commissionsrep">Commissions Report</option>
-        <option id="arrearsprepayments">Arrears Report</option>
-
         <option id="performance">Performance</option>
         <option id="filterbypercentageopt">Report By Percentage</option>
+
         <!-- <option id="penaltie">Performance By Agents</option> -->
-        <option id="penalties">Penalties Report</option>
+        <!-- <option id="penalties">Penalties Report</option> -->
     </select>
 </fieldset>;
 <?php

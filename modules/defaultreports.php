@@ -120,6 +120,7 @@ a.export, a.export:visited {
     echo '<a href="#" id="closenow" class="close" >Close</a>';
     echo '<div id="reportsdiv">';
     $reportpost = $_REQUEST['report'];
+    
     if ($reportpost === 'tenantlist') {
         if ($_GET["search"]) {
             $options = array("tenant_name" => @$_GET["tenantname"], "houseno" => @$_GET["houseno"]);
@@ -127,7 +128,11 @@ a.export, a.export:visited {
         } else {
             echo getalltenants($_REQUEST['propertyid'], $_REQUEST['id'], $_REQUEST['sort'], $_SESSION['username'], NULL);
         }
-    } elseif ($reportpost === 'propertylist') {
+    }
+    elseif($reportpost==='unitlist'){
+        getalltenants_1( $_REQUEST['id']);
+    }
+    elseif ($reportpost === 'propertylist') {
         echo getallproperties($reportpost, $_REQUEST['id'], $_REQUEST['sort'], $_SESSION['username']);
     } elseif ($reportpost === 'printinvoice') {
 
@@ -420,7 +425,7 @@ a.export, a.export:visited {
             ; //. str_repeat('<td></td>', 10);
             // foreach ($chargeables as $count) {
             //     echo '<td></td>';
-            // }
+            // }bbf
             $lesscommission = $totalminuswatchman - $comm;
             $vat = getVAT("housevat");
             $lessvat = 0; //  round(($vat*$comm)/100,2);
