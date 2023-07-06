@@ -3678,39 +3678,52 @@ function getalltenants($propertyid, $parameter, $asc_desc, $user, $options)
 }
 function getalltenants_1($propertyid)
 {
-  
     $db = new MySQLDatabase();
     $db->open_connection();
     date_default_timezone_set('Africa/Nairobi');
     $date = date("d/m/y");
     $time = date('h:i A');
-    $q = "SELECT  f.apt_tag as Apartment_tag,p.propertyid,p.property_name FROM properties p inner join floorplan f on p.propertyid=f.propertyid WHERE p.propertyid='$propertyid'";
+    $allproperties = getProperties();
+
+    $q = "SELECT f.apt_tag as Apartment_tag,p.propertyid,p.property_name FROM properties p inner join floorplan f on p.propertyid=f.propertyid order by p.propertyid asc";
     $query = $db->query($q) or die($db->error());
     $db->close_connection();
-    echo '<table class="treport1 exportlist" style="width:900px"><br>
-    <tr><td colspan="15">
-    <h3><center>Units LIST REPORT - ' . $_SESSION['clientname'] . '</center></h3></td></tr>
-    <tr>
-    <th><center><u>Apartment tag</u></center></th>
-    <th><center><u>Property Name</u></center></th>
-    <th><center><u>Mpesa Code</u></center></th>
-    </tr>';
+
+    $csv_data = array(); // Array to store the CSV data
+
+    // Add table headers to the CSV data array
+    $csv_data[] = array("Apartment tag", "Property Name", "Mpesa Code");
 
     while ($row = mysql_fetch_assoc($query)) {
-       
         $apartmenttag = trim($row['Apartment_tag']);
         $propertyname = str_replace("_", " ", $row['property_name']);
-        $propertyid=$row['propertyid'];
-        $code="$propertyid#$apartmenttag";
-        //echo '<div id="vauerow">'.$array ["apartmentid"].'<span id="values"></span>'.$array ["apartmenttag"].'<span id="values"></span>'.$array ["propertyname"].'<span id="values"></span>'.str_repeat('&nbsp;',15).$array ["tenantname"].'</div><br/>';
-        echo "<tr><td>$propertyname </td><td>$apartmenttag</td><td>$code</td></tr>";
+        $propertyid = $row['propertyid'];
+        $code = "$propertyid#$apartmenttag";
+        $csv_data[] = array($propertyname, $apartmenttag, $code);
     }
-    echo '</table>';
-    echo '<hr/>';
-    echo '<i>Printed by:</i> ' . $user . '&nbsp;&nbsp;&nbsp;&nbsp;' . date("d-m-y") . '&nbsp;' . $time;
-    //  echo '<button class="sexybutton sexymedium sexyyellow excel_tb" id="tbtoexcel"><span><span><span class="cancel">Export To Excel</span></span></span></button>';
-    echo '<a href="#" id="tbtoexcel" class="export" style="float:right">Export Table data into Excel</a>  ';
+
+    // Generate the CSV file content
+    $csv_content = '';
+    foreach ($csv_data as $row) {
+        $formatted_row = array_map('encloseInDoubleQuotes', $row);
+        $csv_content .= implode(',', $formatted_row) . "\n";
+    }
+
+    // Write the CSV content to a file
+    $filename = 'tenants.csv';
+    $file_path = $filename; // Set the desired file path on the server
+    file_put_contents($file_path, $csv_content);
+
+    // Provide the download link for the user
+    echo '<a href="' . $file_path . '" class="download-button">Download as CSV</a>';
 }
+
+// Function to enclose a value in double quotes
+function encloseInDoubleQuotes($value)
+{
+    return '"' . str_replace('"', '""', $value) . '"';
+}
+
 
 function searchparameterstenant()
 {

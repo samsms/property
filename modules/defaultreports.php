@@ -190,13 +190,22 @@ a.export, a.export:visited {
             <?php
             echo '<table class="treport1 exportlist" style="width:90%" >
             <thead style="font-weight:bold;">
-    <tr><td colspan="24"><center><span style="font-size:14px;font-weight:bold"> ' . $settings['company_name'] . '</span><center><br>
-        <span style="font-size:14px;font-weight:bold">ADDRESS: ' . $settings['address'] . '</span><center>
-    </td></tr>';
-            echo '<tr><td colspan="24"><center><span style="font-size:13px;font-weight:normal;"> <b>LANDLORD STATEMENT -' . $accname . '</b></span><span style="font-size:18px;font-weight:normal; ">' . findpropertybyid($propid) . '</span><br/><span style="font-size:12px;font-weight:normal;float:right">' . str_repeat('&nbsp;', 25) . 'Statement From <b> ' . date('d-m-Y', strtotime($startdate)) . '</b>  To  <b>' . date('d-m-Y', strtotime($enddate)) . '</b></span><center></tr>';
+            <tr><td colspan="24"><center><span style="font-size:14px;font-weight:bold"> ' . $settings['company_name'] . '</span><center><br>
+            <span style="font-size:14px;font-weight:bold">ADDRESS: ' . $settings['address'] . '</span><center>
+            </td></tr>';
+            echo '<tr>
+            <td colspan="24"><center><span style="font-size:13px;font-weight:normal;">
+             <b>LANDLORD STATEMENT -' . $accname . '</b></span><span style="font-size:18px;font-weight:normal; ">' . findpropertybyid($propid) . 
+             '</span><br/><span style="font-size:12px;font-weight:normal;float:right">' . str_repeat('&nbsp;', 25) . 'Statement From <b> ' . date('d-m-Y', strtotime($startdate)) . '</b>  To  <b>' . date('d-m-Y', strtotime($enddate)) . '</b></span><center></tr>';
 
             echo '<tr>
-    <u><td>S/no</td><td>House</td><td>Name</td><td>Rent/PM</td><td>Invoiced Rent</td><td>Deposit Paid</td><td>RCP</td>';
+            <u><td>S/no</td>
+            <td>House</td>
+            <td>Name</td>
+            <td>Rent/PM</td>
+            <td>Invoiced Rent</td>
+            <td>Deposit Paid</td>
+            <td>RCP</td>';
             foreach ($chargeables as $value) {
                 array_push($itemnames, strtolower($value['accname']));
                 echo '<td>' . strtoupper($value['accname']) . '</td>';
@@ -208,9 +217,7 @@ a.export, a.export:visited {
             // print_r($additionalCharges);
             // die('new');
             //   <td>MGT FEE('.getPropertyCommissionRate($propid).' %)</td>
-            echo '<td>Rent BBF</td><td>Total Due</td><td>RCT No</td><td>Total Paid</td><td>BCF</td>
-   
-    </u></tr></thead>';
+            echo '<td>Rent BBF</td><td>Total Due</td><td>Total Paid</td><td>BCF</td> </u></tr></thead>';
             echo '<tbody><tr>';
 
             $count = 1;
@@ -292,7 +299,7 @@ a.export, a.export:visited {
 
                 echo '</td><td>' . number_format($balanceminuslastrentinvoice, 2) . '</td>' .
                 //amount due
-                '<td>' . number_format($balanceminuslastrentinvoice < 0?$balanceminuslastrentinvoice :0 , 2) . '</td><td>';
+                '<td>' . number_format($balanceminuslastrentinvoice < 0?$balanceminuslastrentinvoice :0 , 2) . '</td>';
 
                 foreach ($receipts as $singlereceipt) {
                     $receiptsdetails[] = getReceiptsFromInvoice($singlereceipt['invoiceno'], $enddate);
@@ -300,15 +307,15 @@ a.export, a.export:visited {
 
 
                 //  $recps=array_unique($receiptsdetails);
-                $paidamount = 0;
-                foreach ($receipts as $value) {
+                // $paidamount = 0;
+                // foreach ($receipts as $value) {
 
-                    echo $value['recpno'] . '#';
-                    $paidamount += $value['receiptpaidamount'];
-                }
+                //     echo $value['recpno'] . '#';
+                //     $paidamount += $value['receiptpaidamount'];
+                // }
 
 
-                echo ' </td>';
+                // echo ' </td>';
                 //  foreach ($receiptsdetails as $value) {
                 // echo $value[0]['rdate'].'#';
                 //  }
@@ -363,10 +370,17 @@ a.export, a.export:visited {
             echo '</tbody>';
 
             // die;
-
-            echo '<tfoot>
-                            
-                    <tr>
+            echo "<style>
+            .line-bottom{
+                border-bottom:2px solid black;
+            }
+                    .line-top{
+                        border-top:2px solid black;
+                    }
+                  
+                    </style> ";
+            echo '<tfoot>       
+                    <tr class="line-top">
                     <td><b>TOTAL Rent Payable</b></td>
                     <td></td><td></td><td></td><td>
                     <b>' . $total_invoices . '</b>
@@ -375,13 +389,7 @@ a.export, a.export:visited {
              foreach ($chargeables as $value) {
                  echo '<td></td>';
              }
-            // $totalcollected = $tot //array_sum($paidamounts);
-            // if($totalcollected<$total_invoices){
-            //     $total_chargables =$total_invoices-$totalcollected;
-            // }
-            // else{
-            //     $total_chargables = $total_invoices;
-            // }
+        
             //total commission
             $comm = $commissionamount = getPropertyCommissionRate($propid) * $total_invoices / 100;
             // array_sum($watchmantotal)
@@ -400,21 +408,15 @@ a.export, a.export:visited {
                 $houses .= $dt->apt_tag;
                
             }
+            echo '<tr><td><b>Total Amount</b></td><td></td><td></td><td></td><td><b>' . $total_rent . '</b></td></tr>';
             echo '<tr>
             
             <td><b>Prepayments</b></td><td><td></td><td></td><td><b>' . $prep . '</b></td><td colspan="3">' . $houses . '
             </tr>';
-            echo '<tr><td><b>Total Amount</b></td><td></td><td></td><td></td><td><b>' . $total_rent . '</b></td></tr>';
+            
             echo '<tr><td><b>Loan </b></td><td></td><td></td><td></td><td><b>' . loanPaid($propid, $startdate, $enddate) . '</b></td></tr>';
             $totalcollected = $total_rent;
-            //spacing
-            //echo '<tr><td><b>LESS WATCHMAN</b></td>'.str_repeat('<td></td>',11);
-            // foreach ($chargeables as $value) {
-            //
-            //        echo '<td></td>';
-            //    }
-            //     $totalminuswatchman=$totalcollected-array_sum($watchmantotal);
-            //echo  '<td>'.array_sum($watchmantotal).'</td><td><b>' . number_format($totalminuswatchman, 2) . '</b></td><td></td><td></td><td></td></tr>';
+            
             //extract commission
             $commissiondetail = get_commissions_listProperty($propid, $startdate, $enddate);
 
@@ -422,16 +424,11 @@ a.export, a.export:visited {
             $expenses = getPaymentsForProperty(array('propid' => $propid, 'startdate' => $startdate, 'enddate' => $enddate, 'count' => 1));
             $totalbill = array();
             echo '<tr><td><b>Less&nbsp;' . $commissiondetail[0]['commission'] . '%&nbsp; Commission</b></td>';
-            ; //. str_repeat('<td></td>', 10);
-            // foreach ($chargeables as $count) {
-            //     echo '<td></td>';
-            // }bbf
             $lesscommission = $totalminuswatchman - $comm;
             $vat = getVAT("housevat");
             $lessvat = 0; //  round(($vat*$comm)/100,2);
             echo '<td></td><td></td><td></td><td><b>' . number_format($lesscommission, 2) . '</b></td></tr>';
-            //   echo '<tr><td><td></td><td></td><td></td>'.str_repeat('<td></td>',7).'<td><b>'.number_format($lessvat,2).'</b></td><td></td><td></td><td></td></tr>';
-            //extract expenses
+ 
             foreach ($expenses as $expense => $value) {
                 array_push($totalbill, $value['billpaid']);
                 echo '<tr><td><b>' . ucfirst($value['bill_items']) . '</b></td><td></td>' . str_repeat("<td></td>", 10);
@@ -440,37 +437,22 @@ a.export, a.export:visited {
                 }
                 echo '<td><b>' . number_format(-$value['billpaid'], 2) . '</b></td></tr>';
             }
-
-            //spacing
-            // echo '<tr>' . str_repeat('<td></td>', 12);
-            // foreach ($chargeables as $value) {
-            //     echo '<td></td>';
-            // }
-            // echo  '</tr>';
-            //amount banked
-
             $banked = $totalcollected - ($comm + array_sum($totalbill) + $prep + loanPaid($propid, $startdate, $enddate) + $lessvat);
             echo '<tr><td><b> Landlord Amount</b>'; // . str_repeat('<td></td>', 9);
-            // foreach ($chargeables as $value) {
-            //     echo '<td></td>';
-            // }
+
             echo '<td></td><td></td><td></td><td><b>' . number_format($banked, 2) . '</b></td></tr>';
 
             $payments = getLandLordPaidAmountsForMonth($todate->format("Y-m"), $propid);
             $paidamounts = 0;
             foreach ($payments as $payment) {
-                echo '<tr><td><b> Paid to Landlord B/Ac</b>'; //. str_repeat('<td></td>', 11);
-                // foreach ($chargeables as $value) {
-                //     echo '<td></td>';
-                // }
-                //add paid amounts to array
                 $paidamounts = $paidamounts + $payment["amount"];
-                echo '<td></td><td></td><td></td><td><b>' . number_format($payment["amount"], 2) . '</b><td>' . $payment["chequedate"] . '</td></tr>';
-            }
-            echo '<tr><td><b>Balance as at end of' . $todate->format("m-Y") . ' </b>'; //. str_repeat('<td></td>', 9);
-            // foreach ($chargeables as $value) {
-            //     echo '<td></td>';
-            // }
+                }
+                if($paidamounts>0){
+                    echo '<tr><td><b> Paid to Landlord B/Ac</b><td></td><td></td><td></td><td><b>' . number_format($paidamounts, 2) . '</b></tr>';
+           
+                }
+            
+            echo '<tr><td><b>Balance as at end of ' . $todate->format("m-Y") . ' </b>'; 
             echo '<td></td><td></td><td></td><td><b>' . number_format($banked - $paidamounts, 2) . '</b></td> </tr>';
             echo '</tfoot></table>';
             ?>
