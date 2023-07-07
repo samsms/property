@@ -9,4 +9,4 @@ error_log
 *.txt
 !/modules/templates/*.csv
 *.log
-.env
+*.env
