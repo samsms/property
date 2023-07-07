@@ -10,3 +10,4 @@ error_log
 !/modules/templates/*.csv
 *.log
 *.env
+*.sql
