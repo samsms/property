@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 10px;
         }
 
-        .form-container input[type=submit] {
+       .btn, .form-container input[type=submit] {
             background-color: #4CAF50;
             color: #fff;
             border: none;
@@ -159,7 +159,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <h2>Property CSV Upload</h2>
+    
     <div class="form-container">
+        <div style="padding:30px">
+        <a class="btn" href="/modules/templates/prop&tenant.csv">download template</a>
+        </div>
+  
         <form action="upload_tenants.php" method="post" enctype="multipart/form-data">
             <label for="csv">Select CSV File:</label>
             <input type="file" id="csv" name="csv" accept=".csv" required>
