@@ -111,7 +111,7 @@ require '../functions.php';
             //     $fperiod = $period['idclose_periods'];
             // }
         ob_start();
-             update_invoice($invoicenos, $amount, $idno, $receiptdate, $paymode, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, 0, $propid, $penalty, $penaltygl, $fperiod, null, $reference);
+             update_invoice($invoicenos, $amount, $idno, $receiptdate, $paymode, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, 0, $propid, $penalty, $penaltygl, $fperiod, null,   $invoicenos);
         return  ob_get_clean();
 
             }

@@ -46,6 +46,11 @@ $user =  getUserById($_SESSION['userid']);
          rel = "stylesheet">
       <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
       <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+      <style>
+        .displaynone{
+            display: none;
+        }
+        </style>
 <script>
     
     $(function() {
@@ -2864,6 +2869,8 @@ echo '</body>';
     <p class="titletr">Print | Email Invoice <a href="#" style="float:right" id="closeinvoiceimport">Close [X]</a></p>
     <p class="validateTips4">Import Invoice.</p>
     <fieldset id="importinv">
+    <a class="btn btn-primary" href="/modules/templates/invoice.csv">download template</a>
+      
         <form action="../load.php" id="formimportinvoice" method="post" enctype="multipart/form-data">
             <center>
                 <table>
@@ -3420,7 +3427,7 @@ echo '</body>';
     </form>
 </div>
 <!--Bank Accounts-->
-<div id="acctlist" class="internalwindow" title="">
+<div id="acctlist" class="internalwindow displaynone" title="">
     <p class="titletr">Accounts List<a href="#" id="closeacctlist" style="float:right">Close X</a></p>
     <form id="statementform" name="statementform">
         <div>&nbsp; From Date&nbsp;<input id="fromdatestatement" class="datepicker" placeholder="from date" name="fromdatestatement" style="border:1px solid green " />&nbsp;To Date&nbsp;<input id="todatestatement" placeholder="to date" class="datepicker" name="todatestatement" style="border:1px solid green " /><button name="viewstatement" id="viewstatement">Statement</button></div>
@@ -3435,7 +3442,7 @@ echo '</body>';
 </div>
 <!--bank accounts-->
 <!--income statement-->
-<div id="incomestmnt" class="internalwindow" title="">
+<div id="incomestmnt" class="internalwindow displaynone" title="">
     <p class="titletr">Income Statement<a href="#" id="closeincomestatement" style="float:right">Close X</a></p>
     <p id="validaterecp" class="validateTips3">All fields are required</p>
 
@@ -3472,7 +3479,7 @@ echo '</body>';
 </div>
 <!--income statement-->
 <!-- New supplier bill -->
-<div id="newsbill" class="internalwindow" title="">
+<div id="newsbill" class="internalwindow displaynone" title="">
     <p class="titletr">Create Expense Bill<a href="#" style="float:right" id="closebill">Close [X]</a></p>
     <span id="validatebill">All fields are required</span>
 
@@ -3578,7 +3585,7 @@ echo '</body>';
 </div>
 <!--s-->
 <!-- pay bill -->
-<div id="paybill" class="internalwindow" title="">
+<div id="paybill" class="internalwindow displaynone" title="">
     <p class="titletr">Pay Bill<a href="#" style="float:right" id="closepbill">Close [X]</a></p>
     <p id="validatebill" class="validateTips3">All fields are required</p>
 

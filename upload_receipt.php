@@ -28,7 +28,7 @@
         input[type=file] {
             margin-bottom: 10px;
         }
-        input[type=submit] {
+       .btn, input[type=submit] {
             background-color: #4CAF50;
             border: none;
             color: white;
@@ -53,6 +53,7 @@
 </head>
 <body>
     <div class="container">
+        <a class="btn" href="/modules/templates/invoice.csv">download template</a>
         <h1>Upload Receipts</h1>
         <form method="post" action="modules/upload_receipts.php" enctype="multipart/form-data">
             <label for="receipt_file">Upload Receipt CSV file:</label>

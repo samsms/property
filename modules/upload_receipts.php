@@ -15,7 +15,7 @@ if (isset($_FILES['receipt_file'])) {
     while ($row = fgetcsv($fp, 1024, ",")) {    
     $tenant = getTenantfromApt(getPropertyId($row[1]), $row[2]);    
     $date = DateTime::createFromFormat('d/m/Y', trim($row[0]));
-         //  die(print_r($row));
+          // die(print_r(  $tenant ));
      $invoices =false;
      if($tenant!==null){
        $invoices=  fetchinvoicedetailsPlain($tenant->Id);
