@@ -166,7 +166,7 @@ a.export, a.export:visited {
         $total_invoices = 0;
         $total_rent = 0; // = invoiceAmount($propid, $startdate, $enddate);
         //die(print_r($total_invoices));
-
+        $balanceremain=0;
         $watchmantotal = array();
         $paidamounts = array();
         $depositamounts = array();
@@ -177,7 +177,7 @@ a.export, a.export:visited {
 //     print_r($chargeables);
         // die();
         //$chargeablescount = count($chargeables);
-        $landlordchargeitems = array('rent', 'watchman', 'security', 'vat', 'garbage'); //'water','deposit','rent_deposit'
+        $landlordchargeitems = array('rent', 'watchman', 'security', 'vat', 'garbage');
         $invoices = getinvoicelistChargeables($startdate, $enddate, $_REQUEST['accid'], $_REQUEST['accname'], $_REQUEST['propid'], $_SESSION['username']);
         // die(json_encode( $invoices));
         $itemnames = array();
@@ -205,7 +205,7 @@ a.export, a.export:visited {
             <td>Rent/PM</td>
             <td>Invoiced Rent</td>
             <td>Deposit Paid</td>
-            <td>RCP</td>';
+            <td>Rent BBF</td>';
             foreach ($chargeables as $value) {
                 array_push($itemnames, strtolower($value['accname']));
                 echo '<td>' . strtoupper($value['accname']) . '</td>';
@@ -214,10 +214,8 @@ a.export, a.export:visited {
 
                 // echo '<td>' .  strtoupper($value['amount']) . '</td>';
             }
-            // print_r($additionalCharges);
-            // die('new');
-            //   <td>MGT FEE('.getPropertyCommissionRate($propid).' %)</td>
-            echo '<td>Rent BBF</td><td>Total Due</td><td>Total Paid</td><td>BCF</td> </u></tr></thead>';
+            
+            echo '<td>Total Due</td><td>Total Paid</td> </u></tr></thead>';
             echo '<tbody><tr>';
 
             $count = 1;
@@ -233,19 +231,21 @@ a.export, a.export:visited {
                 $tenantdetails = findtenantDetailsbyapt($plan['apt_id']);
                 $tenantid = $tenantdetails['Id'];
                 $depositsfortenant = getTenantDeposit($tenantdetails['Id'], $startdate, $enddate);
+              
                 foreach ($depositsfortenant as $deposit) {
                     $amounts[] = $deposit['amount'];
                     $dates[] = $deposit['rdate'];
                     $recpnos[] = $deposit['recpno'];
                     if ($deposit['amount'] > 0) {
                         array_push($depositamounts, $deposit['amount']);
+                       
                     }
                 }
                 $rent_amount = $plan['monthlyincome'];
                 if ($plan['isoccupied'] == 1 && $plan["status"] != "disabled") {
                     array_push($rent, $plan['monthlyincome']);
                     $tenant_invoice = $expected_rent1["$tenantid"];
-                    // die(($tenant_invoice));
+                     die(($tenant_invoice));
                     $total_invoices += $tenant_invoice['Tinvoice'];
                     $total_rent += $tenant_invoice['TAmount'];
                     echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>' . $plan['monthlyincome'] .
@@ -292,15 +292,13 @@ a.export, a.export:visited {
                 }
 
                 //bbf
-                $balanceminuslastrentinvoice = getCorrectBalance($tenantid,null,$enddate,null)-$tenant_invoice['TAmount'];// - $rentbalance;
+                $balanceminuslastrentinvoice = getInvoiceBalanceByDate($tenantdetails['Id']);// - $rentbalance;
             //    if ($balanceminuslastrentinvoice < 0) {
-            //        $balanceminuslastrentinvoice = 0;//-$balanceminuslastrentinvoice;
+            //        $balanceminuslastrentinvoice = $balanceminuslastrentinvoice-$balanceminuslastrentinvoice;
             //    }
-
-                echo '</td><td>' . number_format($balanceminuslastrentinvoice, 2) . '</td>' .
-                //amount due
-                '<td>' . number_format($balanceminuslastrentinvoice < 0?$balanceminuslastrentinvoice :0 , 2) . '</td>';
-
+                    $balanceremain+= $balanceminuslastrentinvoice;
+                  
+                echo '</td><td>' . $balanceminuslastrentinvoice. '</td>' ;
                 foreach ($receipts as $singlereceipt) {
                     $receiptsdetails[] = getReceiptsFromInvoice($singlereceipt['invoiceno'], $enddate);
                 }
@@ -308,46 +306,23 @@ a.export, a.export:visited {
 
                 //  $recps=array_unique($receiptsdetails);
                 // $paidamount = 0;
-                // foreach ($receipts as $value) {
+                foreach ($receipts as $value) {
 
-                //     echo $value['recpno'] . '#';
-                //     $paidamount += $value['receiptpaidamount'];
-                // }
+                  //  echo $value['recpno'] . '#';
+                    $paidamount += $value['receiptpaidamount'];
+                }
 
 
-                // echo ' </td>';
-                //  foreach ($receiptsdetails as $value) {
-                // echo $value[0]['rdate'].'#';
-                //  }
-                //rent+vat+chargeables paid
-                echo '<td>';
-                //   print_r($receipts[0]);
-                //  foreach ($receipts as $receipt) {
-                // $paidamount=$receipts[0]['chargeables'][0]['paidamount'];
+           
+              
                 $balance = $receipts[0]['chargeables'][0]['amount'];
-                //}
-                //   echo $rent_amount;
-                //check if paidamount>0 to calculate commission
-                //  if($paidamount>=$balance){
-                // $commissionamount= (getPropertyCommissionRate($propid)*$paidamount)/100;
-                // if ($plan['isoccupied'] == 1) {
-                //     $commissionamount = (getPropertyCommissionRate($propid) * $rent_amount) / 100;
-                // }
-                // $commissionamount=getPropertyCommissionRate($propid);// *$total_invoices/100;
-                //  var_dump($commissionamount);
-                /// echo ($commissionamount)."dd";
-                //    echo ('d'.getPropertyCommissionRate($propid).'d');
-                //   }
-                //  else{
-                //get percentage amount of rent in relation to total paid amount
-                // $commissionamount=round //(($balance/$paidamount)*(getPropertyCommissionRate($propid)*$paidamount)/100,2);
-                // }
-                echo($paidamount);
+     
+                echo '<td>'.($paidamount).'</td>';
                 array_push($paidamounts, $paidamount);
-                echo '</td>';
+              
                 // '<td>'.number_format($receipts[0]['chargeables']['paidamount'] ,2).'</td>'.
                 //BCF
-                echo '<td>' . number_format(getCorrectBalance($tenantid), 2) . '</td>';
+                // echo '<td>' . number_format(getInvoiceBalanceByDate($tenantid), 2) . '</td>';
                 //$commissionamount=  (getPropertyCommissionRate($propid)*$paidamount)/100;//+(getPropertyCommissionRate($propid)*array_sum($amounts)/100);
                 array_push($commissionamounts, $commissionamount);
                 // echo '<td>'.$commissionamount.'</td>';
@@ -383,9 +358,9 @@ a.export, a.export:visited {
                     <tr class="line-top">
                     <td><b>TOTAL Rent Payable</b></td>
                     <td></td><td></td><td></td><td>
-                    <b>' . $total_invoices . '</b>
-                    </td>' . str_repeat('<td></td>', 5);
-            // echo '<tr><td>dd</td></tr>';
+                    <b>' . number_format($total_invoices) . '</b></td>'
+                    ;
+            echo '<td></td><td></td>';
              foreach ($chargeables as $value) {
                  echo '<td></td>';
              }
@@ -393,6 +368,7 @@ a.export, a.export:visited {
             //total commission
             $comm = $commissionamount = getPropertyCommissionRate($propid) * $total_invoices / 100;
             // array_sum($watchmantotal)
+            echo '<td><b>' . number_format(($balanceremain), 2) . '</b></td>';
             echo '<td><b>' . number_format(array_sum($paidamounts), 2) . '</b></td></tr>'; //<td></td><td><b>' .  number_format($comm, 2) . '</b></td></tr>';
             echo '<tr><td><b>Other Chargables</b></td><td></td><td></td><td></td><td><b>' . ($total_rent - $total_invoices) . '</b></td></tr>';
 

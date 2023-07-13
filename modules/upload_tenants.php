@@ -107,8 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   
                 }
             }
-            sync_tenant();
+           // sync_tenant();
         }
+        sync_tenant();
         fclose($fps);
 
     }

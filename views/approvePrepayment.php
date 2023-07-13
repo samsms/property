@@ -54,7 +54,6 @@ foreach($pendingP as $pendingP){
    
      </tr>
   </thead>
-
   ';
 }
 

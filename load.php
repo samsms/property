@@ -20,32 +20,39 @@ if(isset($_FILES['import_file'])){
         // parse csv rows into array
         $data = array();
         $result = array();
+        $headers = fgetcsv($fp);
+        $houseTagIndex = array_search("house tag", $headers);
 
+        // Extract the desired headers, excluding "house tag"
+        $chargenames = array_slice($headers, $houseTagIndex + 1);
+        
+        // Print the reduced headers
+      //  print_r($reducedHeaders);
         while ($row = fgetcsv($fp, 1024, ",")) {
-            
-            $propid = getPropertyId(($row[1]));
-            $invoice_date = $row[0];
+            $chargables=array_slice($row,$houseTagIndex + 1);   
+            $invoice = array();
+            foreach ($headers as $index => $header) {
+                $invoice[$header] = $row[$index];
+            }
+            $invoice_date = $invoice["date"];
+            $propid = trim(getPropertyId(($invoice["property"])));
+            $house = $invoice["house tag"];
+            $debit=array_sum($chargables); 
+                 
             $date = DateTime::createFromFormat('d/m/Y', trim($invoice_date));
-          //  die($date);
-            if ($propid == null || getTenantfromApt($propid, $row[2]) == null || $date == false) {
+            // print_r( $chargables);
+            // print(array_sum($chargables));
+            if ($propid == null || getTenantfromApt($propid, trim($house)) == null || $date == false) {
                 // Property or tenant not found, write row to new CSV file
                 $newfp = fopen("invoices_errors.csv", "a");
                 fputcsv($newfp, $row);
                 fclose($newfp);
-            } else if ($row[3] == 0) {
-                continue;
-            } else {
-                // die(print_r($row));
-                // Property and tenant found, create invoice
-                $debit = $row[3];
-                $credit = 0;
-                $balance = $row[3];
-                $house = $row[2];
+            } else if ( $debit != 0) {
                 $tenant = getTenantfromApt($propid, $house);
                 $number_without_comma = str_replace(",", "",  $debit);
                 $double_number = floatval($number_without_comma);
                 $charges = array($double_number);
-                $chargesname = array("rent");
+                // $chargesname = array("rent");
                 $invoiceno = create_invoice_Bulky(
                     $tenant->Id,
                     $date->format("d/m/Y"),
@@ -55,9 +62,9 @@ if(isset($_FILES['import_file'])){
                     "import",
                     $propid,
                     "imported",
-                    $chargesname,
-                    $charges,
-                    1,
+                    $chargenames,
+                    $chargables,
+                    count($chargenames),
                     0,
                     $tenant->apartmentid,
                     33,
@@ -66,21 +73,16 @@ if(isset($_FILES['import_file'])){
                 );
             }
         }
-        fclose($fp);
+        // fclose($fp);
+
+    //    sync_invoices();   
+    
+        // ob_end_clean();
+        // header('Content-Type: application/csv');
+        // header('Content-Disposition: attachment; filename="invoices_errors.csv"');
+        // readfile('invoices_errors.csv');
 
         // Delete the not_found.csv file
         // unlink('invoices_errors.csv');
-        sync_invoices();   
-        //exit(); // Exit the child process
-    
-        // Parent process - continue execution without waiting for the child process
-        // Download the not_found.csv file
-        ob_end_clean();
-        header('Content-Type: application/csv');
-        header('Content-Disposition: attachment; filename="invoices_errors.csv"');
-        readfile('invoices_errors.csv');
-
-        // Delete the not_found.csv file
-        unlink('invoices_errors.csv');
     }
 

@@ -22,6 +22,12 @@ class CustomJSONEncoder(json.JSONEncoder):
         if isinstance(obj, date):
             return obj.isoformat()
         return super().default(obj)
+# def get_credit_amount(prop_id):
+#     cursor = db.cursor()
+#     query = "SELECT * FROM properties WHERE sync='0' LIMIT 500"
+#     cursor.execute(query)
+#     invoices = cursor.fetchall()
+
 def sync_invoices():
     
     

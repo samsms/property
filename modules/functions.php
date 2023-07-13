@@ -4364,7 +4364,8 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
             $priority = setChargeItemPriority($chargename);
             $chargeitemdetails = getChargeItemByName($chargename, $propid);
             //if the charge item doesnt attract commission,reduce the credit amount below by the commission previously charged on the item
-            if ($chargeitemdetails['charged_commission'] == 0) {
+            if ($chargeitemdetails['charged_commission'] == 0&strtolower($chargename)!='rent') {
+                echo $chargename;
                 $commissionnotcharged = $commissionnotcharged + $charges[$i];
             }
                 //create an invoice and return
@@ -4395,6 +4396,7 @@ function create_invoice($id, $entrydate, $incomeacct, $amount, $billing, $user, 
         if (empty($creditamount)) {
             $creditamount = 0;
         }
+       // die("commision is   $commissionnotcharged ");
        $tablenam = "tenants";
        $db->query("update invoices set creditamount='$creditamount' where invoiceno='$result2'") or die($db->error());
 
@@ -4636,11 +4638,13 @@ function create_invoice_Bulky($id, $entrydate, $incomeacct, $amount, $billing, $
             $chargename = $chargenames[$i];
             $priority = setChargeItemPriority($chargename);
             $chargeitemdetails = getChargeItemByName($chargename, $propid);
+          //  print(json_encode($chargename));
             //if the charge item doesnt attract commission,reduce the credit amount below by the commission previously charged on the item
-            if ($chargeitemdetails['charged_commission'] == 0) {
+            if ($chargeitemdetails['charged_commission'] == 0&strtolower($chargename)!='rent') {
                 $commissionnotcharged = $commissionnotcharged + $charges[$i];
             }
             $query1 = "INSERT into $tablename2 (`invoiceno`,`item_name`,`amount`,`priority`) VALUES ('$result2','$chargename','$charges[$i]','$priority')";
+            echo  $query1;
             $db->query($query1) or die($db->error());
                 //echo json_encode($response_array);
                 //  return;
@@ -4653,7 +4657,9 @@ function create_invoice_Bulky($id, $entrydate, $incomeacct, $amount, $billing, $
         unset($charges);
        
         $commission = getPropertyCommissionRate($propid);
+    
         $creditamount = ((($commission * $invoiceamount) / 100) - (($commission * $commissionnotcharged) / 100));
+      //  die("commision is   $creditamount ");
         if (empty($creditamount)) {
             $creditamount = 0;
         }
@@ -4721,7 +4727,7 @@ function create_crdtnote($id, $entrydate, $incomeacct, $amount, $billing, $user,
             $priority = setChargeItemPriority($chargename);
             $chargeitemdetails = getChargeItemByName($chargename, $propid);
             //if the charge item doesnt attract commission,reduce the credit amount below by the commission previously charged on the item
-            if ($chargeitemdetails['charged_commission'] == 0) {
+            if ($chargeitemdetails['charged_commission'] == 0&strtolower($chargename)!='rent') {
                 $commissionnotcharged = $commissionnotcharged + $charges[$i];
             }
             if ($chargeitemdetails['is_deposit'] == 1) {
@@ -5575,6 +5581,18 @@ function myarraysum($array)
 //getlatest invoice
 function getLatestInvoiceTenant($id)
 {
+}
+function getInvoiceBalanceByDate($idno)
+{
+    $tablename = getInvoiceTable();
+    $balances = array();
+    $mysqli = getMysqliConnection();
+    //get balance for a tenant where invoice has not been reversed
+    $res = $mysqli->query("SELECT (amount-paidamount) as balance  FROM {$tablename} WHERE idno='$idno' AND revsd=0 ") or die($mysqli->error);
+    while ($row = $res->fetch_assoc()) {
+        array_push($balances, $row['balance']);
+    }
+    return array_sum($balances);
 }
 
 function getInvoiceBalance($idno, $latestinvoice = '0')

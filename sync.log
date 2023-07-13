@@ -398,3 +398,45 @@ Traceback (most recent call last):
   File "/usr/local/lib/python3.8/dist-packages/requests/adapters.py", line 565, in send
     raise ConnectionError(e, request=request)
 requests.exceptions.ConnectionError: HTTPSConnectionPool(host='techsavanna.technology', port=443): Max retries exceeded with url: /river-court-palla/api/endpoints/journal.php?action=add-journal-bulk&company-id=RIVER (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7faaba50f0d0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+{'checkoutid': '108633', 'response': {'0': 'Response GL Item Has been added', 'id': '130353'}}
+1
+{'checkoutid': '108634', 'response': {'0': 'Response GL Item Has been added', 'id': '130931'}}
+1
+{'checkoutid': '108635', 'response': {'0': 'Response GL Item Has been added', 'id': '130933'}}
+1
+{'checkoutid': '108636', 'response': {'0': 'Response GL Item Has been added', 'id': '130939'}}
+1
+{'checkoutid': '108637', 'response': {'0': 'Response GL Item Has been added', 'id': '130941'}}
+1
+{'checkoutid': '108638', 'response': {'0': 'Response GL Item Has been added', 'id': '130943'}}
+1
+{'checkoutid': '108639', 'response': {'0': 'Response GL Item Has been added', 'id': '130945'}}
+1
+{'checkoutid': '108640', 'response': {'0': 'Response GL Item Has been added', 'id': '130947'}}
+1
+{'checkoutid': '108641', 'response': {'0': 'Response GL Item Has been added', 'id': '130949'}}
+1
+{'checkoutid': '108642', 'response': {'0': 'Response GL Item Has been added', 'id': '130951'}}
+1
+{'checkoutid': '108643', 'response': {'0': 'Response GL Item Has been added', 'id': '130953'}}
+1
+{'checkoutid': '108644', 'response': {'0': 'Response GL Item Has been added', 'id': '130955'}}
+1
+{'checkoutid': '108645', 'response': {'0': 'Response GL Item Has been added', 'id': '130957'}}
+1
+{'checkoutid': '108646', 'response': {'0': 'Response GL Item Has been added', 'id': '130959'}}
+1
+{'checkoutid': '108647', 'response': {'0': 'Response GL Item Has been added', 'id': '130961'}}
+1
+{'checkoutid': '108648', 'response': {'0': 'Response GL Item Has been added', 'id': '130964'}}
+1
+{'checkoutid': '108649', 'response': {'0': 'Response GL Item Has been added', 'id': '130967'}}
+1
+{'checkoutid': '108650', 'response': {'0': 'Response GL Item Has been added', 'id': '131000'}}
+1
+{'checkoutid': '108651', 'response': {'0': 'Response GL Item Has been added', 'id': '131003'}}
+1
+{'checkoutid': '108660', 'response': {'0': 'Response GL Item Has been added', 'id': '131672'}}
+1
+{'checkoutid': '108661', 'response': {'0': 'Response GL Item Has been added', 'id': '131675'}}
+1
