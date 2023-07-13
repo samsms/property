@@ -75,14 +75,14 @@ if(isset($_FILES['import_file'])){
         }
         // fclose($fp);
 
-    //    sync_invoices();   
+       sync_invoices();   
     
-        // ob_end_clean();
-        // header('Content-Type: application/csv');
-        // header('Content-Disposition: attachment; filename="invoices_errors.csv"');
-        // readfile('invoices_errors.csv');
+        ob_end_clean();
+        header('Content-Type: application/csv');
+        header('Content-Disposition: attachment; filename="invoices_errors.csv"');
+        readfile('invoices_errors.csv');
 
         // Delete the not_found.csv file
-        // unlink('invoices_errors.csv');
+        unlink('invoices_errors.csv');
     }
 

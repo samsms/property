@@ -4644,7 +4644,6 @@ function create_invoice_Bulky($id, $entrydate, $incomeacct, $amount, $billing, $
                 $commissionnotcharged = $commissionnotcharged + $charges[$i];
             }
             $query1 = "INSERT into $tablename2 (`invoiceno`,`item_name`,`amount`,`priority`) VALUES ('$result2','$chargename','$charges[$i]','$priority')";
-            echo  $query1;
             $db->query($query1) or die($db->error());
                 //echo json_encode($response_array);
                 //  return;
