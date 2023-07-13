@@ -13,7 +13,9 @@ if (isset($_FILES['receipt_file'])) {
     $data = array();
     $result = array();
     while ($row = fgetcsv($fp, 1024, ",")) {    
-    $tenant = getTenantfromApt(getPropertyId($row[1]), $row[2]);    
+    $tenant = getTenantfromApt(getPropertyId($row[1]), $row[2]);  
+    $paymode=  $row[4];
+    $reference=$row[5];
     $date = DateTime::createFromFormat('d/m/Y', trim($row[0]));
           // die(print_r(  $tenant ));
      $invoices =false;
@@ -33,7 +35,7 @@ if (isset($_FILES['receipt_file'])) {
         //    die(print_r( $tenant));
            
             $amount_paid = floatval(str_replace(",", "", $row[3]));
-            create_mpesa_receipt($date->format("d/m/y"),$tenant->Id, $amount_paid, "imported");
+            create_mpesa_receipt($date->format("d/m/y"),$tenant->Id, $amount_paid, $reference,$paymode);
         }
      
     }
@@ -51,7 +53,7 @@ if (isset($_FILES['receipt_file'])) {
     sync_receipt();
 }
 
-function create_mpesa_receipt($date,$id , $paid_amount, $reference) {
+function create_mpesa_receipt($date,$id , $paid_amount, $reference,$paymode) {
      //$tenant = getTenantDetailsFromId($id);
     
     $invoices = fetchinvoicedetailsPlain($id);
@@ -63,7 +65,7 @@ function create_mpesa_receipt($date,$id , $paid_amount, $reference) {
         $amount_to_pay = ($invoice === $last_invoice) ? $paid_amount : min($paid_amount, $amount_due);
 
         if ($amount_to_pay > 0) {
-            pay($date,$id, $invoice, $amount_to_pay, $reference);
+            pay($date,$id, $invoice, $amount_to_pay, $reference,$paymode);
             $paid_amount -= $amount_to_pay;
         }
 
@@ -73,7 +75,7 @@ function create_mpesa_receipt($date,$id , $paid_amount, $reference) {
     }
 }
 
-function pay($date,$id, $invoice, $amount, $reference) {
+function pay($date,$id, $invoice, $amount, $reference,$paymode) {
     //die("$id, $invoice, $amount, $reference");
     $date = DateTime::createFromFormat('d/m/y', trim($date));
     $invoicenos = $invoice['invoiceno'];
@@ -83,7 +85,7 @@ function pay($date,$id, $invoice, $amount, $reference) {
     $idno = $id;
     $receiptdate =  $date->format("d/m/Y");
     //die($receiptdate);
-    $paymode = "4";
+    $paymode = getPaymentModelId($paymode);
     $cashaccount = null; 
     $bankaccount = null;
     $chequedate = null;
@@ -106,3 +108,23 @@ function pay($date,$id, $invoice, $amount, $reference) {
     echo update_invoice($invoicenos, $amount, $idno, $receiptdate, $paymode, $cashaccount, $bankaccount, $chequedate, $chequeno, $chequedetails, $remarks, $paidby, $user, $counter, $propid, $penalty, $penaltygl, $fperiod, $bankdeposit, $invoicenos);
 }
 
+function getPaymentModelId($paymentModel) {
+    $paymentModels = [
+      0 => 'CASH',
+      1 => 'CHEQUE',
+      2 => 'CREDIT CARD',
+      3 => 'BANK DEPOSIT',
+      4 => 'MPESA',
+      5 => 'BANK TRANSFER',
+      6 => 'AGENT DEPOSIT'
+    ];
+  
+    foreach ($paymentModels as $id => $model) {
+      if (stripos($model, $paymentModel) !== false) {
+        return $id;
+      }
+    }
+  
+    return 0; // If no matching payment model found
+  }
+  
