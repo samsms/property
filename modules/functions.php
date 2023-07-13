@@ -9007,7 +9007,7 @@ function fetchplotperformanceOne($propid, $fromdate, $enddate)
 
         $invoicedetails = [];
         $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'] . '(' . $tenantdetails['phone'] . ':' . $tenantdetails['email'] . 'N/Kin:' . $tenantdetails['kinsname'] . '-' . $tenantdetails['kinstel'] . ')';
+        $invoicedetails['name'] = $tenantdetails['name'];
         //  die( $invoicedetails['name']);
         $aptid = getApartmentFromTenant($row['idno']);
         $aptdetails = getApartmentDetails($aptid);
@@ -9109,7 +9109,7 @@ function fetchplotperformancebypercentageOne($propid, $fromdate, $enddate, $perc
 
         $invoicedetails = [];
         $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'] . '(' . $tenantdetails['phone'] . ':' . $tenantdetails['email'] . 'N/Kin:' . $tenantdetails['kinsname'] . '-' . $tenantdetails['kinstel'] . ')';
+        $invoicedetails['name'] = $tenantdetails['name'];
         //  die( $invoicedetails['name']);
         $aptid = getApartmentFromTenant($row['idno']);
         $aptdetails = getApartmentDetails($aptid);
@@ -9217,7 +9217,7 @@ function fetchplotperformancebypercentageall($propid, $fromdate, $enddate, $flag
         $prop_name = findpropertybyid($row['property_id']);
         $invoicedetails = [];
         $tenantdetails = getTenantDetails($row['idno']);
-        $invoicedetails['name'] = $tenantdetails['name'] . '(' . $tenantdetails['phone'] . ':' . $tenantdetails['email'] . 'N/Kin:' . $tenantdetails['kinsname'] . '-' . $tenantdetails['kinstel'] . ')';
+        $invoicedetails['name'] = $tenantdetails['name'] ;
         //  die( $invoicedetails['name']);
         $aptid = getApartmentFromTenant($row['idno']);
         $aptdetails = getApartmentDetails($aptid);
