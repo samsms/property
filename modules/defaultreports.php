@@ -245,7 +245,7 @@ a.export, a.export:visited {
                 if ($plan['isoccupied'] == 1 && $plan["status"] != "disabled") {
                     array_push($rent, $plan['monthlyincome']);
                     $tenant_invoice = $expected_rent1["$tenantid"];
-                     die(($tenant_invoice));
+                    // die(($tenant_invoice));
                     $total_invoices += $tenant_invoice['Tinvoice'];
                     $total_rent += $tenant_invoice['TAmount'];
                     echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>' . $plan['monthlyincome'] .
