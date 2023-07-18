@@ -204,7 +204,7 @@ a.export, a.export:visited {
             <td>Name</td>
             <td>Rent/PM</td>
             <td>Invoiced Rent</td>
-            <td>Deposit Paid</td>
+          
             <td>Rent BBF</td>';
             foreach ($chargeables as $value) {
                 array_push($itemnames, strtolower($value['accname']));

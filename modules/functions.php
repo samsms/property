@@ -9234,14 +9234,8 @@ function fetchplotperformancebypercentageall($propid, $fromdate, $enddate, $flag
         }
         // die($credit/$debit);
         if (floor($percent) >= $percentage && floor($percent) <= $percentangeto) {
-
             array_push($total_credit, $credit);
             array_push($total_debit, $debit);
-
-            //         $invoicedetails['paidamount'] = getInvoiceReceipts($row['invoiceno']);
-            //  array_push($allinvoicedetails, $invoicedetails);
-            //  unset($invoicedetails);
-            // report=fetchstatement&startdate=07/04/2022&enddate=07/13/2022&clientid=256&count=0&propid=3
             echo '<tr><td>' . ($i++) . '</td><td><a href="./defaultreports.php?report=fetchstatement&startdate=' . $fdate . '&enddate=' . $edate . '&clientid=' . $row['idno'] . '&count=0&propid=' . $row['property_id'] . '"> 
         ' . $prop_name . '</a></td><td>' . $invoicedetails['name'] . '</td><td>' . $invoicedetails['aptname'] . '</td><td style="color:red">&nbsp;&nbsp;' . number_format($debit) . '</td><td style="color:green">&nbsp;&nbsp;' . number_format($credit) . '</td><td>&nbsp;&nbsp;' . $row['bal'] . '</td><td>' . number_format($percent, 1) . '</td></tr>';
         }
