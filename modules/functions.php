@@ -6399,7 +6399,7 @@ function create_receipt($invoiceno, $idno, $receiptdate, $paymode, $recpamount, 
         $is_deposit=$invoiceitemdetails['is_deposit'];
     
       
-        if ( $is_deposit == 1) {
+        if ( $is_deposit == 1&& $item['amount']>0) {
             $deposit_amount = min($recpamount, $item['amount']);
             $recpamount = $recpamount - $deposit_amount;
 
