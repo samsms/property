@@ -252,58 +252,60 @@ if (isset($_GET['unassign'])) {
 
     <div style="margin-bottom: 20px;">
       <h3>Assign Properties to Agent</h3>
-      <form method="post" action="">
-        <div class="form-group">
-          <label for="agent">Agent:</label>
-          <select name="agent" id="agent" class="form-control">
-            <option value="">Select Agent</option>
-            <?php
-              // Display agent names in a dropdown list
-              if ($agentsResult->num_rows > 0) {
-                while ($agent = $agentsResult->fetch_assoc()) {
-                  $selected = $selectedAgent == $agent['agentid'] ? 'selected' : '';
-                  echo "<option value='" . $agent['agentid'] . "' " . $selected . ">" . $agent['agentname'] . "</option>";
-                }
-              }
-            ?>
-          </select>
-        </div>
-        <div class="form-group">
-        <button onclick="confirmSubmit()" class="btn btn-primary">Assign All</button>
-
-      <label for="properties">Properties:</label>
-    <!-- Add a button with an onclick event to ask for confirmation before submitting -->
-
-<!-- Your original select element and form -->
-<form id="myForm" action="your_action_url" method="post">
-  <select name="properties[]" id="properties" class="form-control" multiple data-search="true">
-    <?php
-    // Display property names in the multi-select dropdown
-    if ($propertiesResult->num_rows > 0) {
-      while ($property = $propertiesResult->fetch_assoc()) {
-        $propertyData = json_encode(['id' => $property['propertyid'], 'name' => $property['property_name']]);
-        echo "<option value='" . htmlspecialchars($propertyData, ENT_QUOTES) . "'>" . $property['property_name'] . "</option>";
-      }
-    }
-    ?>
-  </select>
+      <form method="post" action="" onsubmit="return confirmAssignProperties()">
+  <div class="form-group">
+    <label for="agent">Agent:</label>
+    <select name="agent" id="agent" class="form-control">
+      <option value="">Select Agent</option>
+      <?php
+        // Display agent names in a dropdown list
+        if ($agentsResult->num_rows > 0) {
+          while ($agent = $agentsResult->fetch_assoc()) {
+            $selected = $selectedAgent == $agent['agentid'] ? 'selected' : '';
+            echo "<option value='" . $agent['agentid'] . "' " . $selected . ">" . $agent['agentname'] . "</option>";
+          }
+        }
+      ?>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="properties">Properties:</label>
+    <select name="properties[]" id="properties" class="form-control" multiple data-search="true">
+      <?php
+        // Display property names in the multi-select dropdown
+        if ($propertiesResult->num_rows > 0) {
+          while ($property = $propertiesResult->fetch_assoc()) {
+            $propertyData = json_encode(['id' => $property['propertyid'], 'name' => $property['property_name']]);
+            echo "<option value='" . htmlspecialchars($propertyData, ENT_QUOTES) . "'>" . $property['property_name'] . "</option>";
+          }
+        }
+      ?>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Assign Properties</button>
 </form>
 
 <script>
-function confirmSubmit() {
+function confirmAssignProperties() {
+  // Get a reference to the select element
+  var selectElement = document.getElementById("properties");
+
+  // Check if any option is selected
+  var selectedOptions = Array.from(selectElement.selectedOptions);
+  if (selectedOptions.length === 0) {
+    alert("Please select at least one property to assign.");
+    return false; // Cancel form submission
+  }
+
   // Ask for confirmation before submitting the form
-  if (confirm("Are you sure you want to assign all properties to this agent?")) {
-    // If user confirms, submit the form
-    document.getElementById("myForm").submit();
+  if (confirm("Are you sure you want to assign all properties?")) {
+    return true; // Proceed with form submission
   } else {
-    // If user cancels, do nothing (form submission is canceled)
-    return false;
+    return false; // Cancel form submission
   }
 }
 </script>
-    </div>
-        <button type="submit" class="btn btn-primary">Assign Properties</button>
-      </form>
+
     </div>
 
     <div>
