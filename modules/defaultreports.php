@@ -358,7 +358,7 @@ a.export, a.export:visited {
                     <td></td><td></td><td></td><td>
                     <b>' . number_format($total_invoices,2) . '</b></td>'
                     ;
-            echo '<td></td>';
+            // echo '<td></td>';
              foreach ($chargeables as $value) {
                  echo '<td></td>';
              }
