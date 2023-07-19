@@ -269,9 +269,10 @@ if (isset($_GET['unassign'])) {
           </select>
         </div>
         <div class="form-group">
+        <button onclick="confirmSubmit()" class="btn btn-primary">Assign All</button>
+
       <label for="properties">Properties:</label>
     <!-- Add a button with an onclick event to ask for confirmation before submitting -->
-<button onclick="confirmSubmit()">Submit</button>
 
 <!-- Your original select element and form -->
 <form id="myForm" action="your_action_url" method="post">
