@@ -270,17 +270,34 @@ if (isset($_GET['unassign'])) {
         </div>
         <div class="form-group">
       <label for="properties">Properties:</label>
-      <select name="properties[]" id="properties" class="form-control" multiple data-search="true">
-        <?php
-          // Display property names in the multi-select dropdown
-          if ($propertiesResult->num_rows > 0) {
-            while ($property = $propertiesResult->fetch_assoc()) {
-              $propertyData = json_encode(['id' => $property['propertyid'], 'name' => $property['property_name']]);
-              echo "<option value='" . htmlspecialchars($propertyData, ENT_QUOTES) . "'>" . $property['property_name'] . "</option>";
-            }
-          }
-        ?>
-      </select>
+    <!-- Add a button with an onclick event to select all options -->
+<button onclick="selectAllOptions()">Select All Options</button>
+
+<!-- Your original select element -->
+<select name="properties[]" id="properties" class="form-control" multiple data-search="true">
+  <?php
+  // Display property names in the multi-select dropdown
+  if ($propertiesResult->num_rows > 0) {
+    while ($property = $propertiesResult->fetch_assoc()) {
+      $propertyData = json_encode(['id' => $property['propertyid'], 'name' => $property['property_name']]);
+      echo "<option value='" . htmlspecialchars($propertyData, ENT_QUOTES) . "'>" . $property['property_name'] . "</option>";
+    }
+  }
+  ?>
+</select>
+
+<script>
+function selectAllOptions() {
+  // Get a reference to the select element
+  var selectElement = document.getElementById("properties");
+
+  // Loop through all options and set their selected property to true
+  for (var i = 0; i < selectElement.options.length; i++) {
+    selectElement.options[i].selected = true;
+  }
+}
+</script>
+
     </div>
         <button type="submit" class="btn btn-primary">Assign Properties</button>
       </form>
