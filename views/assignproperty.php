@@ -264,6 +264,7 @@ if (isset($_GET['unassign'])) {
     <div style="margin-bottom: 20px;">
       <h3>Assign Properties to Agent</h3>
 <<<<<<< HEAD
+<<<<<<< HEAD
       <form method="post" action="" onsubmit="return confirmAssignProperties()">
   <div class="form-group">
     <label for="agent">Agent:</label>
@@ -311,6 +312,8 @@ function selectAllOptions() {
  
   <button type="submit" class="btn btn-primary">Assign Properties</button>
 =======
+=======
+>>>>>>> parent of e54c9a0... update
       <form method="post" action="">
         <div class="form-group">
           <label for="agent">Agent:</label>
@@ -346,6 +349,9 @@ function selectAllOptions() {
     }
     ?>
   </select>
+<<<<<<< HEAD
+>>>>>>> parent of e54c9a0... update
+=======
 >>>>>>> parent of e54c9a0... update
 </form>
 <div style="margin-top: 10px;">
@@ -353,6 +359,7 @@ function selectAllOptions() {
 <button id="unselect-all-button"  class='btn btn-alert'>unselect all</button>
 </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 
@@ -366,6 +373,8 @@ function selectAllOptions() {
       <button type='button' class='btn btn-danger' onclick='unassignSelectedProperties()'>Unassign Selected</button>
       </div>
 =======
+=======
+>>>>>>> parent of e54c9a0... update
 <script>
 function confirmSubmit() {
   // Ask for confirmation before submitting the form
@@ -378,6 +387,12 @@ function confirmSubmit() {
   }
 }
 </script>
+<<<<<<< HEAD
+=======
+    </div>
+        <button type="submit" class="btn btn-primary">Assign Properties</button>
+      </form>
+>>>>>>> parent of e54c9a0... update
     </div>
         <button type="submit" class="btn btn-primary">Assign Properties</button>
       </form>
