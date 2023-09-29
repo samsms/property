@@ -334,7 +334,7 @@ function selectAllOptions() {
   
   <form method="post" action="" id="unassign-form" onsubmit="return false">
     <?php
-      // Display agent properties
+      // Display agent propertiess
       if ($agentPropertiesResult->num_rows > 0) {
 
         echo "<table class='table'>
