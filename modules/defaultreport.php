@@ -247,7 +247,7 @@ if ($reportpost === 'tenantlist') {
             $paidamount = 0;
             foreach ($receipts as $value) {
 
-                echo $value['recpno'] . '#';
+                // echo $value['recpno'] . '#';
                 $paidamount += $value['receiptpaidamount'];
             }
 
