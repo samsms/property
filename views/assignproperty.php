@@ -296,41 +296,12 @@ if (isset($_GET['unassign'])) {
   </div>
  
   <button type="submit" class="btn btn-primary">Assign Properties</button>
+</form>
+<div style="margin-top: 10px;">
+<button id="select-all-button"  class='btn btn-success'>select all</button>
+<button id="unselect-all-button"  class='btn btn-alert'>unselect all</button>
+</div>
 
-      <form method="post" action="">
-        <div class="form-group">
-          <label for="agent">Agent:</label>
-          <select name="agent" id="agent" class="form-control">
-            <option value="">Select Agent</option>
-            <?php
-              // Display agent names in a dropdown list
-              if ($agentsResult->num_rows > 0) {
-                while ($agent = $agentsResult->fetch_assoc()) {
-                  $selected = $selectedAgent == $agent['agentid'] ? 'selected' : '';
-                  echo "<option value='" . $agent['agentid'] . "' " . $selected . ">" . $agent['agentname'] . "</option>";
-                }
-              }
-            ?>
-          </select>
-        </div>
-        <div class="form-group">
-        <button onclick="confirmSubmit()" class="btn btn-primary">Assign All</button>
-
-      <label for="properties">Properties:</label>
-    <!-- Add a button with an onclick event to ask for confirmation before submitting -->
-
-<!-- Your original select element and form -->
-<form id="myForm" action="your_action_url" method="post">
-  <select name="properties[]" id="properties" class="form-control" multiple data-search="true">
-    <?php
-    // Display property names in the multi-select dropdown
-    if ($propertiesResult->num_rows > 0) {
-      while ($property = $propertiesResult->fetch_assoc()) {
-        $propertyData = json_encode(['id' => $property['propertyid'], 'name' => $property['property_name']]);
-        echo "<option value='" . htmlspecialchars($propertyData, ENT_QUOTES) . "'>" . $property['property_name'] . "</option>";
-      }
-    }
-    ?>
 
 
   <div class="row">
@@ -342,37 +313,7 @@ if (isset($_GET['unassign'])) {
       <input type='hidden' name='unassign' value='unasign'/>
       <button type='button' class='btn btn-danger' onclick='unassignSelectedProperties()'>Unassign Selected</button>
       </div>
-
-<script>
-function confirmSubmit() {
-  // Ask for confirmation before submitting the form
-  if (confirm("Are you sure you want to assign all properties to this agent?")) {
-    // If user confirms, submit the form
-    document.getElementById("myForm").submit();
-  } else {
-    // If user cancels, do nothing (form submission is canceled)
-    return false;
-  }
-}
-</script>
-
-
-
     </div>
-        <button type="submit" class="btn btn-primary">Assign Properties</button>
-      </form>
-
-  <div class="row">
-    <div class="col-lg-3">
-     <h3>Agent Properties:</h3>
-    </div>
-    <div class="col-lg-3 d-flex justify-content-end">
-     
-      <input type='hidden' name='unassign' value='unasign'/>
-      <button type='button' class='btn btn-danger' onclick='unassignSelectedProperties()'>Unassign Selected</button>
-      </div>
-    </div>
-
   </div>
 
    
