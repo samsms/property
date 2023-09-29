@@ -268,32 +268,18 @@ if (isset($_GET['unassign'])) {
       <form method="post" action="" onsubmit="return confirmAssignProperties()">
   <div class="form-group">
     <label for="agent">Agent:</label>
-    <button onclick="selectAllOptions()">Select All Options</button>
-
-<!-- Your original select element -->
-<select name="properties[]" id="properties" class="form-control" multiple data-search="true">
-  <?php
-  // Display property names in the multi-select dropdown
-  if ($propertiesResult->num_rows > 0) {
-    while ($property = $propertiesResult->fetch_assoc()) {
-      $propertyData = json_encode(['id' => $property['propertyid'], 'name' => $property['property_name']]);
-      echo "<option value='" . htmlspecialchars($propertyData, ENT_QUOTES) . "'>" . $property['property_name'] . "</option>";
-    }
-  }
-  ?>
-</select>
-
-<script>
-function selectAllOptions() {
-  // Get a reference to the select element
-  var selectElement = document.getElementById("properties");
-
-  // Loop through all options and set their selected property to true
-  for (var i = 0; i < selectElement.options.length; i++) {
-    selectElement.options[i].selected = true;
-  }
-}
-</script>
+    <select name="agent" id="agent" class="form-control">
+      <option value="">Select Agent</option>
+      <?php
+        // Display agent names in a dropdown list
+        if ($agentsResult->num_rows > 0) {
+          while ($agent = $agentsResult->fetch_assoc()) {
+            $selected = $selectedAgent == $agent['agentid'] ? 'selected' : '';
+            echo "<option value='" . $agent['agentid'] . "' " . $selected . ">" . $agent['agentname'] . "</option>";
+          }
+        }
+      ?>
+    </select>
   </div>
   <div class="form-group">
     <label for="properties">Properties:</label>
@@ -354,6 +340,7 @@ function selectAllOptions() {
 =======
 >>>>>>> parent of e54c9a0... update
 </form>
+<<<<<<< HEAD
 <div style="margin-top: 10px;">
 <button id="select-all-button"  class='btn btn-success'>select all</button>
 <button id="unselect-all-button"  class='btn btn-alert'>unselect all</button>
@@ -389,6 +376,30 @@ function confirmSubmit() {
 </script>
 <<<<<<< HEAD
 =======
+=======
+
+<script>
+function confirmAssignProperties() {
+  // Get a reference to the select element
+  var selectElement = document.getElementById("properties");
+
+  // Check if any option is selected
+  var selectedOptions = Array.from(selectElement.selectedOptions);
+  if (selectedOptions.length === 0) {
+    alert("Please select at least one property to assign.");
+    return false; // Cancel form submission
+  }
+
+  // Ask for confirmation before submitting the form
+  if (confirm("Are you sure you want to assign all properties?")) {
+    return true; // Proceed with form submission
+  } else {
+    return false; // Cancel form submission
+  }
+}
+</script>
+
+>>>>>>> parent of 39de16a... upd
     </div>
         <button type="submit" class="btn btn-primary">Assign Properties</button>
       </form>
