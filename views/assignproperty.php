@@ -40,22 +40,33 @@ $conn = getMysqliConnection();
       border-bottom: 1px solid #ddd;
     }
 
-    .unassign-button {
+    .unassign-button,button {
       background-color: #f44336;
       color: white;
       border: none;
       padding: 5px 10px;
       cursor: pointer;
     }
+    /* Set a max-height for the Select2 dropdown container */
+  
+    .select2-selection  {
+        max-height: 200px !important; 
+        overflow-y: scroll; 
+    }
+   
+
   </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
   $(document).ready(function() {
     $('#properties').select2();
+    
   });
+  
 </script>
   <script>
     $(document).ready(function() {
@@ -110,7 +121,7 @@ $conn = getMysqliConnection();
 </head>
 <body>
     <a href="../home.php"><----Back</a>
-  <div class="container">
+  <div class="container-fluid" style="margin: 10px;">
     <h2>Agent Property Assignment</h2>
 
     <?php
@@ -282,42 +293,40 @@ if (isset($_GET['unassign'])) {
       ?>
     </select>
   </div>
+ 
   <button type="submit" class="btn btn-primary">Assign Properties</button>
 </form>
+<div style="margin-top: 10px;">
+<button id="select-all-button"  class='btn btn-success'>select all</button>
+<button id="unselect-all-button"  class='btn btn-alert'>unselect all</button>
+</div>
 
-<script>
-function confirmAssignProperties() {
-  // Get a reference to the select element
-  var selectElement = document.getElementById("properties");
 
-  // Check if any option is selected
-  var selectedOptions = Array.from(selectElement.selectedOptions);
-  if (selectedOptions.length === 0) {
-    alert("Please select at least one property to assign.");
-    return false; // Cancel form submission
-  }
 
-  // Ask for confirmation before submitting the form
-  if (confirm("Are you sure you want to assign all properties?")) {
-    return true; // Proceed with form submission
-  } else {
-    return false; // Cancel form submission
-  }
-}
-</script>
-
+  <div class="row">
+    <div class="col-lg-3">
+     <h3>Agent Properties:</h3>
     </div>
+    <div class="col-lg-3 d-flex justify-content-end">
+     
+      <input type='hidden' name='unassign' value='unasign'/>
+      <button type='button' class='btn btn-danger' onclick='unassignSelectedProperties()'>Unassign Selected</button>
+      </div>
+    </div>
+  </div>
 
-    <div>
-  <h3>Agent Properties:</h3>
+   
+ 
+  
   <form method="post" action="" id="unassign-form" onsubmit="return false">
     <?php
       // Display agent properties
       if ($agentPropertiesResult->num_rows > 0) {
+
         echo "<table class='table'>
                 <tr>
                   <th>
-                    <input type='checkbox' id='select-all' onchange='toggleSelectAll()'>
+                    <input type='checkbox' id='select-all-checkbox' >
                   </th>
                   <th>Agent</th>
                   <th>Property</th>
@@ -340,8 +349,7 @@ function confirmAssignProperties() {
         echo "</table>";
 
         // Add a button to unassign selected properties
-        echo "<input type='hidden' name='unassign' value='unasign'/>";
-        echo "<button type='button' class='btn btn-danger' onclick='unassignSelectedProperties()'>Unassign Selected</button>";
+    
       } else {
         echo "<p>No agent properties found.</p>";
       }
@@ -352,15 +360,46 @@ function confirmAssignProperties() {
 
 
     <script>
-     // Function to toggle select all checkboxes
-function toggleSelectAll() {
-  var selectAllCheckbox = document.getElementById("select-all");
-  var checkboxes = document.querySelectorAll("input[name='properties[]']");
+function confirmAssignProperties() {
+    // Get a reference to the select element
+    var selectElement = $("#properties");
 
-  for (var i = 0; i < checkboxes.length; i++) {
-    checkboxes[i].checked = selectAllCheckbox.checked;
-  }
+    // Check if any option is selected
+    var selectedOptions = selectElement.find("option:selected");
+    
+    if (selectedOptions.length === 0) {
+        alert("Please select at least one property to assign.");
+        return false; // Cancel form submission
+    }
+    // Ask for confirmation before submitting the form
+    if (confirm("Are you sure you want to assign all properties?")) {
+        return true; // Proceed with form submission
+    } else {
+        return false; // Cancel form submission
+    }
 }
+
+     // Function to toggle select all checkboxes
+     $(document).ready(function() {
+    $("#select-all-button").on("click", function() {
+        $("#properties option").prop("selected", true);
+        $("#properties").trigger("change");
+    });
+    $("#unselect-all-button").on("click", function() {
+        $("#properties option").prop("selected", false);
+        $("#properties").trigger("change");
+    });
+});
+$(document).ready(function() {
+  // Handle the click event of the "Select All" checkbox
+  $('#select-all-checkbox').on('change', function() {
+    // Get all the checkboxes for properties
+    var propertyCheckboxes = $('input[name="properties[]"]');
+    
+    // Set their "checked" property to match the state of the "Select All" checkbox
+    propertyCheckboxes.prop('checked', this.checked);
+  });
+});
 
 // Function to unassign selected properties
 // Function to unassign selected properties
