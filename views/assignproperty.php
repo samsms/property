@@ -266,7 +266,8 @@ if (isset($_GET['unassign'])) {
       <form method="post" action="" onsubmit="return confirmAssignProperties()">
   <div class="form-group">
     <label for="agent">Agent:</label>
- 
+    <button onclick="selectAllOptions()">Select All Options</button>
+
 <!-- Your original select element -->
 <select name="properties[]" id="properties" class="form-control" multiple data-search="true">
   <?php
