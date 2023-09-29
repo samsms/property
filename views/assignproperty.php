@@ -263,8 +263,7 @@ if (isset($_GET['unassign'])) {
 
     <div style="margin-bottom: 20px;">
       <h3>Assign Properties to Agent</h3>
-<<<<<<< HEAD
-<<<<<<< HEAD
+
       <form method="post" action="" onsubmit="return confirmAssignProperties()">
   <div class="form-group">
     <label for="agent">Agent:</label>
@@ -297,9 +296,7 @@ if (isset($_GET['unassign'])) {
   </div>
  
   <button type="submit" class="btn btn-primary">Assign Properties</button>
-=======
-=======
->>>>>>> parent of e54c9a0... update
+
       <form method="post" action="">
         <div class="form-group">
           <label for="agent">Agent:</label>
@@ -334,20 +331,6 @@ if (isset($_GET['unassign'])) {
       }
     }
     ?>
-  </select>
-<<<<<<< HEAD
->>>>>>> parent of e54c9a0... update
-=======
->>>>>>> parent of e54c9a0... update
-</form>
-<<<<<<< HEAD
-<div style="margin-top: 10px;">
-<button id="select-all-button"  class='btn btn-success'>select all</button>
-<button id="unselect-all-button"  class='btn btn-alert'>unselect all</button>
-</div>
-
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 
   <div class="row">
@@ -359,9 +342,7 @@ if (isset($_GET['unassign'])) {
       <input type='hidden' name='unassign' value='unasign'/>
       <button type='button' class='btn btn-danger' onclick='unassignSelectedProperties()'>Unassign Selected</button>
       </div>
-=======
-=======
->>>>>>> parent of e54c9a0... update
+
 <script>
 function confirmSubmit() {
   // Ask for confirmation before submitting the form
@@ -374,41 +355,24 @@ function confirmSubmit() {
   }
 }
 </script>
-<<<<<<< HEAD
-=======
-=======
 
-<script>
-function confirmAssignProperties() {
-  // Get a reference to the select element
-  var selectElement = document.getElementById("properties");
 
-  // Check if any option is selected
-  var selectedOptions = Array.from(selectElement.selectedOptions);
-  if (selectedOptions.length === 0) {
-    alert("Please select at least one property to assign.");
-    return false; // Cancel form submission
-  }
 
-  // Ask for confirmation before submitting the form
-  if (confirm("Are you sure you want to assign all properties?")) {
-    return true; // Proceed with form submission
-  } else {
-    return false; // Cancel form submission
-  }
-}
-</script>
-
->>>>>>> parent of 39de16a... upd
     </div>
         <button type="submit" class="btn btn-primary">Assign Properties</button>
       </form>
->>>>>>> parent of e54c9a0... update
+
+  <div class="row">
+    <div class="col-lg-3">
+     <h3>Agent Properties:</h3>
     </div>
-        <button type="submit" class="btn btn-primary">Assign Properties</button>
-      </form>
->>>>>>> parent of e54c9a0... update
+    <div class="col-lg-3 d-flex justify-content-end">
+     
+      <input type='hidden' name='unassign' value='unasign'/>
+      <button type='button' class='btn btn-danger' onclick='unassignSelectedProperties()'>Unassign Selected</button>
+      </div>
     </div>
+
   </div>
 
    
