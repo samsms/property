@@ -18,7 +18,7 @@
                             array_push($debitsum,$journals[$i]['total_debit']);
                             array_push($closeperiods, $journals[$i]['idclose_periods']);
                             $propertyname=findpropertybyid($journals[$i]['property_id']);
-                                                   ?>
+                    ?>
                         <tr> <td><?php echo $journals[$i]['journal_ref']?></td> <td><?php  echo $journals[$i]['total_debit']?></td><td><?php  echo $journals[$i]['total_credit']?></td><td><?php echo $journals[$i]['transaction_type'] ?></td><td><?php echo $journals[$i]['document_ref'] ?></td><td><?php echo $journals[$i]['idclose_periods'] ?></td><td><?php echo  $propertyname?></td><td><?php echo date("d-m-Y",strtotime($journals[$i]['booking_date']))?></td></tr>          
                     
           

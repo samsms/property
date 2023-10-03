@@ -174,16 +174,17 @@ a.export, a.export:visited {
         $invoice_amount = array();
         $commissionamounts = array();
         $chargeables =  getChargeItems($propid);
-//     print_r($chargeables);
+       // die(json_encode($chargeables));
         // die();
         //$chargeablescount = count($chargeables);
         $landlordchargeitems = array('rent', 'watchman', 'security', 'vat', 'garbage');
         $invoices = getinvoicelistChargeables($startdate, $enddate, $_REQUEST['accid'], $_REQUEST['accname'], $_REQUEST['propid'], $_SESSION['username']);
-        // die(json_encode( $invoices));
+        $chargeables_list= getlistChargeables($startdate, $enddate, $_REQUEST['accid'], $_REQUEST['accname'], $_REQUEST['propid'], $_SESSION['username']);
+     
         $itemnames = array();
         $additionalCharges = array();
         $expected_rent1 = expected_rent($propid, $startdate, $enddate);
-       // die(json_encode($expected_rent1));
+        //die("<br/><br/><br/>".json_encode($expected_rent1));
         //die();
         ?>
         <div class="dvData">
@@ -201,20 +202,32 @@ a.export, a.export:visited {
             echo '<tr>
             <u><td>S/no</td>
             <td>House</td>
-            <td colspan="2">Name</td>
-
-            <td>Invoiced Rent</td>
-          ';
-            foreach ($chargeables as $value) {
+            <td colspan="2">Name</td>';
+            foreach ($invoices as $value) {
                 array_push($itemnames, strtolower($value['accname']));
-                echo '<td>' . strtoupper($value['accname']) . '</td>';
-
+                //echo '<td>ss' . strtoupper($value['accname']) . '</td>';
                 array_push($additionalCharges, $value['amount']);
-
                 // echo '<td>' .  strtoupper($value['amount']) . '</td>';
             }
-            
-            echo '<td>Total Due</td><td>Total Paid</td> </u></tr></thead>';
+            $chargable_total=array();
+        //    die(json_encode($chargeables_list['totals_column'] ));
+          
+            foreach($chargeables_list['totals_column'] as $key=>$charge){                          
+                // $chargable_total[$chargable['item_name']][]=$chargable['TotalAmount'];
+                  echo( "<td>".(($key))."</td>");
+                  //exit;             
+              }
+              //die(json_encode($chargable_total));
+            // foreach($chargeables_list as $charge){
+            //     foreach($charge as $chargable){
+            //       echo "<td>".strtolower($chargable['item_name'])."</td>";
+               
+            //     //  die( "<td>".(($chargable['item_name']))."</td>");
+            //       //exit;
+            //     }
+            //     break;
+            //   }
+            echo '<td>BFF</td><td>Total Payable</td><td>Total Paid</td> </u></tr></thead>';
             echo '<tbody><tr>';
 
             $count = 1;
@@ -247,47 +260,28 @@ a.export, a.export:visited {
                     // die(($tenant_invoice));
                     $total_invoices += $tenant_invoice['Tinvoice'];
                     $total_rent += $tenant_invoice['TAmount'];
-                    echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td colspan="2">' . $plan['tenant_name'] . '</td>'.
-                    "<td>" . number_format($tenant_invoice['Tinvoice'], 2) . "</td>";
+                    echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td colspan="2">' . $plan['tenant_name'] . '</td>';
+                  
                 } else {
                     echo '<tr><td>' . $count . '</td><td>' . $plan['apt-tag'] . '</td><td>' . $plan['tenant_name'] . '</td><td>-</td>';
                 }
                 $receipts = getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']);
-                //$invoice=  getinvoicelist($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']) ;//
-//die(print_r($receipts));
-                //if item in chargeables ==item in chargeitems
+               
+    
+                foreach($chargeables_list["$tenantid"] as $chargable){
+                echo "<td>".json_encode($chargeables_list["$tenantid"] )."</td>";
+                 
+                }    
 
-                $countitems = count($itemnames);
-                // additional charges items
-                for ($i = 0; $i < $countitems; $i++) {
-                    if ($plan['isoccupied'] == 1) {
-
-
-                        echo '<td id="' . $itemnames[$i] . '">';
-                    } else {
-                        echo '<td id="' . $itemnames[$i] . '">' . '-';
+                if($chargeables_list["$tenantid"]==null){
+                    $countitems = count($itemnames);
+                    for($i=0;$i<$countitems;$i++){
+                        echo "<td></td>";                      
                     }
-                    foreach ($receipts[0]['chargeables'] as $itemcharged) {
-                        if (strtolower($itemcharged['name']) == strtolower($itemnames[$i])) {
-                            echo  number_format($itemcharged['amount'],2);
-
-                            if (strtoupper($itemcharged['name']) == "RENT") {
-
-                                $rentbalance = $itemcharged['amount'];
-                                //rent amount
-                            }
-
-
-                            if (strtolower($itemcharged['name']) == "watchman") {
-                                $vat = 0; //$itemcharged['amount'];
-
-                                array_push($watchmantotal, $itemcharged['amount']);
-                            }
-                            $stotal = $stotal + ($itemcharged['paidamount']);
-                        }
-                    }
-                    $stotal = ($itemcharged['paidamount']);
+                     
                 }
+               
+                $countitems = count($itemnames);               
 
                 //bbf
                 $balanceminuslastrentinvoice = getInvoiceBalanceByDate($tenantdetails['Id']);// - $rentbalance;
@@ -295,26 +289,24 @@ a.export, a.export:visited {
             //        $balanceminuslastrentinvoice = $balanceminuslastrentinvoice-$balanceminuslastrentinvoice;
             //    }
                     $balanceremain+= $balanceminuslastrentinvoice;
-                  
+                    $thismontinvoice=$expected_rent1["$tenantid"]['Tinvoice'];
+                    $prev_invoice= $tenant_invoice['Tinvoice'];
+                    $prev_invoice= $tenant_invoice['TAmount'];
+                echo "<td>".($balanceminuslastrentinvoice- $prev_invoice)."</td>";
                 echo '</td><td>' . number_format($balanceminuslastrentinvoice,2). '</td>' ;
                 foreach ($receipts as $singlereceipt) {
                     $receiptsdetails[] = getReceiptsFromInvoice($singlereceipt['invoiceno'], $enddate);
                 }
 
-
                 //  $recps=array_unique($receiptsdetails);
                 // $paidamount = 0;
                 foreach ($receipts as $value) {
-
                   //  echo $value['recpno'] . '#';
                     $paidamount += $value['receiptpaidamount'];
                 }
 
-
-           
-              
                 $balance = $receipts[0]['chargeables'][0]['amount'];
-     
+                
                 echo '<td>'. number_format($paidamount,2).'</td>';
                 array_push($paidamounts, $paidamount);
               
@@ -359,7 +351,7 @@ a.export, a.export:visited {
                     <b>' . number_format($total_invoices,2) . '</b></td>'
                     ;
             // echo '<td></td>';
-             foreach ($chargeables as $value) {
+             foreach ( $chargable_total as $value) {
                  echo '<td></td>';
              }
         

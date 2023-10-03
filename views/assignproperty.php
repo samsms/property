@@ -311,7 +311,6 @@ if (isset($_GET['unassign'])) {
     <div class="col-lg-3 d-flex justify-content-end">
      
       <input type='hidden' name='unassign' value='unasign'/>
-      <button type='button' class='btn btn-danger' onclick='unassignSelectedProperties()'>Unassign Selected</button>
       </div>
     </div>
   </div>
@@ -320,6 +319,8 @@ if (isset($_GET['unassign'])) {
  
   
   <form method="post" action="" id="unassign-form" onsubmit="return false">
+  <button type='button' class='btn btn-danger' onclick='unassignSelectedProperties()'>Unassign Selected</button>
+
     <?php
       // Display agent propertiess
       if ($agentPropertiesResult->num_rows > 0) {
