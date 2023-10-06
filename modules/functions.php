@@ -5719,49 +5719,50 @@ function getlistChargeables($startdate, $enddate, $accid, $accname, $propid, $us
     $tablename2 = "tenants";
     $mysqli = getMysqliConnection();
 
-    $resultset = $mysqli->query("SELECT
-        invoices.idno,
-        invoiceitems.item_name,
-        SUM(invoiceitems.amount) AS TotalAmount
-        FROM invoiceitems
-        INNER JOIN invoices ON invoiceitems.invoiceno = invoices.invoiceno
-        WHERE $invoicetable.invoicedate BETWEEN '$startdate' AND '$enddate'
-            AND $invoicetable.is_penalty = 0
-            AND $invoicetable.revsd = 0
-            AND $invoicetable.property_id = '$propid'
-        GROUP BY invoices.idno, invoiceitems.item_name;
+    // Define an array of all possible item names
+    $allPossibleItems = array("penalty", "rent", "vat", "water"); // Add more items as needed
+
+    $resultset = $mysqli->query("SELECT invoices.idno, all_items.item_name, COALESCE(SUM(invoiceitems.amount), 0) AS TotalAmount
+    FROM (
+        SELECT DISTINCT item_name FROM invoiceitems
+    ) all_items
+    CROSS JOIN invoices
+    LEFT JOIN invoiceitems ON all_items.item_name = invoiceitems.item_name AND invoiceitems.invoiceno = invoices.invoiceno
+    WHERE invoices.invoicedate BETWEEN '2023-10-01' AND '2023-10-31' AND invoices.revsd = 0 AND invoices.property_id = '976'
+    GROUP BY invoices.idno, all_items.item_name
     ");
 
     $data = array();
     $maxItemCount = 0;
 
     while ($row = $resultset->fetch_assoc()) {
-        $data[$row['idno']][strtolower($row['item_name'])] = $row;
-
-        $currentItemCount = count($data[$row['idno']]);
-        if ($currentItemCount > $maxItemCount) {
-            $maxItemCount = $currentItemCount;
-        }
+    //    $data[strtolower($row['item_name'])]=$row;
+       $data[strtolower($row['idno'])][strtolower($row['item_name'])]=$row;
     }
+   // die(json_encode($data));
+    
+   $it = array();
 
-    $it = array();
-    foreach ($data as &$item) {
-        // Create a default item array with all items set to 0
-        $defaultItem = array_fill_keys(array_keys(reset($data)), 0);
-        $item = array_replace($defaultItem, $item);
-    }
-s
-    // Calculate the total amount for each item
-    foreach ($data as $item) {
-        foreach ($item as $itemName => $itemData) {
-            $it[$itemName]["item_name"] = $itemName;
-            if (!isset($it[$itemName]['amount'])) {
-                $it[$itemName]['amount'] = 0;
-            }
-            $it[$itemName]['amount'] += $itemData['TotalAmount'];
-        }
-    }
-
+   // Calculate the total amount for each item
+   foreach ($data as $k => $item) {
+       foreach ($item as $key => $value) {
+           $key = strtolower($key); // Convert the key to lowercase
+           if (!isset($it[$key])) {
+               $it[$key] = 0; // Initialize the sum for this key if it doesn't exist
+           }
+           $it[$key] += $value["TotalAmount"]; // Add the TotalAmount to the existing sum
+       }
+   }
+   
+    $it = array_filter($it, function ($value) {
+        return $value != 0;
+    });
+    
+    
+    $rentValue = $it['rent'];
+unset($it['rent']);
+$it = ['rent' => $rentValue] + $it;
+//die(json_encode($it));
     $data['totals_column'] = $it;
 
     // Uncomment the following line for debugging if needed

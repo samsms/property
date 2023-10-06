@@ -174,6 +174,7 @@ a.export, a.export:visited {
         $invoice_amount = array();
         $commissionamounts = array();
         $chargeables =  getChargeItems($propid);
+        $arreas=0;
        // die(json_encode($chargeables));
         // die();
         //$chargeablescount = count($chargeables);
@@ -211,10 +212,10 @@ a.export, a.export:visited {
             }
             $chargable_total=array();
         //    die(json_encode($chargeables_list['totals_column'] ));
-          
+        //  echo"<td></td>";
             foreach($chargeables_list['totals_column'] as $key=>$charge){                          
                 // $chargable_total[$chargable['item_name']][]=$chargable['TotalAmount'];
-                  echo( "<td>".(($key))."</td>");
+                  echo( "<td>".strtoupper(($key))."</td>");
                   //exit;             
               }
               //die(json_encode($chargable_total));
@@ -227,7 +228,7 @@ a.export, a.export:visited {
             //     }
             //     break;
             //   }
-            echo '<td>BFF</td><td>Total Payable</td><td>Total Paid</td> </u></tr></thead>';
+            echo '<td>ARREAS</td><td>Total Payable</td><td>Total Paid</td> </u></tr></thead>';
             echo '<tbody><tr>';
 
             $count = 1;
@@ -267,19 +268,24 @@ a.export, a.export:visited {
                 }
                 $receipts = getreceiptlistTenant($startdate, $enddate, $accid, $accname, $propid, $tenantdetails['Id']);
                
-    
-                foreach($chargeables_list["$tenantid"] as $chargable){
-                echo "<td>".json_encode($chargeables_list["$tenantid"] )."</td>";
-                 
-                }    
+               // echo"<td></td>";
+                // foreach($chargeables_list["$tenantid"] as $chargable){
 
-                if($chargeables_list["$tenantid"]==null){
-                    $countitems = count($itemnames);
-                    for($i=0;$i<$countitems;$i++){
-                        echo "<td></td>";                      
-                    }
+                // echo "<td>".number_format($chargable["TotalAmount"])."</td>";
+                 
+            
+                // }
+                foreach($chargeables_list['totals_column'] as $key=>$charge){                          
+                    // $chargable_total[$chargable['item_name']][]=$chargable['TotalAmount'];
+                  
+                        echo"<td>".number_format($chargeables_list["$tenantid"][$key]["TotalAmount"],0) ."</td>";
+                  
                      
-                }
+                      //exit;             
+                  }
+                    
+        
+              
                
                 $countitems = count($itemnames);               
 
@@ -292,6 +298,7 @@ a.export, a.export:visited {
                     $thismontinvoice=$expected_rent1["$tenantid"]['Tinvoice'];
                     $prev_invoice= $tenant_invoice['Tinvoice'];
                     $prev_invoice= $tenant_invoice['TAmount'];
+                    $arreas+=($balanceminuslastrentinvoice- $prev_invoice);
                 echo "<td>".($balanceminuslastrentinvoice- $prev_invoice)."</td>";
                 echo '</td><td>' . number_format($balanceminuslastrentinvoice,2). '</td>' ;
                 foreach ($receipts as $singlereceipt) {
@@ -351,13 +358,17 @@ a.export, a.export:visited {
                     <b>' . number_format($total_invoices,2) . '</b></td>'
                     ;
             // echo '<td></td>';
-             foreach ( $chargable_total as $value) {
-                 echo '<td></td>';
-             }
-        
+            unset($chargeables_list['totals_column']["rent"] );
+            foreach($chargeables_list['totals_column'] as $key=>$charge){                          
+                // $chargable_total[$chargable['item_name']][]=$chargable['TotalAmount'];
+                  echo( "<td><b>".number_format(($charge),2)."</b></td>");
+                  //exit;             
+              }
             //total commission
             $comm = $commissionamount = getPropertyCommissionRate($propid) * $total_invoices / 100;
             // array_sum($watchmantotal)
+            echo '<td><b>' . number_format(($arreas), 2) . '</b></td>';
+
             echo '<td><b>' . number_format(($balanceremain), 2) . '</b></td>';
             echo '<td><b>' . number_format(array_sum($paidamounts), 2) . '</b></td></tr>'; //<td></td><td><b>' .  number_format($comm, 2) . '</b></td></tr>';
             echo '<tr><td><b>Other Chargables</b></td><td></td><td></td><td></td><td><b>' .  number_format(($total_rent - $total_invoices),2) . '</b></td></tr>';

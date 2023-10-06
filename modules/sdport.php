@@ -154,7 +154,6 @@ if ($reportpost === 'tenantlist') {
     $depositamounts = array();
     $commissionamounts = array();
     $chargeables = getChargeItems($propid);
-    print_r($chargeables);
     $chargeablescount = count($chargeables);
     $landlordchargeitems = array('rent', 'watchman', 'security', 'vat', 'garbage'); //'water','deposit','rent_deposit'
 //$invoices=getinvoicelistChargeables($startdate,$enddate,$_REQUEST['accid'],$_REQUEST['accname'],$_REQUEST['propid'],$_SESSION['username']);
