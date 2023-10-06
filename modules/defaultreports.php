@@ -201,7 +201,7 @@ a.export, a.export:visited {
              '</span><br/><span style="font-size:12px;font-weight:normal;float:right">' . str_repeat('&nbsp;', 25) . 'Statement From <b> ' . date('d-m-Y', strtotime($startdate)) . '</b>  To  <b>' . date('d-m-Y', strtotime($enddate)) . '</b></span><center></tr>';
 
             echo '<tr>
-            <u><td>S/no</td>
+            <u><td width="50px">S/no</td>
             <td>House</td>
             <td colspan="2">Name</td>';
             foreach ($invoices as $value) {
@@ -278,7 +278,7 @@ a.export, a.export:visited {
                 foreach($chargeables_list['totals_column'] as $key=>$charge){                          
                     // $chargable_total[$chargable['item_name']][]=$chargable['TotalAmount'];
                   
-                        echo"<td>".number_format($chargeables_list["$tenantid"][$key]["TotalAmount"],0) ."</td>";
+                        echo"<td>".number_format($chargeables_list["$tenantid"][$key]["TotalAmount"],1) ."</td>";
                   
                      
                       //exit;             
@@ -290,7 +290,7 @@ a.export, a.export:visited {
                 $countitems = count($itemnames);               
 
                 //bbf
-                $balanceminuslastrentinvoice = getInvoiceBalanceByDate($tenantdetails['Id']);// - $rentbalance;
+                $balanceminuslastrentinvoice = getInvoiceBalanceByDate($tenantdetails['Id'],$startdate,$enddate);// - $rentbalance;
             //    if ($balanceminuslastrentinvoice < 0) {
             //        $balanceminuslastrentinvoice = $balanceminuslastrentinvoice-$balanceminuslastrentinvoice;
             //    }
@@ -299,8 +299,8 @@ a.export, a.export:visited {
                     $prev_invoice= $tenant_invoice['Tinvoice'];
                     $prev_invoice= $tenant_invoice['TAmount'];
                     $arreas+=($balanceminuslastrentinvoice- $prev_invoice);
-                echo "<td>".($balanceminuslastrentinvoice- $prev_invoice)."</td>";
-                echo '</td><td>' . number_format($balanceminuslastrentinvoice,2). '</td>' ;
+                echo "<td>".number_format(($balanceminuslastrentinvoice- $prev_invoice),1)."</td>";
+                echo '</td><td>' . number_format($balanceminuslastrentinvoice,1). '</td>' ;
                 foreach ($receipts as $singlereceipt) {
                     $receiptsdetails[] = getReceiptsFromInvoice($singlereceipt['invoiceno'], $enddate);
                 }
@@ -314,7 +314,7 @@ a.export, a.export:visited {
 
                 $balance = $receipts[0]['chargeables'][0]['amount'];
                 
-                echo '<td>'. number_format($paidamount,2).'</td>';
+                echo '<td>'. number_format($paidamount,1).'</td>';
                 array_push($paidamounts, $paidamount);
               
                 // '<td>'.number_format($receipts[0]['chargeables']['paidamount'] ,2).'</td>'.
@@ -353,8 +353,8 @@ a.export, a.export:visited {
                     </style> ";
             echo '<tfoot>       
                     <tr class="line-top">
-                    <td><b>TOTAL Rent Payable</b></td>
-                    <td></td><td></td><td></td><td>
+                    <td colspan="3"><b>TOTAL Rent Payable</b></td>
+                   <td></td><td>
                     <b>' . number_format($total_invoices,2) . '</b></td>'
                     ;
             // echo '<td></td>';
@@ -385,13 +385,13 @@ a.export, a.export:visited {
                 $houses .= $dt->apt_tag;
                
             }
-            echo '<tr><td><b>Total Amount</b></td><td></td><td></td><td></td><td><b>' .  number_format($total_rent,2) . '</b></td></tr>';
+            echo '<tr><td colspan="3"><b>Total Amount</b></td><td></td><td><b>' .  number_format($total_rent,2) . '</b></td></tr>';
             echo '<tr>
             
-            <td><b>Prepayments</b></td><td><td></td><td></td><td><b>' . number_format( $prep,2) . '</b></td><td colspan="3">' . $houses . '
+            <td colspan="3"><b>Prepayments</b><td></td><td><b>' . number_format( $prep,2) . '</b></td><td colspan="3">' . $houses . '
             </tr>';
             
-            echo '<tr><td><b>Loan </b></td><td></td><td></td><td></td><td><b>' . loanPaid($propid, $startdate, $enddate) . '</b></td></tr>';
+            echo '<tr><td colspan="3"><b>Loan </b></td><td></td><td><b>' . loanPaid($propid, $startdate, $enddate) . '</b></td></tr>';
             $totalcollected = $total_rent;
             
             //extract commission
@@ -400,11 +400,11 @@ a.export, a.export:visited {
             //expenses
             $expenses = getPaymentsForProperty(array('propid' => $propid, 'startdate' => $startdate, 'enddate' => $enddate, 'count' => 1));
             $totalbill = array();
-            echo '<tr><td><b>Less&nbsp;' . number_format($commissiondetail[0]['commission'],2) . '%&nbsp; Commission</b></td>';
+            echo '<tr><td colspan="3"><b>Less&nbsp;' . number_format($commissiondetail[0]['commission'],2) . '%&nbsp; Commission</b></td>';
             $lesscommission = $totalminuswatchman - $comm;
             $vat = getVAT("housevat");
             $lessvat = 0; //  round(($vat*$comm)/100,2);
-            echo '<td></td><td></td><td></td><td><b>' . number_format($lesscommission, 2) . '</b></td></tr>';
+            echo '<td></td><td><b>' . number_format($lesscommission, 2) . '</b></td></tr>';
  
             foreach ($expenses as $expense => $value) {
                 array_push($totalbill, $value['billpaid']);
@@ -415,9 +415,9 @@ a.export, a.export:visited {
                 echo '<td><b>' . number_format($value['billpaid'], 2) . '</b></td></tr>';
             }
             $banked = $totalcollected - ($comm + array_sum($totalbill) + $prep + loanPaid($propid, $startdate, $enddate) + $lessvat);
-            echo '<tr><td><b> Landlord Amount</b>'; // . str_repeat('<td></td>', 9);
+            echo '<tr><td colspan="3"><b> Landlord Amount</b>'; // . str_repeat('<td></td>', 9);
 
-            echo '<td></td><td></td><td></td><td><b>' . number_format($banked, 2) . '</b></td></tr>';
+            echo '<td></td><td><b>' . number_format($banked, 2) . '</b></td></tr>';
 
             $payments = getLandLordPaidAmountsForMonth($todate->format("Y-m"), $propid);
             $paidamounts = 0;
@@ -425,12 +425,12 @@ a.export, a.export:visited {
                 $paidamounts = $paidamounts + $payment["amount"];
                 }
                 if($paidamounts>0){
-                    echo '<tr><td><b> Paid to Landlord B/Ac</b><td></td><td></td><td></td><td><b>' . number_format($paidamounts, 2) . '</b></tr>';
+                    echo '<tr><td colspan="3"><b> Paid to Landlord B/Ac</b><td></td><td><b>' . number_format($paidamounts, 2) . '</b></tr>';
            
                 }
             
-            echo '<tr><td><b>Balance as at end of ' . $todate->format("m-Y") . ' </b>'; 
-            echo '<td></td><td></td><td></td><td><b>' . number_format($banked - $paidamounts, 2) . '</b></td> </tr>';
+            echo '<tr><td colspan="3"><b>Balance as at end of ' . $todate->format("m-Y") . ' </b>'; 
+            echo '<td></td><td><b>' . number_format($banked - $paidamounts, 2) . '</b></td> </tr>';
             echo '</tfoot></table>';
             ?>
         </div>

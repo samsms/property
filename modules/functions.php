@@ -5573,13 +5573,13 @@ function myarraysum($array)
 function getLatestInvoiceTenant($id)
 {
 }
-function getInvoiceBalanceByDate($idno)
+function getInvoiceBalanceByDate($idno,$startdate,$enddate)
 {
     $tablename = getInvoiceTable();
     $balances = array();
     $mysqli = getMysqliConnection();
     //get balance for a tenant where invoice has not been reversed
-    $res = $mysqli->query("SELECT (amount-paidamount) as balance  FROM {$tablename} WHERE idno='$idno' AND revsd=0 ") or die($mysqli->error);
+    $res = $mysqli->query("SELECT (amount-paidamount) as balance  FROM {$tablename} WHERE idno='$idno' and ({$tablename}.invoicedate <='$enddate' )AND revsd=0 ") or die($mysqli->error);
     while ($row = $res->fetch_assoc()) {
         array_push($balances, $row['balance']);
     }
@@ -5728,7 +5728,7 @@ function getlistChargeables($startdate, $enddate, $accid, $accname, $propid, $us
     ) all_items
     CROSS JOIN invoices
     LEFT JOIN invoiceitems ON all_items.item_name = invoiceitems.item_name AND invoiceitems.invoiceno = invoices.invoiceno
-    WHERE invoices.invoicedate BETWEEN '2023-10-01' AND '2023-10-31' AND invoices.revsd = 0 AND invoices.property_id = '976'
+    WHERE invoices.invoicedate BETWEEN '$startdate' AND '$enddate' AND invoices.revsd = 0 AND invoices.property_id = '$propid'
     GROUP BY invoices.idno, all_items.item_name
     ");
 
